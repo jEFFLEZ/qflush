@@ -19,6 +19,11 @@ PowerShell one-liner (if installer hosted):
 iwr -useb https://raw.githubusercontent.com/jEFFLEZ/qflash/main/installers/install-qflash.ps1 | iex
 ```
 
+## Commercial license
+
+To purchase a commercial license for FCL:
+https://cellaurojeff.gumroad.com/l/jxktq
+
 ## Commands
 
 - `qflash start`      → launch ecosystem (rome, nezlephant, envaptex, freeland, bat)

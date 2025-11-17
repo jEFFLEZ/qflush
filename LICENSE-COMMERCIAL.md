@@ -26,3 +26,6 @@ Prohibited:
 ✗ Publishing a competing FCL alternative
 
 Contact: licensing@funesterie.me
+
+To purchase a commercial license for FCL:
+https://cellaurojeff.gumroad.com/l/jxktq

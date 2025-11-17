@@ -41,6 +41,9 @@ FCL is designed to be:
 Personal usage is free.  
 Commercial usage requires a Funesterie™ Commercial License.
 
+To purchase a commercial license for FCL:
+https://cellaurojeff.gumroad.com/l/jxktq
+
 See:
 - LICENSE-FUNESTERIE.txt
 - LICENSE-NON-COMMERCIAL.md
