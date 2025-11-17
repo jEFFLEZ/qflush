@@ -1,6 +1,6 @@
 import { detectModules } from "../utils/detect";
 import { logger } from "../utils/logger";
-import { spawnSafe, ensurePackageInstalled } from "../utils/exec";
+import { spawnSafe, ensurePackageInstalled, pathExists, rebuildInstructionsFor } from "../utils/exec";
 import { resolvePaths, SERVICE_MAP } from "../utils/paths";
 import { QFlashOptions } from "../chain/smartChain";
 import { resolvePackagePath, readPackageJson } from "../utils/package";
@@ -51,8 +51,19 @@ export async function runStart(opts?: QFlashOptions) {
       if (pkgJson && pkgJson.bin) {
         const binEntry = typeof pkgJson.bin === "string" ? pkgJson.bin : Object.values(pkgJson.bin)[0];
         const binPath = require("path").join(pkgPath, binEntry);
-        runCmd = { cmd: binPath, args: [], cwd: pkgPath };
+
+        // prefer running via node when bin is a JS file inside package
+        if (binPath.endsWith(".js") && pathExists(binPath)) {
+          runCmd = { cmd: process.execPath, args: [binPath], cwd: pkgPath };
+        } else if (pathExists(binPath)) {
+          runCmd = { cmd: binPath, args: [], cwd: pkgPath };
+        } else {
+          logger.warn(`${mod} bin entry not found at ${binPath}. ${rebuildInstructionsFor(pkgPath)}`);
+          return;
+        }
       } else if (pkg) {
+        // fallback to npx but warn about potential npx execution failures
+        logger.warn(`${mod} has no local bin; will run via npx which may fail if package not globally installed.`);
         runCmd = { cmd: "npx", args: [pkg], cwd: process.cwd() };
       }
 

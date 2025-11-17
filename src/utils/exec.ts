@@ -47,3 +47,13 @@ export function ensurePackageInstalled(pkgName: string) {
     return false;
   }
 }
+
+// Helpers for CLI pre-launch checks
+export function pathExists(pathStr: string) {
+  return !!pathStr && existsSync(pathStr);
+}
+
+export function rebuildInstructionsFor(pkgPath?: string) {
+  if (!pkgPath) return `Rebuild the package (cd <pkg> && npm install && npm run build && npm install -g .)`;
+  return `Rebuild the package:\n  cd ${pkgPath}\n  npm install\n  npm run build\n  npm install -g .`;
+}
