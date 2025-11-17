@@ -1,5 +1,6 @@
 import fs from 'fs';
 import yaml from 'js-yaml';
+import { readFCL } from './fclParser';
 
 export type ModuleDef = {
   path?: string;
@@ -14,6 +15,18 @@ export type ComposeFile = {
 
 export function readCompose(file = 'funesterie.yml'): ComposeFile | null {
   try {
+    if (fs.existsSync('funesterie.fcl')) {
+      const fcl = readFCL('funesterie.fcl');
+      if (fcl && fcl.service) {
+        const modules: Record<string, ModuleDef> = {};
+        for (const k of Object.keys(fcl.service)) {
+          const s = fcl.service[k];
+          modules[k] = { path: s.path, port: s.port, token: s.token, env: s.env };
+        }
+        return { modules };
+      }
+    }
+    if (!fs.existsSync(file)) return null;
     const raw = fs.readFileSync(file, 'utf8');
     const doc = yaml.load(raw) as any;
     if (!doc || !doc.modules) return null;
