@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 // ROME-TAG: 0x1609C0
 
 import { existsSync } from "fs";
@@ -13,16 +14,33 @@ export const SERVICE_MAP: Record<string, { pkg: string; candidates: string[] }> 
   // placeholders for future projects
   a11: { pkg: "@funeste38/a11", candidates: ["./a11"] },
   spyder: { pkg: "@funeste38/spyder", candidates: ["./spyder"] },
+=======
+import { existsSync } from "fs";
+import { join } from "path";
+
+const CANDIDATES = {
+  a: ["./a", "./A"],
+  b: ["./b", "./B"],
+  c: ["./c", "./C"],
+>>>>>>> 9c20528 (chore(qflash): initial scaffold, smartchain, installers, CI)
 };
 
 export function resolvePaths(detected: any = {}) {
   const out: Record<string, string | undefined> = {};
+<<<<<<< HEAD
   for (const key of Object.keys(SERVICE_MAP)) {
+=======
+  for (const key of Object.keys(CANDIDATES)) {
+>>>>>>> 9c20528 (chore(qflash): initial scaffold, smartchain, installers, CI)
     if (detected && detected[key] && detected[key].path) {
       out[key] = detected[key].path;
       continue;
     }
+<<<<<<< HEAD
     const tries = SERVICE_MAP[key].candidates;
+=======
+    const tries = CANDIDATES[key as keyof typeof CANDIDATES];
+>>>>>>> 9c20528 (chore(qflash): initial scaffold, smartchain, installers, CI)
     for (const t of tries) {
       const p = join(process.cwd(), t);
       if (existsSync(p)) {

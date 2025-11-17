@@ -1,5 +1,8 @@
+<<<<<<< HEAD
 // ROME-TAG: 0xD439BD
 
+=======
+>>>>>>> 9c20528 (chore(qflash): initial scaffold, smartchain, installers, CI)
 import { randomBytes } from "crypto";
 
 export function generateToken(len = 24) {

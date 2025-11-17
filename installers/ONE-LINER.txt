@@ -1,5 +1,9 @@
 PowerShell one-liner (example):
 
+<<<<<<< HEAD
 iwr -useb https://funeste38.org/install-qflush.ps1 | iex
+=======
+iwr -useb https://funeste38.org/install-qflash.ps1 | iex
+>>>>>>> 9c20528 (chore(qflash): initial scaffold, smartchain, installers, CI)
 
 (This would download and execute the installer script hosted at the provided URL.)

@@ -1,8 +1,12 @@
+<<<<<<< HEAD
 ﻿# Publishing @qflush/qflush
 
 This document explains how to publish the `@qflush/qflush` package to npm and includes recommended `package.json` fields.
 
 NOTE: The public npm listing (package page) is currently under reconstruction. The package can still be published and installed via `npm install @qflush/qflush`, but the npm website display may be incomplete until the rebuild is finished.
+=======
+# Publishing @funeste38/qflash
+>>>>>>> 9c20528 (chore(qflash): initial scaffold, smartchain, installers, CI)
 
 Checklist before publishing:
 
@@ -15,6 +19,7 @@ Checklist before publishing:
 - If using `.npmignore`, ensure it does not exclude `dist`.
 - Confirm `prepare` script in `package.json` is present to auto-build on publish.
 
+<<<<<<< HEAD
 Recommended package.json fields:
 
 ```json
@@ -33,11 +38,18 @@ Publish steps:
 
 1. Login to npm: `npm login` (use account that owns `@qflush` scope)
 2. From project root `cd qflush`
+=======
+Publish steps:
+
+1. Login to npm: `npm login` (use account that owns `@funeste38` scope)
+2. From project root `cd qflash`
+>>>>>>> 9c20528 (chore(qflash): initial scaffold, smartchain, installers, CI)
 3. Build: `npm run build`
 4. Publish: `npm publish --access public`
 
 Testing globally without publishing:
 
+<<<<<<< HEAD
 - Link locally: `cd qflush && npm link`
 - Test: `qflush --help` or `qflush start` or `qflush checksum list`
 - Remove link: `npm unlink -g @qflush/qflush`
@@ -51,3 +63,15 @@ Troubleshooting:
 - If publish fails due to package name, ensure the scope `@qflush` exists and you have permission to publish under it.
 - If `dist` missing on publish, `prepare` should build, but check logs for errors.
 
+=======
+- Link locally: `cd qflash && npm link`
+- Test: `qflash --help` or `qflash start`
+- Remove link: `npm unlink -g @funeste38/qflash`
+
+Notes on 2FA:
+- If your npm account requires 2FA for publishing, you'll be prompted for the OTP.
+
+Troubleshooting:
+- If publish fails due to package name, ensure the scope `@funeste38` exists and you have permission.
+- If `dist` missing on publish, `prepare` should build, but check logs for errors.
+>>>>>>> 9c20528 (chore(qflash): initial scaffold, smartchain, installers, CI)

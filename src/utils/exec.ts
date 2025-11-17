@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 // ROME-TAG: 0xEB40C5
 
 import { spawn } from "child_process";
@@ -5,6 +6,11 @@ import { logger } from "./logger";
 import { unlinkSync, existsSync, rmSync } from "fs";
 import { execSync } from "child_process";
 
+=======
+import { spawn } from "child_process";
+import { logger } from "./logger";
+import { unlinkSync, existsSync, rmSync } from "fs";
+>>>>>>> 9c20528 (chore(qflash): initial scaffold, smartchain, installers, CI)
 export function spawnSafe(command: string, args: string[] = [], opts: any = {}) {
   try {
     const proc = spawn(command, args, { stdio: "inherit", shell: true, ...opts });
@@ -28,6 +34,7 @@ export function rimrafSync(path: string) {
     } catch {}
   }
 }
+<<<<<<< HEAD
 
 export function isPackageInstalled(pkgName: string) {
   try {
@@ -59,3 +66,5 @@ export function rebuildInstructionsFor(pkgPath?: string) {
   if (!pkgPath) return `Rebuild the package (cd <pkg> && npm install && npm run build && npm install -g .)`;
   return `Rebuild the package:\n  cd ${pkgPath}\n  npm install\n  npm run build\n  npm install -g .`;
 }
+=======
+>>>>>>> 9c20528 (chore(qflash): initial scaffold, smartchain, installers, CI)

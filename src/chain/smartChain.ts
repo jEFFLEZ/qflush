@@ -1,5 +1,8 @@
+<<<<<<< HEAD
 ﻿// ROME-TAG: 0x8CD4FC
 
+=======
+>>>>>>> 9c20528 (chore(qflash): initial scaffold, smartchain, installers, CI)
 import { logger } from "../utils/logger";
 import { runDetect } from "../commands/detect";
 import { runConfig } from "../commands/config";
@@ -10,7 +13,11 @@ import { runExodia } from "../commands/exodia";
 
 const ORDER = ["detect", "config", "purge", "kill", "start", "exodia"];
 
+<<<<<<< HEAD
 export type qflushOptions = {
+=======
+export type QFlashOptions = {
+>>>>>>> 9c20528 (chore(qflash): initial scaffold, smartchain, installers, CI)
   global?: Record<string, any>;
   modulePaths?: Record<string, string>;
   tokens?: Record<string, string>;
@@ -124,6 +131,7 @@ export function buildPipeline(argv: string[]) {
   }
   for (const k of Array.from(set)) addDeps(k);
 
+<<<<<<< HEAD
   let final: string[] = [];
 
   // Flag-driven transformations
@@ -138,6 +146,11 @@ export function buildPipeline(argv: string[]) {
 
   const requestedKill = known.includes("kill");
 
+=======
+  const requestedKill = known.includes("kill");
+
+  let final: string[] = [];
+>>>>>>> 9c20528 (chore(qflash): initial scaffold, smartchain, installers, CI)
   if (requestedKill) {
     // put kill first if user explicitly requested it
     final.push("kill");
@@ -155,11 +168,19 @@ export function buildPipeline(argv: string[]) {
   final = final.filter((v, i) => final.indexOf(v) === i);
 
   logger.info(`SmartChain built pipeline: ${final.join(" -> ")}`);
+<<<<<<< HEAD
   const options: qflushOptions = { global: {}, flags, modulePaths, tokens, services };
   return { pipeline: final, options };
 }
 
 export async function executePipeline(pipeline: string[], options: qflushOptions) {
+=======
+  const options: QFlashOptions = { global: {}, flags, modulePaths, tokens, services };
+  return { pipeline: final, options };
+}
+
+export async function executePipeline(pipeline: string[], options: QFlashOptions) {
+>>>>>>> 9c20528 (chore(qflash): initial scaffold, smartchain, installers, CI)
   for (const step of pipeline) {
     logger.info(`Executing pipeline step: ${step}`);
     switch (step) {
@@ -191,4 +212,7 @@ export async function executePipeline(pipeline: string[], options: qflushOptions
     }
   }
 }
+<<<<<<< HEAD
 
+=======
+>>>>>>> 9c20528 (chore(qflash): initial scaffold, smartchain, installers, CI)

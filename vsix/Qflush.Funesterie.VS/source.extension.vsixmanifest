@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PackageManifest xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" Version="2.0.0">
+  <Metadata>
+    <Identity Id="Qflush.Funesterie.VS" Version="1.0.0" Language="en-US" Publisher="Funesterie" />
+    <DisplayName>QFLUSH Studio</DisplayName>
+    <Description xml:space="preserve">Integrate QFLUSH into Visual Studio: menu command to launch the orchestrator.</Description>
+    <MoreInfo>https://github.com/jEFFLEZ/qflush</MoreInfo>
+  </Metadata>
+  <Installation>
+    <InstallationTarget Id="Microsoft.VisualStudio.Community" Version="[16.0, 18.0)" />
+  </Installation>
+  <Dependencies>
+    <Dependency Id="Microsoft.VisualStudio.Component.CoreEditor" DisplayName="Visual Studio core editor" Version="16.0" />
+  </Dependencies>
+</PackageManifest>
