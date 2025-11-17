@@ -8,7 +8,8 @@
     "strict": true,
     "esModuleInterop": true,
     "types": ["node"],
-    "typeRoots": ["./qflash/node_modules/@types", "./node_modules/@types"]
+    "typeRoots": ["./qflash/node_modules/@types", "./node_modules/@types"],
+    "moduleResolution": "node"
   },
   "include": ["qflash/src"]
 }
