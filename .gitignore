@@ -1,0 +1,24 @@
+# Node and build
+node_modules/
+dist/
+*.tgz
+npm-debug.log
+.DS_Store
+.env
+.qflash.local
+
+# VS/IDE
+.vs/
+.idea/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# npm
+package-lock.json
+.pnpm-debug.log
+
+# temp
+temp/
+*/temp/
