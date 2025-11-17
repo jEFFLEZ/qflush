@@ -2,19 +2,23 @@ THIRD-PARTY LICENSES AND NOTICES
 
 This project "@funeste38/qflash" includes third-party components that are
 licensed under their respective open-source licenses. For full license
-texts, see the packages under "node_modules" or the package's repository.
+texts, see the packages under "node_modules" or each package's repository.
 
-Required attribution and notices (example):
+Required attribution and notices:
 
-- @funeste38/envaptex ("envaptex")
-  Copyright (c) the original authors
+- "envapt"
+  Copyright (c) the original authors (materwelonDhruv and contributors)
   Licensed under the Apache License, Version 2.0
   https://www.apache.org/licenses/LICENSE-2.0
 
   Note: Apache-2.0 requires you to retain the license and copyright
-  notice when redistributing. If you bundle or redistribute envaptex
-  with qflash, include the envaptex LICENSE file (from node_modules)
-  in your distribution (for example: /licenses/envaptex-LICENSE.txt).
+  notice when redistributing. If you bundle or redistribute envapt
+  with qflash, include the envapt LICENSE file (from node_modules/envapt)
+  in your distribution (for example: /licenses/envapt-LICENSE.txt).
+
+- @funeste38/envaptex
+  Copyright (c) the original authors
+  License: see node_modules/@funeste38/envaptex/package.json (include its LICENSE)
 
 - @funeste38/rome
   Copyright (c) the original authors
@@ -35,17 +39,13 @@ Required attribution and notices (example):
 RECOMMENDATION FOR DISTRIBUTION
 
 - Include a directory `/licenses/` in your distributed package and
-  copy each third-party LICENSE file there (e.g. `/licenses/envaptex-LICENSE.txt`).
+  copy each third-party LICENSE file there (e.g. `/licenses/envapt-LICENSE.txt`).
 - Add a short "Third-party notices" section in your README linking to
   that directory and listing the components used.
 - Do NOT remove or alter any copyright or license headers present in
   source files that you redistribute unchanged.
 
-SAMPLE NOTICE (copy into README or about screen):
+SAMPLE NOTICE (for README or About screen):
 
-  This software includes components from "envaptex" (Apache License 2.0).
-  See /licenses/envaptex-LICENSE.txt and https://www.apache.org/licenses/LICENSE-2.0
-
-If you want, I can copy the actual LICENSE files from node_modules into
-`qflash/licenses/` and create a concise `THIRD_PARTY_LICENSES.txt` that
-lists each LICENSE file for distribution. Reply "copy" to proceed.
+  This software includes components from "envapt" (Apache License 2.0).
+  See /licenses/envapt-LICENSE.txt and https://www.apache.org/licenses/LICENSE-2.0
