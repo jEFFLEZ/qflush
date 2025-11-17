@@ -1,0 +1,12 @@
+[Unit]
+Description=QFlash Daemon
+After=network.target
+
+[Service]
+Type=simple
+User=%i
+ExecStart=/usr/bin/env node /opt/qflash/dist/daemon/qflashd.js
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
