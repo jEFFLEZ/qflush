@@ -22,3 +22,9 @@ package-lock.json
 # temp
 temp/
 */temp/
+
+# VSCode extension build
+extensions/vscode-npz/out/
+
+# local nested repo / artifacts
+qflash/
