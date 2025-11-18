@@ -1,6 +1,8 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
+import * as http from 'http';
+import * as https from 'https';
 
 const TRIAL_DAYS = 14;
 
@@ -14,6 +16,45 @@ function isTrialExpired(context: vscode.ExtensionContext): boolean {
 function ensureTrialStarted(context: vscode.ExtensionContext) {
   const started = context.globalState.get<number>('qflash.trialStarted');
   if (!started) context.globalState.update('qflash.trialStarted', Date.now());
+}
+
+function postJson(urlStr: string, body: any): Promise<any> {
+  return new Promise((resolve, reject) => {
+    try {
+      const url = new URL(urlStr);
+      const data = JSON.stringify(body || {});
+      const opts: any = {
+        hostname: url.hostname,
+        port: url.port || (url.protocol === 'https:' ? 443 : 80),
+        path: url.pathname + (url.search || ''),
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Content-Length': Buffer.byteLength(data),
+        },
+      };
+      const lib = url.protocol === 'https:' ? https : http;
+      const req = lib.request(opts, (res) => {
+        let raw = '';
+        res.setEncoding('utf8');
+        res.on('data', (chunk) => (raw += chunk));
+        res.on('end', () => {
+          try {
+            const parsed = raw ? JSON.parse(raw) : {};
+            if (res.statusCode && res.statusCode >= 200 && res.statusCode < 300) resolve(parsed);
+            else reject(new Error(parsed && parsed.error ? parsed.error : `HTTP ${res.statusCode}`));
+          } catch (e) {
+            reject(e);
+          }
+        });
+      });
+      req.on('error', (err) => reject(err));
+      req.write(data);
+      req.end();
+    } catch (e) {
+      reject(e);
+    }
+  });
 }
 
 export function activate(context: vscode.ExtensionContext) {
@@ -73,9 +114,23 @@ export function activate(context: vscode.ExtensionContext) {
   const enterLicense = vscode.commands.registerCommand('qflash.enterLicense', async () => {
     const key = await vscode.window.showInputBox({ prompt: 'Enter your QFlash license key' });
     if (!key) return;
-    // Placeholder: call CLI or backend to verify key and save locally
-    // Example: call `qflash license activate <key>` if CLI exposes it
-    vscode.window.showInformationMessage('License received. Activation must be performed via the qflash daemon.');
+
+    const cfg = vscode.workspace.getConfiguration('qflash');
+    const daemonUrl = cfg.get<string>('daemonUrl') || 'http://localhost:4500';
+    const activateUrl = `${daemonUrl.replace(/\/$/, '')}/license/activate`;
+
+    const progressOptions: vscode.ProgressOptions = { location: vscode.ProgressLocation.Notification, title: 'Activating QFlash license...', cancellable: false };
+    try {
+      await vscode.window.withProgress(progressOptions, async () => {
+        const res = await postJson(activateUrl, { key });
+        // store license info locally in extension globalState
+        await context.globalState.update('qflash.licenseKey', key);
+        await context.globalState.update('qflash.licenseInfo', res.license || res);
+        vscode.window.showInformationMessage('License activated successfully. Thanks!');
+      });
+    } catch (err: any) {
+      vscode.window.showErrorMessage(`License activation failed: ${err && err.message ? err.message : String(err)}`);
+    }
   });
 
   context.subscriptions.push(openDisposable, enterLicense);
