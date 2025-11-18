@@ -1,6 +1,6 @@
 {
   "name": "@funeste38/qflash",
-  "version": "0.1.5",
+  "version": "2.0.0",
   "description": "Funesterie orchestrator: start, stop, purge, inspect, combine modules.",
   "bin": {
     "qflash": "dist/index.js"
@@ -35,24 +35,23 @@
   "author": "funeste38",
   "license": "SEE LICENSE IN LICENSE-FUNESTERIE.txt",
   "dependencies": {
+    "@funeste38/rome": "latest",
+    "@funeste38/nezlephant": "latest",
+    "@funeste38/freeland": "latest",
     "@funeste38/bat": "latest",
     "@funeste38/envaptex": "latest",
-    "@funeste38/freeland": "latest",
-    "@funeste38/nezlephant": "latest",
-    "@funeste38/rome": "latest",
-    "cookie-parser": "^1.4.7",
-    "express": "^4.18.2",
-    "ioredis": "^5.3.2",
     "js-yaml": "^4.1.0",
-    "prom-client": "^14.0.1",
     "tail": "^2.2.4",
-    "uuid": "^9.0.0"
+    "express": "^4.18.2",
+    "uuid": "^9.0.0",
+    "ioredis": "^5.3.2",
+    "prom-client": "^14.0.1"
   },
   "devDependencies": {
-    "@types/express": "^4.17.17",
-    "@types/node": "^20.0.0",
-    "@types/uuid": "^9.0.0",
+    "typescript": "^5.9.3",
     "ts-node": "^10.9.2",
-    "typescript": "^5.9.3"
+    "@types/node": "^20.0.0",
+    "@types/express": "^4.17.17",
+    "@types/uuid": "^9.0.0"
   }
 }
