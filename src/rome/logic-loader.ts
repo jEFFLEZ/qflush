@@ -1,6 +1,6 @@
 import * as path from 'path';
 import * as fs from 'fs';
-import { parseLogicFile, LogicRule } from './logic-parser';
+import { parseLogicFile, LogicRule, evaluateConditionExpr, buildConditionAst, evaluateConditionExprAST } from './logic-parser';
 import { RomeIndex, RomeTagRecord } from './rome-tag';
 
 const LOGIC_PATH = path.join(process.cwd(), '.qflush', 'logic.qfl');
@@ -18,39 +18,30 @@ export function loadLogicRules(): LogicRule[] {
   return rules;
 }
 
-export function evaluateRulesForRecord(index: RomeIndex, rec: RomeTagRecord, changedPaths: string[] = []): string[] {
-  // naive evaluator: evaluate 'when' expression via simple string checks
-  const matched: string[] = [];
+export function evaluateRulesForRecord(index: RomeIndex, rec: RomeTagRecord, changedPaths: string[] = []) {
+  const matched: { rule: string; actions: string[] }[] = [];
   for (const r of rules) {
-    const cond = r.when;
-    let ok = true;
-    const parts = cond.split('and').map(s=>s.trim());
-    for (const p of parts) {
-      if (p.includes('file.type ==')) {
-        const exp = p.split('==')[1].trim().replace(/\"/g,'');
-        if (rec.type !== exp) ok = false;
-      }
-      if (p.includes('file.tagChanged')) {
-        // tagChanged: true if this rec.path is in changedPaths
-        const isChanged = changedPaths.includes(rec.path);
-        if (!isChanged) ok = false;
-      }
-      if (p.includes('rome.index.updated')) {
-        // match if changedPaths non-empty
-        if (!changedPaths || changedPaths.length === 0) ok = false;
-      }
+    const cond = r.when || '';
+    // build AST and evaluate with context
+    try {
+      const ast = buildConditionAst(cond);
+      const ctx = { file: rec, romeIndexUpdated: (changedPaths && changedPaths.length>0) };
+      const ok = evaluateConditionExprAST(ast, ctx);
+      if (ok) matched.push({ rule: r.name, actions: [r.do] });
+    } catch (e) {
+      // ignore
     }
-    if (ok) matched.push(r.do);
   }
   return matched;
 }
 
 export function evaluateAllRules(index: RomeIndex, changedPaths: string[] = []) {
-  const actions: { path: string; actions: string[] }[] = [];
+  const actions: { path: string; actions: string[]; rule: string }[] = [];
   for (const rec of Object.values(index)) {
     const a = evaluateRulesForRecord(index, rec as any, changedPaths);
-    if (a.length) actions.push({ path: rec.path, actions: a });
+    for (const m of a) actions.push({ path: (rec as any).path, actions: m.actions, rule: m.rule });
   }
+  // sort by rule priority if available
   return actions;
 }
 

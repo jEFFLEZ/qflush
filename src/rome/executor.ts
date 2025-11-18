@@ -1,8 +1,8 @@
 import { spawn } from 'child_process';
-import { promisify } from 'util';
 import * as fs from 'fs';
 import * as path from 'path';
 import fetch from 'node-fetch';
+import { saveEngineHistory } from './storage';
 
 const DEFAULT_CFG = { allowedCommandSubstrings: ['npm','node','echo'], allowedCommands: ['echo hello','npm run build'], commandTimeoutMs: 15000, webhookUrl: '' };
 
@@ -16,7 +16,6 @@ function loadConfig() {
 
 function spawnCommand(cmd: string, cwd: string, timeoutMs: number): Promise<{ code: number | null; stdout: string; stderr: string }> {
   return new Promise((resolve) => {
-    // use shell=true to allow shell built-ins like echo on Windows
     const child = spawn(cmd, { cwd, env: process.env, shell: true });
     let out = '';
     let err = '';
@@ -27,6 +26,22 @@ function spawnCommand(cmd: string, cwd: string, timeoutMs: number): Promise<{ co
     child.on('close', (code) => { if (!finished) { finished = true; clearTimeout(to); resolve({ code, stdout: out, stderr: err }); } });
     child.on('error', (e) => { if (!finished) { finished = true; clearTimeout(to); resolve({ code: 1, stdout: out, stderr: String(e) }); } });
   });
+}
+
+function writeNpzMetadata(record: any) {
+  try {
+    const dir = path.join(process.cwd(), '.qflush', 'npz');
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    const idxPath = path.join(dir, 'index.json');
+    let idx: any = {};
+    if (fs.existsSync(idxPath)) {
+      try { idx = JSON.parse(fs.readFileSync(idxPath, 'utf8') || '{}'); } catch { idx = {}; }
+    }
+    idx[record.id] = record;
+    fs.writeFileSync(idxPath, JSON.stringify(idx, null, 2), 'utf8');
+  } catch (e) {
+    // ignore
+  }
 }
 
 export async function executeAction(action: string, ctx: any = {}): Promise<any> {
@@ -48,6 +63,10 @@ export async function executeAction(action: string, ctx: any = {}): Promise<any>
       const ok = cfg.allowedCommandSubstrings.some((s: string) => cmd.includes(s));
       if (!ok) return { success: false, error: 'command not allowed by policy' };
 
+      if (ctx.dryRun) {
+        return { success: true, dryRun: true, cmd };
+      }
+
       const result = await spawnCommand(cmd, dir, cfg.commandTimeoutMs || 15000);
       const res = { success: result.code === 0, stdout: result.stdout, stderr: result.stderr, code: result.code };
 
@@ -56,25 +75,37 @@ export async function executeAction(action: string, ctx: any = {}): Promise<any>
         try { await fetch(cfg.webhookUrl, { method: 'POST', body: JSON.stringify({ action: cmd, path: ctx.path || null, result: res }), headers: { 'Content-Type': 'application/json' } }); } catch (e) {}
       }
 
+      // persist execution history
+      try { saveEngineHistory('exec-'+Date.now(), Date.now(), ctx.path || '', cmd, res); } catch (e) {}
+
       return res;
     }
 
     if (action.startsWith('npz.encode')) {
-      // simulate producing an artifact id and write placeholder
       const filePath = ctx.path || 'unknown';
+      if (ctx.dryRun) {
+        return { success: true, dryRun: true, note: 'would encode ' + filePath };
+      }
       const id = 'npz-' + Math.random().toString(36).slice(2,10);
       const outDir = path.join(process.cwd(), '.qflush', 'npz');
       try { if (!fs.existsSync(outDir)) fs.mkdirSync(outDir, { recursive: true }); } catch (e) {}
-      const outFile = path.join(outDir, id + '.txt');
-      fs.writeFileSync(outFile, `encoded:${filePath}`,'utf8');
-      const res = { success: true, id, path: outFile };
+      const outFile = path.join(outDir, id + '.bin');
+      // write a simple placeholder binary (could be real encoding later)
+      try { fs.writeFileSync(outFile, Buffer.from(`encoded:${filePath}`)); } catch (e) {}
+
+      const metadata = { id, source: filePath, createdAt: new Date().toISOString(), path: outFile };
+      writeNpzMetadata(metadata);
+
+      const res = { success: true, id, path: outFile, metadata };
       if (cfg.webhookUrl) { try { await fetch(cfg.webhookUrl, { method: 'POST', body: JSON.stringify({ action: 'npz.encode', path: filePath, result: res }), headers: { 'Content-Type': 'application/json' } }); } catch (e) {} }
+      try { saveEngineHistory('npz-'+Date.now(), Date.now(), filePath, 'npz.encode', res); } catch (e) {}
       return res;
     }
 
     if (action.startsWith('daemon.reload')) {
       const res = { success: true, note: 'daemon.reload simulated' };
       if (cfg.webhookUrl) { try { await fetch(cfg.webhookUrl, { method: 'POST', body: JSON.stringify({ action: 'daemon.reload', result: res }), headers: { 'Content-Type': 'application/json' } }); } catch (e) {} }
+      try { saveEngineHistory('reload-'+Date.now(), Date.now(), ctx.path || '', 'daemon.reload', res); } catch (e) {}
       return res;
     }
 
