@@ -1,4 +1,8 @@
-# Publishing @funeste38/qflush
+# Publishing @qflash/qflush
+
+This document explains how to publish the `@qflash/qflush` package to npm and includes recommended `package.json` fields.
+
+NOTE: The public npm listing (package page) is currently under reconstruction. The package can still be published and installed via `npm install @qflash/qflush`, but the npm website display may be incomplete until the rebuild is finished.
 
 Checklist before publishing:
 
@@ -11,11 +15,23 @@ Checklist before publishing:
 - If using `.npmignore`, ensure it does not exclude `dist`.
 - Confirm `prepare` script in `package.json` is present to auto-build on publish.
 
-Note: New CLI `qflush checksum` is included in the package — ensure the daemon is available when testing checksum commands.
+Recommended package.json fields:
+
+```json
+{
+  "name": "@qflash/qflush",
+  "version": "0.0.0",
+  "description": "QFLUSH — The Funesterie Runtime System",
+  "main": "dist/index.js",
+  "bin": { "qflush": "dist/index.js" },
+  "files": ["dist", "README.md"],
+  "publishConfig": { "access": "public" }
+}
+```
 
 Publish steps:
 
-1. Login to npm: `npm login` (use account that owns `@funeste38` scope)
+1. Login to npm: `npm login` (use account that owns `@qflash` scope)
 2. From project root `cd qflush`
 3. Build: `npm run build`
 4. Publish: `npm publish --access public`
@@ -24,11 +40,13 @@ Testing globally without publishing:
 
 - Link locally: `cd qflush && npm link`
 - Test: `qflush --help` or `qflush start` or `qflush checksum list`
-- Remove link: `npm unlink -g @funeste38/qflush`
+- Remove link: `npm unlink -g @qflash/qflush`
 
 Notes on 2FA:
+
 - If your npm account requires 2FA for publishing, you'll be prompted for the OTP.
 
 Troubleshooting:
-- If publish fails due to package name, ensure the scope `@funeste38` exists and you have permission.
+
+- If publish fails due to package name, ensure the scope `@qflash` exists and you have permission to publish under it.
 - If `dist` missing on publish, `prepare` should build, but check logs for errors.
