@@ -4,15 +4,65 @@
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 NODE_CMD="${NODE:-node}"
 
+# simple ANSI colors (for coding semantics)
+C_RESET="\033[0m"
+C_GREEN="\033[32m"
+C_YELLOW="\033[33m"
+C_RED="\033[31m"
+C_BLUE="\033[34m"
+
+function color_print() {
+  local color="$1"; shift
+  echo -e "${color}$*${C_RESET}"
+}
+
 function run_in_cwd() {
   local cwd="$1"; shift
   if [ -z "$cwd" ]; then cwd="$DIR"; fi
-  pushd "$cwd" > /dev/null || exit 1
+  pushd "$cwd" > /dev/null || return 1
   "$@"
   local rc=$?
-  popd > /dev/null || exit 1
+  popd > /dev/null || return 1
   return $rc
 }
+
+# help
+if [ "$1" = "help" ] || [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+  color_print "$C_BLUE" "npz - qflash NPZ helper"
+  echo
+  color_print "$C_GREEN" "Usage: npz <command> [args]"
+  echo
+  echo "Commands (examples):"
+  color_print "$C_GREEN" "  npz run qflash" "\tStart the qflash pipeline or daemon"
+  color_print "$C_GREEN" "  npz ci --cwd <dir>" "\tRun npm ci in target directory (uses npm internally)"
+  color_print "$C_GREEN" "  npz install --cwd <dir>" "\tRun npm install --no-audit --no-fund"
+  color_print "$C_GREEN" "  npz build --cwd <dir>" "\tRun npm run build in target directory"
+  color_print "$C_GREEN" "  npz test --cwd <dir>" "\tRun npm test in target directory"
+  color_print "$C_GREEN" "  npz info" "\tShow NPZ namespace and local daemon status"
+  echo
+  color_print "$C_YELLOW" "Colors: green=ok yellow=warning red=error"
+  exit 0
+fi
+
+# info: show namespace (from Node util) and daemon status
+if [ "$1" = "info" ]; then
+  # namespace via node helper if available
+  NS="$(node -e 'try{const c=require("./dist/utils/npz-config").default; if(c && c.getNpzNamespace) console.log(c.getNpzNamespace()); }catch(e){}' 2>/dev/null)"
+  if [ -z "$NS" ]; then NS="(unknown)"; fi
+  color_print "$C_BLUE" "NPZ namespace: $NS"
+  # check daemon
+  if command -v curl >/dev/null 2>&1; then
+    OUT=$(curl -sS http://localhost:4500/status 2>/dev/null || true)
+    if [ -n "$OUT" ]; then
+      color_print "$C_GREEN" "Daemon: reachable -> $OUT"
+    else
+      color_print "$C_YELLOW" "Daemon: not reachable on http://localhost:4500"
+    fi
+  else
+    color_print "$C_YELLOW" "Daemon: curl not available to check status"
+  fi
+  exit 0
+fi
 
 # dispatcher: support `npz run qflash`
 if [ "$1" = "run" ] && [ "$2" = "qflash" ]; then
@@ -32,6 +82,7 @@ case "$1" in
     shift
     # parse optional --cwd argument
     TARGET_CWD="$DIR"
+    EXTRA_ARGS=()
     while [[ "$#" -gt 0 ]]; do
       case "$1" in
         --cwd)
@@ -39,7 +90,6 @@ case "$1" in
         --cwd=*)
           TARGET_CWD="${1#--cwd=}"; shift;;
         *)
-          # forward remaining args to npm
           EXTRA_ARGS+=("$1"); shift;;
       esac
     done
