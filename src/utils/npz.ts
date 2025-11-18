@@ -49,13 +49,21 @@ export function npzResolve(nameOrPkg: string, opts: { cwd?: string } = {}): Reso
     return { gate: 'yellow', cmd: mod.cmd, args: mod.args, cwd: mod.cwd };
   }
 
-  // Gate 3: DLX - use npx as fallback
+  // Gate 3: DLX - use npm exec as modern fallback, fallback to npx if needed
   try {
-    logger.joker('NPZ:JOKER', `${nameOrPkg} -> npx`);
-    return { gate: 'dlx', cmd: 'npx', args: [nameOrPkg], cwd };
+    // prefer `npm exec -- <pkg>` which is the modern replacement for npx (npm v7+)
+    // This will allow running installed or remote packages consistently.
+    logger.joker('NPZ:JOKER', `${nameOrPkg} -> npm exec`);
+    return { gate: 'dlx', cmd: 'npm', args: ['exec', '--', nameOrPkg], cwd };
   } catch (err) {
-    logger.warn(`[NPZ:JOKER][FAIL] ${nameOrPkg} cannot be resolved`);
-    return { gate: 'fail' };
+    // last-resort: npx
+    try {
+      logger.joker('NPZ:JOKER', `${nameOrPkg} -> npx`);
+      return { gate: 'dlx', cmd: 'npx', args: [nameOrPkg], cwd };
+    } catch (e) {
+      logger.warn(`[NPZ:JOKER][FAIL] ${nameOrPkg} cannot be resolved`);
+      return { gate: 'fail' };
+    }
   }
 }
 
