@@ -1,6 +1,6 @@
 {
   "name": "@funeste38/qflash",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "Funesterie orchestrator: start, stop, purge, inspect, combine modules.",
   "bin": {
     "qflash": "dist/index.js"
