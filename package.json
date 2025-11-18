@@ -1,9 +1,9 @@
 {
-  "name": "@funeste38/qflash",
+  "name": "@funeste38/qflush",
   "version": "3.0.1",
-  "description": "Funesterie orchestrator: start, stop, purge, inspect, combine modules.",
+  "description": "QFLUSH orchestrator",
   "bin": {
-    "qflash": "dist/index.js"
+    "qflush": "dist/index.js"
   },
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -21,8 +21,7 @@
   ],
   "scripts": {
     "prebuild": "node ./tools/generate-pourparler-css.js",
-    "build": "tsc -p tsconfig.json",
-    "prepare": "npm run build",
+    "build": "tsc -p .",
     "test": "node dist/tests/smartchain.test.js"
   },
   "keywords": [

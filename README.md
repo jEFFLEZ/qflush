@@ -1,12 +1,12 @@
-# @funeste38/qflash ⚡
+# @funeste38/qflush ⚡
 
-QFLASH is the orchestrator of the Funesterie ecosystem.
+QFLUSH is the orchestrator of the Funesterie ecosystem.
 
-This repository includes a local daemon `qflash` which can verify Gumroad license keys locally.
+This repository includes a local daemon `qflush` which can verify Gumroad license keys locally.
 
 Local license activation
 
-- Start daemon: `npm run build && node dist/daemon/qflashd.js`
+- Start daemon: `npm run build && node dist/daemon/qflushd.js`
 - Activate: POST `http://localhost:4500/license/activate` with `{ "key": "..." }`
 - Status: GET `http://localhost:4500/license/status`
 
@@ -14,18 +14,18 @@ For most use cases no public endpoint or webhook is required — the daemon veri
 
 ## Release
 
-Latest release: v0.1.4 — https://github.com/jEFFLEZ/qflash/releases/tag/v0.1.4
+Latest release: v0.1.4 — https://github.com/jEFFLEZ/qflush/releases/tag/v0.1.4
 
 ## Install
 
 Global (recommended):
 
-npm install -g @funeste38/qflash
+npm install -g @funeste38/qflush
 
 PowerShell one-liner (if installer hosted):
 
 ```powershell
-iwr -useb https://raw.githubusercontent.com/jEFFLEZ/qflash/main/installers/install-qflash.ps1 | iex
+iwr -useb https://raw.githubusercontent.com/jEFFLEZ/qflush/main/installers/install-qflush.ps1 | iex
 ```
 
 ## Commercial license
@@ -35,11 +35,11 @@ https://cellaurojeff.gumroad.com/l/jxktq
 
 ## Commands
 
-- `qflash start`      → launch ecosystem (rome, nezlephant, envaptex, freeland, bat)
-- `qflash kill`       → kill all processes cleanly
-- `qflash purge`      → flush caches + logs + sessions
-- `qflash inspect`    → display status and active ports
-- `qflash config`     → generate default .env/config files
+- `qflush start`      → launch ecosystem (rome, nezlephant, envaptex, freeland, bat)
+- `qflush kill`       → kill all processes cleanly
+- `qflush purge`      → flush caches + logs + sessions
+- `qflush inspect`    → display status and active ports
+- `qflush config`     → generate default .env/config files
 
 ## Examples and templates
 
@@ -48,7 +48,7 @@ Example compose files are provided in `examples/`:
 - `examples/funesterie.yml` — YAML compose example
 - `examples/funesterie.fcl` — Funesterie Config Language (FCL) example
 
-Use `qflash compose up` to bring up the example stack.
+Use `qflush compose up` to bring up the example stack.
 
 ## Flags and advanced options
 
@@ -66,23 +66,23 @@ Service targeting:
 Examples:
 
 ```
-qflash start --service rome --path D:/rome --token ABC123
-qflash start --service nezlephant --service freeland
-qflash start --service nezlephant --service freeland --fresh
-qflash config --service freeland
-qflash purge --fresh
+qflush start --service rome --path D:/rome --token ABC123
+qflush start --service nezlephant --service freeland
+qflush start --service nezlephant --service freeland --fresh
+qflush config --service freeland
+qflush purge --fresh
 ```
 
 ## Migration guide (meta-package)
 
-If you currently depend on individual Funesterie packages like `@funeste38/rome`, `@funeste38/nezlephant`, `@funeste38/freeland`, `@funeste38/bat`, prefer to switch to the meta-package `@funeste38/qflash` which re-exports them.
+If you currently depend on individual Funesterie packages like `@funeste38/rome`, `@funeste38/nezlephant`, `@funeste38/freeland`, `@funeste38/bat`, prefer to switch to the meta-package `@funeste38/qflush` which re-exports them.
 
 Quick steps:
 
 1. Add the meta-package in your app:
 
 ```bash
-npm install @funeste38/qflash
+npm install @funeste38/qflush
 ```
 
 2. Replace imports in your codebase (example):
@@ -95,21 +95,21 @@ import { encode } from '@funeste38/nezlephant'
 
 After:
 ```js
-import { Rome, Nez, Freeland, Bat } from '@funeste38/qflash'
+import { Rome, Nez, Freeland, Bat } from '@funeste38/qflush'
 Rome.run(...)
 Nez.encode(...)
 ```
 
-3. In `package.json` of the app, keep only the dependency on `@funeste38/qflash` and remove the older individual packages.
+3. In `package.json` of the app, keep only the dependency on `@funeste38/qflush` and remove the older individual packages.
 
-4. For branch migration: prefer creating new branches from `main` (which contains `@funeste38/qflash`). For older branches, replace imports during the merge.
+4. For branch migration: prefer creating new branches from `main` (which contains `@funeste38/qflush`). For older branches, replace imports during the merge.
 
 ## One-liner installer
 
 Example PowerShell one-liner (host your installer script raw on GitHub or your CDN):
 
 ```powershell
-iwr -useb https://raw.githubusercontent.com/jEFFLEZ/qflash/main/installers/install-qflash.ps1 | iex
+iwr -useb https://raw.githubusercontent.com/jEFFLEZ/qflush/main/installers/install-qflush.ps1 | iex
 ```
 
 ## Future
@@ -118,21 +118,21 @@ Future improvements will focus on better detection, richer SmartChain rules and 
 
 ## NPZ (Joker)
 
-NPZ is the resolver/router used by qflash to launch modules and proxy requests.
+NPZ is the resolver/router used by qflush to launch modules and proxy requests.
 
 Environment variables:
 
 - `NPZ_NAMESPACE` - optional, default `npz`. Namespaces metrics and keys to avoid conflicts.
 - `REDIS_URL` - optional, if set NPZ uses Redis for request store.
 - `NPZ_ADMIN_TOKEN` - required to access admin endpoints (`/npz/*`).
-- `QFLASHD_PORT` - optional, daemon port (default 4500).
+- `QFLUSHD_PORT` - optional, daemon port (default 4500).
 
 Commands:
 
-- `qflash daemon` - run the qflash daemon (exposes /metrics, /proxy, /npz admin)
-- `qflash npz:inspect <id>` or `qflash npz inspect <id>` - inspect a stored NPZ request
+- `qflush daemon` - run the qflush daemon (exposes /metrics, /proxy, /npz admin)
+- `qflush npz:inspect <id>` or `qflush npz inspect <id>` - inspect a stored NPZ request
 
 Example:
 
 ```
-NPZ_NAMESPACE=funest NPZ_ADMIN_TOKEN=secret REDIS_URL=redis://127.0.0.1:6379 npm run build && node dist/daemon/qflashd.js
+NPZ_NAMESPACE=funest NPZ_ADMIN_TOKEN=secret REDIS_URL=redis://127.0.0.1:6379 npm run build && node dist/daemon/qflushd.js

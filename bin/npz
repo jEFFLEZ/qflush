@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Lightweight launcher to run the qflash NPZ daemon without npm
+# Lightweight launcher to run the qflush NPZ daemon without npm
 # Also acts as a proxy for npm commands to avoid conflicts: npz ci/install/build/test/package --cwd <dir>
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 NODE_CMD="${NODE:-node}"
@@ -28,12 +28,12 @@ function run_in_cwd() {
 
 # help
 if [ "$1" = "help" ] || [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
-  color_print "$C_BLUE" "npz - qflash NPZ helper"
+  color_print "$C_BLUE" "npz - qflush NPZ helper"
   echo
   color_print "$C_GREEN" "Usage: npz <command> [args]"
   echo
   echo "Commands (examples):"
-  color_print "$C_GREEN" "  npz run qflash" "\tStart the qflash pipeline or daemon"
+  color_print "$C_GREEN" "  npz run qflush" "\tStart the qflush pipeline or daemon"
   color_print "$C_GREEN" "  npz ci --cwd <dir>" "\tRun npm ci in target directory (uses npm internally)"
   color_print "$C_GREEN" "  npz install --cwd <dir>" "\tRun npm install --no-audit --no-fund"
   color_print "$C_GREEN" "  npz build --cwd <dir>" "\tRun npm run build in target directory"
@@ -86,14 +86,14 @@ if [ "$1" = "info" ] || [ "$1" = "checksum" ]; then
   exit 0
 fi
 
-# dispatcher: support `npz run qflash`
-if [ "$1" = "run" ] && [ "$2" = "qflash" ]; then
+# dispatcher: support `npz run qflush`
+if [ "$1" = "run" ] && [ "$2" = "qflush" ]; then
   CLI="$DIR/dist/cli.js"
   if [ -f "$CLI" ]; then
-    exec "$NODE_CMD" "$CLI" run qflash "${@:3}"
+    exec "$NODE_CMD" "$CLI" run qflush "${@:3}"
   else
     # fallback to starting the daemon if CLI not built
-    exec "$NODE_CMD" "$DIR/dist/daemon/qflashd.js" "${@:3}"
+    exec "$NODE_CMD" "$DIR/dist/daemon/qflushd.js" "${@:3}"
   fi
 fi
 
@@ -131,4 +131,4 @@ case "$1" in
 esac
 
 # default: run daemon with any args forwarded
-exec "$NODE_CMD" "$DIR/dist/daemon/qflashd.js" "$@"
+exec "$NODE_CMD" "$DIR/dist/daemon/qflushd.js" "$@"

@@ -7,7 +7,7 @@ exports.handler = async function(event, context) {
     // forward to the local daemon if DAEMON_URL is set, otherwise process here
     const daemonUrl = process.env.DAEMON_URL || '';
     if (daemonUrl) {
-      const url = `${daemonUrl.replace(/\/$/, '')}/qflash/license/webhook`;
+      const url = `${daemonUrl.replace(/\/$/, '')}/qflush/license/webhook`;
       await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
       return { statusCode: 200, body: JSON.stringify({ ok: true, forwarded: url }) };
     }

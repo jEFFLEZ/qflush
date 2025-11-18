@@ -12,8 +12,8 @@ try {
   // ignore if not available
 }
 
-const PORT = process.env.QFLASHD_PORT ? Number(process.env.QFLASHD_PORT) : 4500;
-const AUDIT_DIR = path.join(process.cwd(), '.qflash');
+const PORT = process.env.QFLUSHD_PORT ? Number(process.env.QFLUSHD_PORT) : 4500;
+const AUDIT_DIR = path.join(process.cwd(), '.qflush');
 const AUDIT_LOG = path.join(AUDIT_DIR, 'license-activations.log');
 
 function ensureAuditDir() {
@@ -64,8 +64,8 @@ app.get('/license/status', (_req: Request, res: Response) => {
   return res.json({ success: true, license: rec, valid: rec ? gumroad.isLicenseValid(rec) : false });
 });
 
-// public webhook endpoint suggested: /qflash/license/webhook
-app.post('/qflash/license/webhook', (req: Request, res: Response) => {
+// public webhook endpoint suggested: /qflush/license/webhook
+app.post('/qflush/license/webhook', (req: Request, res: Response) => {
   const payload = req.body || {};
   audit({ t: Date.now(), event: 'gumroad_webhook', payload });
 
@@ -173,5 +173,5 @@ try {
 }
 
 app.listen(PORT, () => {
-  console.log(`qflash running on http://localhost:${PORT}`);
+  console.log(`qflush running on http://localhost:${PORT}`);
 });

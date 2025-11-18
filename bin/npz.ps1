@@ -1,5 +1,5 @@
 param([string[]]$Args)
-# Lightweight PowerShell launcher to run the qflash NPZ daemon without npm
+# Lightweight PowerShell launcher to run the qflush NPZ daemon without npm
 $here = Split-Path -Parent $MyInvocation.MyCommand.Definition
 Set-Location (Join-Path $here '..')
 $node = $env:NODEJS_PATH -or 'node'
@@ -15,13 +15,13 @@ function Run-InCwd([string]$cwd, [string[]]$cmd) {
   try { & $cmd } finally { Pop-Location }
 }
 
-if ($Args.Count -gt 0 -and $Args[0] -eq 'run' -and $Args[1] -eq 'qflash') {
+if ($Args.Count -gt 0 -and $Args[0] -eq 'run' -and $Args[1] -eq 'qflush') {
   $cli = Join-Path (Get-Location) 'dist/cli.js'
   if (Test-Path $cli) {
-    & $node $cli 'run' 'qflash' @($Args[2..($Args.Count-1)])
+    & $node $cli 'run' 'qflush' @($Args[2..($Args.Count-1)])
     exit $LASTEXITCODE
   } else {
-    $script = Join-Path (Get-Location) 'dist/daemon/qflashd.js'
+    $script = Join-Path (Get-Location) 'dist/daemon/qflushd.js'
     & $node $script @($Args[2..($Args.Count-1)])
     exit $LASTEXITCODE
   }
@@ -48,6 +48,6 @@ if ($cmd -in @('ci','install','build','test','package')) {
 }
 
 # default: run daemon
-$script = Join-Path (Get-Location) 'dist/daemon/qflashd.js'
+$script = Join-Path (Get-Location) 'dist/daemon/qflushd.js'
 if (-not (Test-Path $script)) { Write-Error "Daemon script not found: $script"; exit 2 }
 & $node $script @Args

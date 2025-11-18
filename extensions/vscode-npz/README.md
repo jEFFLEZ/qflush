@@ -1,35 +1,35 @@
-# Qflash – NPZ Visual
+# Qflush – NPZ Visual
 
-Qflash Visual est l’extension officielle pour visualiser et contrôler le moteur Qflash / NPZ depuis VS Code / VSCodium / Theia.
+Qflush Visual est l’extension officielle pour visualiser et contrôler le moteur Qflush / NPZ depuis VS Code / VSCodium / Theia.
 
 ## Fonctionnalités
 
 - Visualisation des scores NPZ en temps réel
 - Panel HTML interactif
-- Commandes : `qflash.openPanel`, `qflash.showLicenseStatus`
-- Intégration avec le daemon Qflash local (`http://localhost:4500`)
+- Commandes : `qflush.openPanel`, `qflush.showLicenseStatus`
+- Intégration avec le daemon Qflush local (`http://localhost:4500`)
 - Préparation pour activation licence Gumroad
 
 ## Installation
 
-- Installer Qflash (npm) :
+- Installer Qflush (npm) :
 
 ```sh
-npm i -g @funeste38/qflash
+npm i -g @funeste38/qflush
 ```
 
 - Lancer le daemon :
 
 ```
-qflash daemon
+qflush daemon
 ```
 
-- Depuis VSCodium, installer l’extension Qflash depuis Open VSX.
+- Depuis VSCodium, installer l’extension Qflush depuis Open VSX.
 
 ## Commands
 
-- `qflash.openPanel` – Ouvre le panneau NPZ Scores
-- `qflash.showLicenseStatus` – Affiche l’état de la licence
+- `qflush.openPanel` – Ouvre le panneau NPZ Scores
+- `qflush.showLicenseStatus` – Affiche l’état de la licence
 
 ## Licence
 MIT – © Funesterie
