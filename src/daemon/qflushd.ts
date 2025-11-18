@@ -65,6 +65,7 @@ import { evaluateIndex } from '../rome/engine';
 import { loadLogicRules, evaluateAllRules, getRules } from '../rome/logic-loader';
 import { executeAction } from '../rome/executor';
 import { getEmitter, startIndexWatcher } from '../rome/events';
+import { initCopilotBridge, emitEngineState, emitRuleEvent, emitDiagnostic, getConfig as getCopilotConfig } from '../rome/copilot-bridge';
 
 startRomeIndexAutoRefresh(15 * 1000); // refresh every 15s
 
@@ -74,6 +75,9 @@ const engineHistory: any[] = [];
 const copilotHistory: any[] = [];
 const copilotClients: any[] = [];
 
+// initialize copilot bridge
+initCopilotBridge();
+
 // Evaluate engine at startup and on refresh
 function computeEngineActions() {
   try {
@@ -81,6 +85,11 @@ function computeEngineActions() {
     const actions = evaluateIndex(idx);
     console.log('QFLUSH Engine computed actions:');
     actions.forEach((a) => console.log(JSON.stringify(a)));
+
+    // emit engine state to copilot bridge if enabled
+    try {
+      emitEngineState({ rules: getRules(), indexSummary: { count: Object.keys(idx).length, byType: {} }, runningServices: [] });
+    } catch (e) {}
 
     // load logic rules and evaluate simple matches
     const rules = loadLogicRules();
@@ -93,6 +102,7 @@ function computeEngineActions() {
     return actions;
   } catch (e) {
     console.warn('engine compute failed', String(e));
+    try { emitDiagnostic({ severity: 'error', source: 'engine', message: String(e) }); } catch (err) {}
     return [];
   }
 }
@@ -145,6 +155,7 @@ app.post('/npz/engine/run', async (_req: any, res: any) => {
         const r = await executeAction(act, { path: m.path });
         results.push({ path: m.path, action: act, result: r });
         engineHistory.push({ t: Date.now(), path: m.path, action: act, result: r });
+        try { emitRuleEvent({ rule: 'unknown', path: m.path, matchContext: {}, actions: m.actions, result: r }); } catch (e) {}
       }
     }
     return res.json({ success: true, count: results.length, results });
@@ -175,6 +186,7 @@ onRomeIndexUpdated(async (payload) => {
           const res = await executeAction(act, { path: m.path });
           console.log('action result', res);
           engineHistory.push({ t: Date.now(), path: m.path, action: act, result: res });
+          try { emitRuleEvent({ rule: 'unknown', path: m.path, matchContext: {}, actions: m.actions, result: res }); } catch (e) {}
         }
       }
     }

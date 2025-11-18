@@ -9,6 +9,7 @@ import runChecksum from "./commands/checksum";
 import runEngine from "./commands/engine";
 import runLogic from "./commands/logic";
 import runCopilot from "./commands/copilot";
+import runCopilotBridge from "./commands/copilot-bridge";
 
 const argv = process.argv.slice(2);
 if (argv.includes("--help") || argv.includes("-h")) {
@@ -53,6 +54,13 @@ if (first === 'logic') {
 if (first === 'copilot') {
   (async () => {
     const code = await runCopilot(argv.slice(1));
+    process.exit(code ?? 0);
+  })();
+}
+
+if (first === 'copilot-bridge') {
+  (async () => {
+    const code = await runCopilotBridge(argv.slice(1));
     process.exit(code ?? 0);
   })();
 }
