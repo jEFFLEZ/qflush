@@ -1,3 +1,5 @@
+// ROME-TAG: 0xC4BE64
+
 import fs from 'fs';
 import path from 'path';
 import fetch from 'node-fetch';

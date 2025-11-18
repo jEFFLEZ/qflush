@@ -1,3 +1,5 @@
+// ROME-TAG: 0x3AB4E4
+
 import { logger } from "../utils/logger";
 import { findAndKill } from "../utils/detect";
 import { stopAll } from "../supervisor";

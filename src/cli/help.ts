@@ -1,3 +1,5 @@
+// ROME-TAG: 0x1DEEBD
+
 import { logger } from "../utils/logger";
 
 export function showHelp() {

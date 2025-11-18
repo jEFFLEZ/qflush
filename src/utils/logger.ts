@@ -1,3 +1,5 @@
+// ROME-TAG: 0x0E71A8
+
 import colors from './colors';
 
 export const logger = {

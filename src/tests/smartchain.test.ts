@@ -1,3 +1,5 @@
+// ROME-TAG: 0xA9DB4C
+
 import { buildPipeline } from "../chain/smartChain";
 
 function assertEqual(a: any, b: any, msg?: string) {

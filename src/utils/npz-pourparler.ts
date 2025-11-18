@@ -1,3 +1,5 @@
+// ROME-TAG: 0x94B7C0
+
 import crypto from 'crypto';
 
 type Message = { id: string; role: 'user' | 'assistant' | 'system'; text: string; t: number };

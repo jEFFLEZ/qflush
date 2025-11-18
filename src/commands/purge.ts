@@ -1,3 +1,5 @@
+// ROME-TAG: 0x263C6D
+
 import { logger } from "../utils/logger";
 import { resolvePaths } from "../utils/paths";
 import { rimrafSync } from "../utils/exec";

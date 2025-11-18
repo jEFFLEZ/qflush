@@ -70,7 +70,7 @@ export type ASTNode = ASTCmp | ASTId | ASTNot | ASTAnd | ASTOr;
 
 function tokenize(s: string) {
   const tokens: string[] = [];
-  const re = /\s*(=>|==|\(|\)|\band\b|\bor\b|\bnot\b|\w+|"[^"]*")\s*/gi;
+  const re = /\s*(=>|==|\(|\)|\band\b|\bor\b|\bnot\b|[\w.]+|"[^"]*")\s*/gi;
   let m: RegExpExecArray | null;
   while ((m = re.exec(s)) !== null) tokens.push(m[1]);
   return tokens;

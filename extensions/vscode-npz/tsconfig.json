@@ -1,13 +1,19 @@
 {
+  "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "module": "commonjs",
-    "target": "es2019",
+    "rootDir": "../../",
     "outDir": "out",
-    "lib": ["es2019"],
-    "sourceMap": true,
-    "rootDir": "src",
-    "strict": true,
-    "esModuleInterop": true
+    "composite": false,
+    "types": [
+      "node",
+      "vscode"
+    ],
+    "skipLibCheck": true,
+    "noImplicitAny": false
   },
-  "exclude": ["node_modules", ".vscode-test"]
+  "include": [
+    "src/**/*.ts",
+    "../../src/rome/*.ts",
+    "../../src/utils/*.ts"
+  ]
 }

@@ -1,3 +1,5 @@
+// ROME-TAG: 0x130555
+
 import { promises as fs } from "fs";
 import { logger } from "../utils/logger";
 import { resolvePaths } from "../utils/paths";

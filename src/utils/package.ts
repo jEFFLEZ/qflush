@@ -1,3 +1,5 @@
+// ROME-TAG: 0xB044BC
+
 import { join } from "path";
 import { existsSync } from "fs";
 import { readFileSync } from "fs";

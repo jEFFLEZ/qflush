@@ -1,3 +1,5 @@
+// ROME-TAG: 0xB3686C
+
 import fs from 'fs';
 import path from 'path';
 import { performance } from 'perf_hooks';
@@ -81,7 +83,7 @@ export function setPreferredLane(host: string, laneId: number) {
 export function lanesForHost(host: string, lanes: Lane[] = DEFAULT_LANES): Lane[] {
   const pref = getPreferredLane(host);
   // first let engine reorder by score
-  let ordered = engine.orderLanesByScore(lanes);
+  const ordered = engine.orderLanesByScore(lanes);
   // then apply preferred lane override
   if (pref === null) return ordered.slice();
   const idx = ordered.findIndex((l) => l.id === pref);
@@ -103,7 +105,7 @@ function getCircuitMapForHost(host: string) {
 export function recordFailure(host: string, laneId: number, latencyMs?: number) {
   const m = getCircuitMapForHost(host);
   const now = Date.now();
-  let st = m.get(laneId) || { failures: 0 };
+  const st = m.get(laneId) || { failures: 0 };
   if (!st.firstFailureTs || now - (st.firstFailureTs || 0) > FAIL_WINDOW_MS) {
     st.failures = 1;
     st.firstFailureTs = now;

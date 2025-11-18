@@ -1,3 +1,5 @@
+// ROME-TAG: 0xED1E50
+
 import { logger } from '../utils/logger';
 import { detectModules } from '../utils/detect';
 import { httpProbe } from '../utils/health';

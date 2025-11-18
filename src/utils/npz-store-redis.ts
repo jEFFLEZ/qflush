@@ -1,3 +1,5 @@
+// ROME-TAG: 0xC27F4F
+
 import Redis from 'ioredis';
 import { v4 as uuidv4 } from 'uuid';
 import { getNpzNamespace } from './npz-config';

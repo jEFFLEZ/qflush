@@ -1,3 +1,5 @@
+// ROME-TAG: 0x9C32F0
+
 import { detectModules } from "../utils/detect";
 import { logger } from "../utils/logger";
 import { QFlashOptions } from "../chain/smartChain";

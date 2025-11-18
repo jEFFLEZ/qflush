@@ -1,0 +1,184 @@
+[
+  {
+    "type": "engine_state",
+    "telemetryVersion": 1,
+    "timestamp": "2025-11-18T18:20:57.309Z",
+    "payload": {
+      "rules": [],
+      "indexSummary": {
+        "count": 5,
+        "byType": {}
+      },
+      "runningServices": []
+    }
+  },
+  {
+    "type": "engine_state",
+    "telemetryVersion": 1,
+    "timestamp": "2025-11-18T18:24:29.771Z",
+    "payload": {
+      "rules": [],
+      "indexSummary": {
+        "count": 5,
+        "byType": {}
+      },
+      "runningServices": []
+    }
+  },
+  {
+    "type": "engine_state",
+    "telemetryVersion": 1,
+    "timestamp": "2025-11-18T18:28:53.703Z",
+    "payload": {
+      "rules": [],
+      "indexSummary": {
+        "count": 5,
+        "byType": {}
+      },
+      "runningServices": []
+    }
+  },
+  {
+    "type": "engine_state",
+    "telemetryVersion": 1,
+    "timestamp": "2025-11-18T18:32:20.319Z",
+    "payload": {
+      "rules": [],
+      "indexSummary": {
+        "count": 5,
+        "byType": {}
+      },
+      "runningServices": []
+    }
+  },
+  {
+    "type": "engine_state",
+    "telemetryVersion": 1,
+    "timestamp": "2025-11-18T18:34:09.142Z",
+    "payload": {
+      "rules": [],
+      "indexSummary": {
+        "count": 5,
+        "byType": {}
+      },
+      "runningServices": []
+    }
+  },
+  {
+    "type": "engine_state",
+    "telemetryVersion": 1,
+    "timestamp": "2025-11-18T18:39:52.595Z",
+    "payload": {
+      "rules": [],
+      "indexSummary": {
+        "count": 5,
+        "byType": {}
+      },
+      "runningServices": []
+    }
+  },
+  {
+    "type": "engine_state",
+    "telemetryVersion": 1,
+    "timestamp": "2025-11-18T18:40:37.445Z",
+    "payload": {
+      "rules": [],
+      "indexSummary": {
+        "count": 5,
+        "byType": {}
+      },
+      "runningServices": []
+    }
+  },
+  {
+    "type": "engine_state",
+    "telemetryVersion": 1,
+    "timestamp": "2025-11-18T18:41:38.617Z",
+    "payload": {
+      "rules": [],
+      "indexSummary": {
+        "count": 5,
+        "byType": {}
+      },
+      "runningServices": []
+    }
+  },
+  {
+    "type": "engine_state",
+    "telemetryVersion": 1,
+    "timestamp": "2025-11-18T18:42:27.963Z",
+    "payload": {
+      "rules": [],
+      "indexSummary": {
+        "count": 5,
+        "byType": {}
+      },
+      "runningServices": []
+    }
+  },
+  {
+    "type": "engine_state",
+    "telemetryVersion": 1,
+    "timestamp": "2025-11-18T18:43:22.266Z",
+    "payload": {
+      "rules": [],
+      "indexSummary": {
+        "count": 5,
+        "byType": {}
+      },
+      "runningServices": []
+    }
+  },
+  {
+    "type": "engine_state",
+    "telemetryVersion": 1,
+    "timestamp": "2025-11-18T18:45:16.600Z",
+    "payload": {
+      "rules": [],
+      "indexSummary": {
+        "count": 5,
+        "byType": {}
+      },
+      "runningServices": []
+    }
+  },
+  {
+    "type": "engine_state",
+    "telemetryVersion": 1,
+    "timestamp": "2025-11-18T18:50:28.402Z",
+    "payload": {
+      "rules": [],
+      "indexSummary": {
+        "count": 5,
+        "byType": {}
+      },
+      "runningServices": []
+    }
+  },
+  {
+    "type": "engine_state",
+    "telemetryVersion": 1,
+    "timestamp": "2025-11-18T19:00:55.939Z",
+    "payload": {
+      "rules": [],
+      "indexSummary": {
+        "count": 5,
+        "byType": {}
+      },
+      "runningServices": []
+    }
+  },
+  {
+    "type": "engine_state",
+    "telemetryVersion": 1,
+    "timestamp": "2025-11-18T20:05:52.718Z",
+    "payload": {
+      "rules": [],
+      "indexSummary": {
+        "count": 5,
+        "byType": {}
+      },
+      "runningServices": []
+    }
+  }
+]

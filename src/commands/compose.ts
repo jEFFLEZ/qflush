@@ -1,3 +1,5 @@
+// ROME-TAG: 0xD0CF40
+
 import { readCompose } from '../compose/parser';
 import { logger } from '../utils/logger';
 import { runStart } from './start';

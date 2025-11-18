@@ -1,3 +1,5 @@
+// ROME-TAG: 0x382295
+
 declare module 'tail' {
   export class Tail {
     constructor(path: string, options?: any);

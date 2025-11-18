@@ -1,3 +1,5 @@
+// ROME-TAG: 0x70150D
+
 import { saveLicense, loadLicense, clearLicense } from '../utils/gumroad-license';
 import fs from 'fs';
 import path from 'path';

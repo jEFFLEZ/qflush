@@ -1,3 +1,5 @@
+// ROME-TAG: 0xF22534
+
 declare module 'express' {
   export type Request = any;
   export type Response = any;

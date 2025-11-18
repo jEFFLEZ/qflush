@@ -1,3 +1,5 @@
+// ROME-TAG: 0x9398B5
+
 import license from '../utils/license';
 
 export default async function runLicenseStatus() {

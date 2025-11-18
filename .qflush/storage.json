@@ -1,0 +1,174 @@
+{
+  "telemetry": [
+    {
+      "id": "engine-1763490269773",
+      "type": "engine_state",
+      "ts": 1763490269773,
+      "payload": {
+        "rules": [],
+        "indexSummary": {
+          "count": 5,
+          "byType": {}
+        },
+        "runningServices": []
+      }
+    },
+    {
+      "id": "engine-1763490533705",
+      "type": "engine_state",
+      "ts": 1763490533705,
+      "payload": {
+        "rules": [],
+        "indexSummary": {
+          "count": 5,
+          "byType": {}
+        },
+        "runningServices": []
+      }
+    },
+    {
+      "id": "engine-1763490740321",
+      "type": "engine_state",
+      "ts": 1763490740321,
+      "payload": {
+        "rules": [],
+        "indexSummary": {
+          "count": 5,
+          "byType": {}
+        },
+        "runningServices": []
+      }
+    },
+    {
+      "id": "engine-1763490849144",
+      "type": "engine_state",
+      "ts": 1763490849144,
+      "payload": {
+        "rules": [],
+        "indexSummary": {
+          "count": 5,
+          "byType": {}
+        },
+        "runningServices": []
+      }
+    },
+    {
+      "id": "engine-1763491192597",
+      "type": "engine_state",
+      "ts": 1763491192597,
+      "payload": {
+        "rules": [],
+        "indexSummary": {
+          "count": 5,
+          "byType": {}
+        },
+        "runningServices": []
+      }
+    },
+    {
+      "id": "engine-1763491237447",
+      "type": "engine_state",
+      "ts": 1763491237447,
+      "payload": {
+        "rules": [],
+        "indexSummary": {
+          "count": 5,
+          "byType": {}
+        },
+        "runningServices": []
+      }
+    },
+    {
+      "id": "engine-1763491298619",
+      "type": "engine_state",
+      "ts": 1763491298619,
+      "payload": {
+        "rules": [],
+        "indexSummary": {
+          "count": 5,
+          "byType": {}
+        },
+        "runningServices": []
+      }
+    },
+    {
+      "id": "engine-1763491347965",
+      "type": "engine_state",
+      "ts": 1763491347965,
+      "payload": {
+        "rules": [],
+        "indexSummary": {
+          "count": 5,
+          "byType": {}
+        },
+        "runningServices": []
+      }
+    },
+    {
+      "id": "engine-1763491402268",
+      "type": "engine_state",
+      "ts": 1763491402268,
+      "payload": {
+        "rules": [],
+        "indexSummary": {
+          "count": 5,
+          "byType": {}
+        },
+        "runningServices": []
+      }
+    },
+    {
+      "id": "engine-1763491516602",
+      "type": "engine_state",
+      "ts": 1763491516602,
+      "payload": {
+        "rules": [],
+        "indexSummary": {
+          "count": 5,
+          "byType": {}
+        },
+        "runningServices": []
+      }
+    },
+    {
+      "id": "engine-1763491828405",
+      "type": "engine_state",
+      "ts": 1763491828405,
+      "payload": {
+        "rules": [],
+        "indexSummary": {
+          "count": 5,
+          "byType": {}
+        },
+        "runningServices": []
+      }
+    },
+    {
+      "id": "engine-1763492455940",
+      "type": "engine_state",
+      "ts": 1763492455940,
+      "payload": {
+        "rules": [],
+        "indexSummary": {
+          "count": 5,
+          "byType": {}
+        },
+        "runningServices": []
+      }
+    },
+    {
+      "id": "engine-1763496352720",
+      "type": "engine_state",
+      "ts": 1763496352720,
+      "payload": {
+        "rules": [],
+        "indexSummary": {
+          "count": 5,
+          "byType": {}
+        },
+        "runningServices": []
+      }
+    }
+  ],
+  "engine_history": []
+}

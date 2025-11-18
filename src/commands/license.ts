@@ -1,3 +1,5 @@
+// ROME-TAG: 0xF45330
+
 import gumroad from '../utils/gumroad-license';
 import logger from '../utils/logger';
 

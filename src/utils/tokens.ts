@@ -1,3 +1,5 @@
+// ROME-TAG: 0xD439BD
+
 import { randomBytes } from "crypto";
 
 export function generateToken(len = 24) {

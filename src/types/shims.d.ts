@@ -1,3 +1,5 @@
+// ROME-TAG: 0xDBADFC
+
 declare module "@funeste38/nezlephant";
 declare module "@funeste38/freeland";
 declare module "@funeste38/bat";

@@ -1,3 +1,5 @@
+// ROME-TAG: 0xC8C1C0
+
 import { Request } from 'express';
 
 export function isAdminAuthorized(req: Request): boolean {

@@ -1,3 +1,5 @@
+// ROME-TAG: 0x3C04E4
+
 import fs from 'fs';
 import path from 'path';
 import fetch from 'node-fetch';

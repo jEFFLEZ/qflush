@@ -1,3 +1,5 @@
+// ROME-TAG: 0x1553F0
+
 import { spawnSync } from 'child_process';
 import { existsSync } from 'fs';
 import path from 'path';

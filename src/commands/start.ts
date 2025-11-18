@@ -1,3 +1,5 @@
+// ROME-TAG: 0xF73710
+
 import { detectModules } from "../utils/detect";
 import logger from "../utils/logger";
 import { spawnSafe, ensurePackageInstalled, pathExists, rebuildInstructionsFor } from "../utils/exec";
@@ -135,7 +137,7 @@ export async function runStart(opts?: QFlashOptions) {
         return;
       }
 
-      let restarts = 0;
+      const restarts = 0;
 
       const spawnOnce = (): Promise<void> => {
         return new Promise((resolve) => {

@@ -1,3 +1,5 @@
+// ROME-TAG: 0x8CD4FC
+
 import { logger } from "../utils/logger";
 import { runDetect } from "../commands/detect";
 import { runConfig } from "../commands/config";

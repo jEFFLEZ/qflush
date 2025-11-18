@@ -1,3 +1,5 @@
+// ROME-TAG: 0xEB40C5
+
 import { spawn } from "child_process";
 import { logger } from "./logger";
 import { unlinkSync, existsSync, rmSync } from "fs";

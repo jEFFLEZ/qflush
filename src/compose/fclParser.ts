@@ -1,3 +1,5 @@
+// ROME-TAG: 0x5D80DC
+
 import fs from 'fs';
 
 function parseValue(raw: string): any {

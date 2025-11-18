@@ -1,3 +1,5 @@
+// ROME-TAG: 0x043BA9
+
 import { getNpzNamespace } from './npz-config';
 import fs from 'fs';
 import path from 'path';
