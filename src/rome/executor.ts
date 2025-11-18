@@ -3,6 +3,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import fetch from 'node-fetch';
 import { saveEngineHistory } from './storage';
+import { callReload } from './daemon-control';
 
 const DEFAULT_CFG = { allowedCommandSubstrings: ['npm','node','echo'], allowedCommands: ['echo hello','npm run build'], commandTimeoutMs: 15000, webhookUrl: '' };
 
@@ -16,7 +17,7 @@ function loadConfig() {
 
 function spawnCommand(cmd: string, cwd: string, timeoutMs: number): Promise<{ code: number | null; stdout: string; stderr: string }> {
   return new Promise((resolve) => {
-    const child = spawn(cmd, { cwd, env: process.env, shell: true });
+    const child = spawn(cmd, { cwd, env: { PATH: process.env.PATH || '' }, shell: true });
     let out = '';
     let err = '';
     child.stdout.on('data', (d) => out += d.toString());
@@ -26,6 +27,11 @@ function spawnCommand(cmd: string, cwd: string, timeoutMs: number): Promise<{ co
     child.on('close', (code) => { if (!finished) { finished = true; clearTimeout(to); resolve({ code, stdout: out, stderr: err }); } });
     child.on('error', (e) => { if (!finished) { finished = true; clearTimeout(to); resolve({ code: 1, stdout: out, stderr: String(e) }); } });
   });
+}
+
+function suspicious(cmd: string) {
+  // reject characters that allow shell expansions redirections or chaining
+  return /[;&|<>$`\\]/.test(cmd);
 }
 
 function writeNpzMetadata(record: any) {
@@ -54,6 +60,8 @@ export async function executeAction(action: string, ctx: any = {}): Promise<any>
       if (!m) return { success: false, error: 'invalid run syntax' };
       const cmd = m[1];
       const dir = m[2] ? path.resolve(m[2]) : process.cwd();
+
+      if (suspicious(cmd)) return { success: false, error: 'command contains suspicious characters' };
 
       // exact allowlist first
       if (cfg.allowedCommands && cfg.allowedCommands.length && !cfg.allowedCommands.includes(cmd)) {
@@ -103,8 +111,9 @@ export async function executeAction(action: string, ctx: any = {}): Promise<any>
     }
 
     if (action.startsWith('daemon.reload')) {
-      const res = { success: true, note: 'daemon.reload simulated' };
-      if (cfg.webhookUrl) { try { await fetch(cfg.webhookUrl, { method: 'POST', body: JSON.stringify({ action: 'daemon.reload', result: res }), headers: { 'Content-Type': 'application/json' } }); } catch (e) {} }
+      // trigger reload via daemon-control
+      const ok = await callReload();
+      const res = { success: ok };
       try { saveEngineHistory('reload-'+Date.now(), Date.now(), ctx.path || '', 'daemon.reload', res); } catch (e) {}
       return res;
     }

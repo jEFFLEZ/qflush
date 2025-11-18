@@ -59,6 +59,11 @@ function audit(line: any) {
 const app = express();
 app.use(express.json());
 
+// auth middleware
+import { requireQflushToken } from './auth-middleware';
+// daemon control import
+import { setReloadHandler } from '../rome/daemon-control';
+
 // load Rome index from .qflush/rome-index.json (if present)
 import { loadRomeIndexFromDisk, getCachedRomeIndex, startRomeIndexAutoRefresh, onRomeIndexUpdated } from '../rome/index-loader';
 import { evaluateIndex } from '../rome/engine';
@@ -107,8 +112,8 @@ function computeEngineActions() {
   }
 }
 
-// Copilot endpoints
-app.post('/copilot/message', (req: any, res: any) => {
+// Copilot endpoints (protected)
+app.post('/copilot/message', requireQflushToken, (req: any, res: any) => {
   try {
     const body = req.body || {};
     const msg = { id: Date.now(), receivedAt: new Date().toISOString(), message: body.message || '', meta: body.meta || {} };
@@ -123,7 +128,7 @@ app.post('/copilot/message', (req: any, res: any) => {
   }
 });
 
-app.get('/copilot/stream', (req: any, res: any) => {
+app.get('/copilot/stream', requireQflushToken, (req: any, res: any) => {
   // SSE
   res.writeHead(200, {
     Connection: 'keep-alive',
@@ -138,12 +143,12 @@ app.get('/copilot/stream', (req: any, res: any) => {
   });
 });
 
-app.get('/copilot/history', (_req: any, res: any) => {
+app.get('/copilot/history', requireQflushToken, (_req: any, res: any) => {
   return res.json({ success: true, count: copilotHistory.length, items: copilotHistory.slice(-100) });
 });
 
-// manual API to run engine evaluation and execute matching actions
-app.post('/npz/engine/run', async (_req: any, res: any) => {
+// manual API to run engine evaluation and execute matching actions (protected)
+app.post('/npz/engine/run', requireQflushToken, async (_req: any, res: any) => {
   try {
     const idx = getCachedRomeIndex();
     const payload = _req.body || {};
@@ -164,7 +169,7 @@ app.post('/npz/engine/run', async (_req: any, res: any) => {
   }
 });
 
-app.get('/npz/engine/history', (_req: any, res: any) => {
+app.get('/npz/engine/history', requireQflushToken, (_req: any, res: any) => {
   return res.json({ success: true, count: engineHistory.length, items: engineHistory.slice(-50) });
 });
 
@@ -264,36 +269,29 @@ async function redisClear() {
   return ids.length;
 }
 
-function cleanupChecksumCache() {
-  const now = Date.now();
-  for (const [key, entry] of checksumCache.entries()) {
-    if (entry.expiresAt <= now) checksumCache.delete(key);
-  }
-}
-// run cleanup periodically for memory fallback
-setInterval(cleanupChecksumCache, 30 * 1000).unref();
-
-// store checksum: POST /npz/checksum/store { id, checksum, ttlMs? }
+// Insert checksum handlers here (before pourparler endpoints)
 app.post('/npz/checksum/store', async (req: any, res: any) => {
   const { id, checksum, ttlMs } = req.body || {};
+  console.log('/npz/checksum/store called with', req.body);
   if (!id || !checksum) return res.status(400).json({ success: false, error: 'missing id or checksum' });
   const ttl = typeof ttlMs === 'number' && ttlMs > 0 ? ttlMs : CHECKSUM_DEFAULT_TTL_MS;
   if (redisClient) {
     try {
       await redisStore(String(id), String(checksum), ttl);
       audit({ t: Date.now(), event: 'checksum_stored_redis', id: String(id) });
+      console.log('stored in redis', id);
       return res.json({ success: true, id: String(id), ttlMs: ttl, backend: 'redis' });
     } catch (e) {
+      console.warn('redis store failed', String(e));
       // fallback to in-memory
     }
   }
   checksumCache.set(String(id), { checksum: String(checksum), expiresAt: Date.now() + ttl });
   audit({ t: Date.now(), event: 'checksum_stored_mem', id: String(id) });
+  console.log('stored in memory', id);
   return res.json({ success: true, id: String(id), ttlMs: ttl, backend: 'memory' });
 });
 
-// verify checksum: POST /npz/checksum/verify { id, checksum }
-// if verified, remove from cache (one-time) and return success
 app.post('/npz/checksum/verify', async (req: any, res: any) => {
   const { id, checksum } = req.body || {};
   if (!id || !checksum) return res.status(400).json({ success: false, error: 'missing id or checksum' });
@@ -326,7 +324,6 @@ app.post('/npz/checksum/verify', async (req: any, res: any) => {
   return res.json({ success: true, id: String(id), backend: 'memory' });
 });
 
-// list checksums: GET /npz/checksum/list
 app.get('/npz/checksum/list', async (_req: any, res: any) => {
   if (redisClient) {
     try {
@@ -346,21 +343,6 @@ app.get('/npz/checksum/list', async (_req: any, res: any) => {
   return res.json({ success: true, count: results.length, items: results, backend: 'memory' });
 });
 
-app.get('/npz/rome-index', (_req: any, res: any) => {
-  try {
-    const index = getCachedRomeIndex();
-    const q: any = _req.query || {};
-    if (q.type) {
-      const t = String(q.type);
-      const items = Object.values(index).filter((r: any) => r.type === t);
-      return res.json({ success: true, count: items.length, items });
-    }
-    return res.json({ success: true, count: Object.keys(index).length, items: Object.values(index) });
-  } catch (e) {
-    return res.status(500).json({ success: false, error: String(e) });
-  }
-});
-
 // clear checksums: DELETE /npz/checksum/clear
 app.delete('/npz/checksum/clear', async (_req: any, res: any) => {
   if (redisClient) {
@@ -378,119 +360,19 @@ app.delete('/npz/checksum/clear', async (_req: any, res: any) => {
   return res.json({ success: true, cleared, backend: 'memory' });
 });
 
-app.get('/license/status', (_req: any, res: any) => {
-  if (!gumroad || typeof gumroad.loadLicense !== 'function') return res.json({ success: true, license: null });
-  const rec = gumroad.loadLicense();
-  return res.json({ success: true, license: rec, valid: rec ? gumroad.isLicenseValid(rec) : false });
+// remove duplicated checksum block at end
+// Ensure this block appears before startServer and 404 handlers
+
+// fallthrough 404 handler (JSON)
+app.use((req: any, res: any) => {
+  res.status(404).json({ success: false, error: 'not_found', path: req.path });
 });
 
-// public webhook endpoint suggested: /qflush/license/webhook
-app.post('/qflush/license/webhook', (req: any, res: any) => {
-  const payload = req.body || {};
-  audit({ t: Date.now(), event: 'gumroad_webhook', payload });
-
-  // inspect payload for refund/chargeback/subscription cancel
-  const purchase = payload.purchase || payload.data || null;
-  let shouldClear = false;
-
-  if (purchase) {
-    if (purchase.refunded || purchase.chargebacked) shouldClear = true;
-    if (purchase.subscription_cancelled_at || purchase.subscription_ended_at) shouldClear = true;
-  }
-
-  const ev = (payload.event || payload.type || '').toString().toLowerCase();
-  if (ev.includes('refund') || ev.includes('chargeback') || ev.includes('subscription_cancel')) shouldClear = true;
-
-  if (shouldClear && gumroad && typeof gumroad.clearLicense === 'function') {
-    try {
-      gumroad.clearLicense();
-      audit({ t: Date.now(), event: 'license_cleared_via_webhook' });
-    } catch (e) {
-      audit({ t: Date.now(), event: 'license_clear_failed', err: String(e) });
-    }
-  }
-
-  return res.json({ ok: true });
+// error handler
+app.use((err: any, _req: any, res: any, _next: any) => {
+  console.error('unhandled error in express:', err && err.stack ? err.stack : String(err));
+  res.status(500).json({ success: false, error: 'internal_error', message: String(err) });
 });
-
-// legacy webhook path used earlier
-app.post('/webhooks/gumroad', (req: any, res: any) => {
-  // forward to same handler logic
-  return app.handle(req, res);
-});
-
-app.get('/status', (_req: any, res: any) => {
-  res.json({ ok: true, port: PORT, checksumCacheSize: checksumCache.size, redis: !!redisClient });
-});
-
-// expose npz pourparler endpoints
-try {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const pourparler = require('../utils/npz-pourparler');
-
-  app.post('/npz/pourparler', (req: any, res: any) => {
-    try {
-      const body = req.body || {};
-      const action = body.action || 'color'; // default action
-      const text = String(body.text || '');
-
-      if (action === 'encode') {
-        const enc = pourparler.encodeAscii4(text);
-        return res.json({ success: true, encoded: enc });
-      }
-
-      if (action === 'color') {
-        const colored = pourparler.colorizeAscii4(text);
-        return res.json({ success: true, colored });
-      }
-
-      if (action === 'start') {
-        const s = pourparler.startSession(body.systemPrompt || '');
-        return res.json({ success: true, session: s });
-      }
-
-      if (action === 'send') {
-        if (!body.sessionId) return res.status(400).json({ success: false, error: 'sessionId missing' });
-        const m = pourparler.sendMessage(body.sessionId, body.role || 'user', String(body.text || ''));
-        return res.json({ success: true, message: m });
-      }
-
-      if (action === 'history') {
-        if (!body.sessionId) return res.status(400).json({ success: false, error: 'sessionId missing' });
-        const h = pourparler.getHistory(body.sessionId);
-        return res.json({ success: true, history: h });
-      }
-
-      if (action === 'end') {
-        if (!body.sessionId) return res.status(400).json({ success: false, error: 'sessionId missing' });
-        const ok = pourparler.endSession(body.sessionId);
-        return res.json({ success: true, ended: ok });
-      }
-
-      if (action === 'checksum') {
-        try {
-          const cssPath = path.join(process.cwd(), 'extensions', 'vscode-npz', 'pourparler-checksum.css');
-            if (fs.existsSync(cssPath)) {
-            const content = fs.readFileSync(cssPath, 'utf8');
-            // extract the checksum value
-            const m = content.match(/--npz-pourparler-checksum:\s*'([a-f0-9]+)'/i);
-            const checksum = m ? m[1] : null;
-            return res.json({ success: true, checksum, path: cssPath });
-          }
-          return res.status(404).json({ success: false, error: 'css not found' });
-        } catch (err) {
-          return res.status(500).json({ success: false, error: String(err) });
-        }
-      }
-
-      return res.status(400).json({ success: false, error: 'unknown action' });
-    } catch (e: any) {
-      return res.status(500).json({ success: false, error: String(e) });
-    }
-  });
-} catch (e) {
-  // ignore if module not present
-}
 
 let server: any = null;
 export function startServer(port?: number) {
@@ -503,11 +385,28 @@ export function startServer(port?: number) {
 
 export function stopServer() {
   try {
-    if (server) server.close();
+    if (server) {
+      server.close();
+      server = null;
+    }
   } catch (e) {
     // ignore
   }
 }
+
+// register reload handler to stop/start server (placed after start/stop definitions)
+import { setReloadHandler as __setReloadHandler } from '../rome/daemon-control';
+__setReloadHandler(async () => {
+  console.log('daemon reload requested');
+  try {
+    stopServer();
+    await new Promise((r) => setTimeout(r, 200));
+    startServer();
+    console.log('daemon reloaded');
+  } catch (e) {
+    console.warn('daemon reload failed', String(e));
+  }
+});
 
 // if the module is run directly, start the server
 if (require.main === module) {

@@ -239,7 +239,7 @@ export function activate(context: vscode.ExtensionContext) {
         vscode.window.showInformationMessage('License activated successfully. Thanks!');
       });
     } catch (err: any) {
-      vscode.window.showErrorMessage(`License activation failed: ${err && err.message ? err.message : String(err)}`);
+        vscode.window.showErrorMessage(`License activation failed: ${err && err.message ? err.message : String(err)}`);
     }
   });
 
@@ -265,7 +265,15 @@ export function activate(context: vscode.ExtensionContext) {
     }
   });
 
-  context.subscriptions.push(openDisposable, openPourparler, enterLicense, showStatus);
+  const openTelemetry = vscode.commands.registerCommand('qflush.openTelemetry', () => {
+    const panel = vscode.window.createWebviewPanel('qflushTelemetry', 'QFlush Telemetry', vscode.ViewColumn.Two, { enableScripts: true, localResourceRoots: [vscode.Uri.file(path.join(context.extensionPath, 'src'))] });
+    const htmlPath = path.join(context.extensionPath, 'src', 'telemetry-view.html');
+    let html = '';
+    try { html = fs.readFileSync(htmlPath, 'utf8'); } catch (e) { html = `<html><body><pre>telemetry-view.html not found at ${htmlPath}</pre></body></html>`; }
+    panel.webview.html = html;
+  });
+
+  context.subscriptions.push(openDisposable, openPourparler, enterLicense, showStatus, openTelemetry);
 }
 
 export function deactivate() {}
