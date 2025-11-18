@@ -18,16 +18,18 @@ jobs:
           node-version: '18'
 
       - name: Install dependencies
-        working-directory: extensions/vscode-npz
-        run: npm ci
+        run: |
+          cd extensions/vscode-npz
+          npm ci
 
       - name: Build extension
-        working-directory: extensions/vscode-npz
-        run: npm run build
+        run: |
+          cd extensions/vscode-npz
+          npm run build
 
       - name: Publish to Open VSX
         env:
           OPEN_VSX_TOKEN: ${{ secrets.OPEN_VSX_TOKEN }}
-        working-directory: extensions/vscode-npz
         run: |
+          cd extensions/vscode-npz
           npx ovsx publish --pat "$OPEN_VSX_TOKEN"
