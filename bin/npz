@@ -1,8 +1,18 @@
 #!/usr/bin/env bash
 # Lightweight launcher to run the qflash NPZ daemon without npm
-# Usage: ./bin/npz [args]
+# Also acts as a proxy for npm commands to avoid conflicts: npz ci/install/build/test/package --cwd <dir>
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 NODE_CMD="${NODE:-node}"
+
+function run_in_cwd() {
+  local cwd="$1"; shift
+  if [ -z "$cwd" ]; then cwd="$DIR"; fi
+  pushd "$cwd" > /dev/null || exit 1
+  "$@"
+  local rc=$?
+  popd > /dev/null || exit 1
+  return $rc
+}
 
 # dispatcher: support `npz run qflash`
 if [ "$1" = "run" ] && [ "$2" = "qflash" ]; then
@@ -14,6 +24,39 @@ if [ "$1" = "run" ] && [ "$2" = "qflash" ]; then
     exec "$NODE_CMD" "$DIR/dist/daemon/qflashd.js" "${@:3}"
   fi
 fi
+
+# proxy npm-like commands to avoid requiring 'npm' directly in workflows
+case "$1" in
+  ci|install|build|test|package)
+    CMD="$1"
+    shift
+    # parse optional --cwd argument
+    TARGET_CWD="$DIR"
+    while [[ "$#" -gt 0 ]]; do
+      case "$1" in
+        --cwd)
+          TARGET_CWD="$2"; shift 2;;
+        --cwd=*)
+          TARGET_CWD="${1#--cwd=}"; shift;;
+        *)
+          # forward remaining args to npm
+          EXTRA_ARGS+=("$1"); shift;;
+      esac
+    done
+    if [ "$CMD" = "ci" ]; then
+      run_in_cwd "$TARGET_CWD" npm ci "${EXTRA_ARGS[@]}"
+    elif [ "$CMD" = "install" ]; then
+      run_in_cwd "$TARGET_CWD" npm install --no-audit --no-fund "${EXTRA_ARGS[@]}"
+    elif [ "$CMD" = "build" ]; then
+      run_in_cwd "$TARGET_CWD" npm run build "${EXTRA_ARGS[@]}"
+    elif [ "$CMD" = "test" ]; then
+      run_in_cwd "$TARGET_CWD" npm test "${EXTRA_ARGS[@]}"
+    elif [ "$CMD" = "package" ]; then
+      run_in_cwd "$TARGET_CWD" npm run package "${EXTRA_ARGS[@]}"
+    fi
+    exit $?
+    ;;
+esac
 
 # default: run daemon with any args forwarded
 exec "$NODE_CMD" "$DIR/dist/daemon/qflashd.js" "$@"
