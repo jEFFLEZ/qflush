@@ -4,6 +4,7 @@ import crypto from 'crypto';
 import fetch from 'node-fetch';
 import { EventEmitter } from 'events';
 import { CopilotConfig, TelemetryEvent, EngineState, RuleEvent, Diagnostic } from './copilot-types';
+import { saveTelemetryEvent } from './storage';
 
 const DEFAULT_CONFIG: CopilotConfig = {
   enabled: false,
@@ -71,8 +72,6 @@ function writeFileEvent(event: TelemetryEvent) {
 export function initCopilotBridge() {
   loadCfg();
   if (!cfg.enabled) return;
-  // start emitter or other transports
-  // expose emitter so daemon can listen
 }
 
 export async function emitEngineState(state: EngineState) {
@@ -80,6 +79,7 @@ export async function emitEngineState(state: EngineState) {
   const ev: TelemetryEvent = { type: 'engine_state', telemetryVersion: cfg.telemetryVersion, timestamp: new Date().toISOString(), payload: state };
   if (cfg.transports.includes('webhook')) await sendWebhook(ev);
   if (cfg.transports.includes('file')) writeFileEvent(ev);
+  try { saveTelemetryEvent('engine-'+Date.now(), 'engine_state', Date.now(), state); } catch (e) {}
   emitter.emit('telemetry', ev);
 }
 
@@ -88,6 +88,7 @@ export async function emitRuleEvent(ev: RuleEvent) {
   const event: TelemetryEvent = { type: 'rule_event', telemetryVersion: cfg.telemetryVersion, timestamp: new Date().toISOString(), payload: ev };
   if (cfg.transports.includes('webhook')) await sendWebhook(event);
   if (cfg.transports.includes('file')) writeFileEvent(event);
+  try { saveTelemetryEvent('rule-'+Date.now(), 'rule_event', Date.now(), ev); } catch (e) {}
   emitter.emit('telemetry', event);
 }
 
@@ -96,6 +97,7 @@ export async function emitDiagnostic(diag: Diagnostic) {
   const event: TelemetryEvent = { type: 'diagnostic', telemetryVersion: cfg.telemetryVersion, timestamp: new Date().toISOString(), payload: diag };
   if (cfg.transports.includes('webhook')) await sendWebhook(event);
   if (cfg.transports.includes('file')) writeFileEvent(event);
+  try { saveTelemetryEvent('diag-'+Date.now(), 'diagnostic', Date.now(), diag); } catch (e) {}
   emitter.emit('telemetry', event);
 }
 
