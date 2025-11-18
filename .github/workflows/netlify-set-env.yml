@@ -1,0 +1,65 @@
+name: Configure Netlify Site Env
+
+on:
+  workflow_dispatch:
+
+jobs:
+  set-env:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup tools
+        run: |
+          sudo apt-get update && sudo apt-get install -y jq
+          npm i -g netlify-cli
+
+      - name: Find or create site
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_NAME: "qflash-funesterie"
+        run: |
+          set -e
+          # attempt to find site id by name
+          SITE_ID=$(netlify sites:list --json | jq -r ".[] | select(.name==\"${NETLIFY_SITE_NAME}\") | .id" )
+          if [ -z "$SITE_ID" ] || [ "$SITE_ID" = "null" ]; then
+            echo "site not found, creating"
+            netlify sites:create --name "${NETLIFY_SITE_NAME}" --json
+            SITE_ID=$(netlify sites:list --json | jq -r ".[] | select(.name==\"${NETLIFY_SITE_NAME}\") | .id" )
+          fi
+          echo "SITE_ID=$SITE_ID"
+          echo "SITE_ID=$SITE_ID" >> $GITHUB_OUTPUT
+
+      - name: Set Netlify env vars
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          SITE_ID: ${{ steps.find_or_create_site.outputs.SITE_ID || '' }}
+          APP_ID: ${{ secrets.APP_ID }}
+          APP_SECRET: ${{ secrets.APP_SECRET }}
+          GUMROAD_TOKEN: ${{ secrets.GUMROAD_TOKEN }}
+          GUMROAD_PRODUCT_ID: ${{ secrets.GUMROAD_PRODUCT_ID }}
+          DAEMON_URL: "https://qflash.funesterie.pro"
+        run: |
+          set -e
+          # fallback: read site id via name
+          if [ -z "$SITE_ID" ]; then
+            SITE_ID=$(netlify sites:list --json | jq -r ".[] | select(.name==\"qflash-funesterie\") | .id" )
+          fi
+          echo "Using site: $SITE_ID"
+          # helper to set if value exists
+          set_env_if() {
+            KEY=$1; VAL=$2; if [ -n "$VAL" ] && [ "$VAL" != "null" ]; then netlify env:set $KEY "$VAL" --site $SITE_ID; fi
+          }
+          set_env_if "APP_ID" "$APP_ID"
+          set_env_if "APP_SECRET" "$APP_SECRET"
+          set_env_if "GUMROAD_TOKEN" "$GUMROAD_TOKEN"
+          set_env_if "GUMROAD_PRODUCT_ID" "$GUMROAD_PRODUCT_ID"
+          set_env_if "DAEMON_URL" "$DAEMON_URL"
+          echo "Env vars set"
+
+      - name: Output site info
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+        run: |
+          netlify sites:list --json | jq -r ".[] | select(.name==\"qflash-funesterie\") | {name:.name,id:.id,ssl:.ssl,custom_domain: .custom_domain,default_domain:.default_domain}" || true
