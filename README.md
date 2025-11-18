@@ -106,3 +106,24 @@ iwr -useb https://raw.githubusercontent.com/jEFFLEZ/qflash/main/installers/insta
 ## Future
 
 Future improvements will focus on better detection, richer SmartChain rules and optional integrations.
+
+## NPZ (Joker)
+
+NPZ is the resolver/router used by qflash to launch modules and proxy requests.
+
+Environment variables:
+
+- `NPZ_NAMESPACE` - optional, default `npz`. Namespaces metrics and keys to avoid conflicts.
+- `REDIS_URL` - optional, if set NPZ uses Redis for request store.
+- `NPZ_ADMIN_TOKEN` - required to access admin endpoints (`/npz/*`).
+- `QFLASHD_PORT` - optional, daemon port (default 4500).
+
+Commands:
+
+- `qflash daemon` - run the qflash daemon (exposes /metrics, /proxy, /npz admin)
+- `qflash npz:inspect <id>` or `qflash npz inspect <id>` - inspect a stored NPZ request
+
+Example:
+
+```
+NPZ_NAMESPACE=funest NPZ_ADMIN_TOKEN=secret REDIS_URL=redis://127.0.0.1:6379 npm run build && node dist/daemon/qflashd.js
