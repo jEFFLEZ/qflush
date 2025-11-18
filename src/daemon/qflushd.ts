@@ -70,6 +70,9 @@ startRomeIndexAutoRefresh(15 * 1000); // refresh every 15s
 
 // in-memory execution history
 const engineHistory: any[] = [];
+// Copilot message history and SSE clients
+const copilotHistory: any[] = [];
+const copilotClients: any[] = [];
 
 // Evaluate engine at startup and on refresh
 function computeEngineActions() {
@@ -93,6 +96,41 @@ function computeEngineActions() {
     return [];
   }
 }
+
+// Copilot endpoints
+app.post('/copilot/message', (req: any, res: any) => {
+  try {
+    const body = req.body || {};
+    const msg = { id: Date.now(), receivedAt: new Date().toISOString(), message: body.message || '', meta: body.meta || {} };
+    copilotHistory.push(msg);
+    // notify SSE clients
+    for (const cl of copilotClients) {
+      try { cl.write(`data: ${JSON.stringify(msg)}\n\n`); } catch (e) {}
+    }
+    return res.json({ success: true, id: msg.id });
+  } catch (e) {
+    return res.status(500).json({ success: false, error: String(e) });
+  }
+});
+
+app.get('/copilot/stream', (req: any, res: any) => {
+  // SSE
+  res.writeHead(200, {
+    Connection: 'keep-alive',
+    'Content-Type': 'text/event-stream',
+    'Cache-Control': 'no-cache'
+  });
+  res.write('\n');
+  copilotClients.push(res);
+  req.on('close', () => {
+    const idx = copilotClients.indexOf(res);
+    if (idx !== -1) copilotClients.splice(idx, 1);
+  });
+});
+
+app.get('/copilot/history', (_req: any, res: any) => {
+  return res.json({ success: true, count: copilotHistory.length, items: copilotHistory.slice(-100) });
+});
 
 // manual API to run engine evaluation and execute matching actions
 app.post('/npz/engine/run', async (_req: any, res: any) => {

@@ -6,6 +6,9 @@ import runNpzInspect from "./commands/npz-inspect";
 import runNpzScores from "./commands/npz-scores";
 import { runLicense } from "./commands/license";
 import runChecksum from "./commands/checksum";
+import runEngine from "./commands/engine";
+import runLogic from "./commands/logic";
+import runCopilot from "./commands/copilot";
 
 const argv = process.argv.slice(2);
 if (argv.includes("--help") || argv.includes("-h")) {
@@ -31,6 +34,27 @@ if (first === "daemon") {
     process.exit(1);
   });
   process.exit(0);
+}
+
+if (first === 'engine') {
+  (async () => {
+    const code = await runEngine(argv.slice(1));
+    process.exit(code ?? 0);
+  })();
+}
+
+if (first === 'logic') {
+  (async () => {
+    const code = await runLogic(argv.slice(1));
+    process.exit(code ?? 0);
+  })();
+}
+
+if (first === 'copilot') {
+  (async () => {
+    const code = await runCopilot(argv.slice(1));
+    process.exit(code ?? 0);
+  })();
 }
 
 if (first === 'license' || (first === 'lic' && argv[1] === 'activate')) {
