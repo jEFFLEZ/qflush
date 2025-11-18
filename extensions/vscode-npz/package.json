@@ -23,6 +23,22 @@
         "command": "npz.openScores",
         "title": "NPZ: Open Scores"
       }
-    ]
+    ],
+    "configuration": {
+      "type": "object",
+      "title": "NPZ Visual",
+      "properties": {
+        "npz.daemonUrl": {
+          "type": "string",
+          "default": "http://localhost:4500",
+          "description": "URL of the NPZ daemon (including protocol and port)"
+        },
+        "npz.adminToken": {
+          "type": "string",
+          "default": "changeme",
+          "description": "Admin token to call NPZ admin endpoints"
+        }
+      }
+    }
   }
 }
