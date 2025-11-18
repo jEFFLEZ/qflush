@@ -101,6 +101,13 @@ export async function emitDiagnostic(diag: Diagnostic) {
   emitter.emit('telemetry', event);
 }
 
+export function _signPayloadForTest(payload: string, secret: string) {
+  try {
+    const h = crypto.createHmac('sha256', secret).update(payload).digest('hex');
+    return h;
+  } catch (e) { return null; }
+}
+
 export function onTelemetry(cb: (ev: TelemetryEvent)=>void) { emitter.on('telemetry', cb); }
 
 export function shutdownCopilotBridge() { /* placeholder for flush */ }

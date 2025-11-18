@@ -4,29 +4,26 @@ on:
   release:
     types: [published]
 
-permissions:
-  contents: write
-
 jobs:
-  publish:
+  CI:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    steps:
+      - run: echo "CI check placeholder"
+
+  publish:
+    needs: [CI]
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          persist-credentials: true
       - name: Use Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
           registry-url: 'https://registry.npmjs.org'
-      - name: Install
-        run: npm ci
-      - name: Build
-        run: npm run build
       - name: Publish to npm
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
+          npm ci
+          npm run build
           npm publish --access public

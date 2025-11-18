@@ -1,4 +1,4 @@
-import { spawn } from 'child_process';
+import { spawn, execFile } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
 import fetch from 'node-fetch';
@@ -15,8 +15,24 @@ function loadConfig() {
   return DEFAULT_CFG;
 }
 
-function spawnCommand(cmd: string, cwd: string, timeoutMs: number): Promise<{ code: number | null; stdout: string; stderr: string }> {
+function safeExecFile(cmd: string, cwd: string, timeoutMs: number): Promise<{ code: number | null; stdout: string; stderr: string }> {
   return new Promise((resolve) => {
+    const parts = cmd.split(' ').filter(Boolean);
+    if (parts.length === 0) return resolve({ code: 1, stdout: '', stderr: 'empty command' });
+    // if simple executable with args, prefer execFile
+    if (/^[\w@.\-\/\\]+$/.test(parts[0])) {
+      const child = execFile(parts[0], parts.slice(1), { cwd, env: { PATH: process.env.PATH || '' }, timeout: timeoutMs }, (err: any, stdout: any, stderr: any) => {
+        if (err && (err as any).code && (err as any).signal === undefined) {
+          resolve({ code: (err as any).code, stdout: stdout?.toString?.() || String(stdout), stderr: stderr?.toString?.() || String(stderr) });
+        } else if (err) {
+          resolve({ code: 1, stdout: stdout?.toString?.() || String(stdout), stderr: (err && err.message) || String(stderr) });
+        } else {
+          resolve({ code: 0, stdout: stdout?.toString?.() || String(stdout), stderr: stderr?.toString?.() || String(stderr) });
+        }
+      });
+      return;
+    }
+    // fallback to shell spawn
     const child = spawn(cmd, { cwd, env: { PATH: process.env.PATH || '' }, shell: true });
     let out = '';
     let err = '';
@@ -31,7 +47,7 @@ function spawnCommand(cmd: string, cwd: string, timeoutMs: number): Promise<{ co
 
 function suspicious(cmd: string) {
   // reject characters that allow shell expansions redirections or chaining
-  return /[;&|<>$`\\]/.test(cmd);
+  return /[;&|<>$`]/.test(cmd);
 }
 
 function writeNpzMetadata(record: any) {
@@ -75,7 +91,7 @@ export async function executeAction(action: string, ctx: any = {}): Promise<any>
         return { success: true, dryRun: true, cmd };
       }
 
-      const result = await spawnCommand(cmd, dir, cfg.commandTimeoutMs || 15000);
+      const result = await safeExecFile(cmd, dir, cfg.commandTimeoutMs || 15000);
       const res = { success: result.code === 0, stdout: result.stdout, stderr: result.stderr, code: result.code };
 
       // webhook notify
