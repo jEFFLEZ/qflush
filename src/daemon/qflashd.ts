@@ -29,7 +29,7 @@ app.post('/license/activate', async (req: Request, res: Response) => {
     const { key, product_id } = req.body || {};
     if (!key) return res.status(400).json({ success: false, error: 'license key missing' });
 
-    const token = process.env.GUMROAD_TOKEN;
+    let token = process.env.GUMROAD_TOKEN || gumroad.readTokenFromFile();
     if (!token) return res.status(500).json({ success: false, error: 'GUMROAD_TOKEN not configured on daemon' });
 
     const productId = product_id || process.env.GUMROAD_PRODUCT_ID || process.env.GUMROAD_PRODUCT_YEARLY || process.env.GUMROAD_PRODUCT_MONTHLY || '';
@@ -40,6 +40,12 @@ app.post('/license/activate', async (req: Request, res: Response) => {
     logger.warn(`license activation failed: ${err && err.message ? err.message : err}`);
     return res.status(400).json({ success: false, error: err && err.message ? err.message : String(err) });
   }
+});
+
+app.get('/license/status', (req: Request, res: Response) => {
+  const rec = gumroad.loadLicense();
+  if (!rec) return res.json({ success: true, license: null });
+  return res.json({ success: true, license: rec, valid: gumroad.isLicenseValid(rec) });
 });
 
 app.get('/status', (req: Request, res: Response) => {

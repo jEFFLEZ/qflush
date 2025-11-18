@@ -2,7 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import fetch from 'node-fetch';
 
-const STORAGE = path.join(process.cwd(), '.qflash', 'license.json');
+const DEFAULT_STORAGE = path.join(process.cwd(), '.qflash', 'license.json');
 
 export type LicenseRecord = {
   key: string;
@@ -14,21 +14,38 @@ export type LicenseRecord = {
   metadata?: Record<string, any>;
 };
 
-function ensureDir() {
-  const dir = path.dirname(STORAGE);
+function getStoragePath() {
+  return process.env.GUMROAD_LICENSE_PATH || DEFAULT_STORAGE;
+}
+
+function ensureDir(storagePath: string) {
+  const dir = path.dirname(storagePath);
   if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
 }
 
 export function saveLicense(rec: LicenseRecord) {
-  ensureDir();
-  fs.writeFileSync(STORAGE, JSON.stringify(rec, null, 2), 'utf8');
+  const storage = getStoragePath();
+  ensureDir(storage);
+  fs.writeFileSync(storage, JSON.stringify(rec, null, 2), 'utf8');
 }
 
 export function loadLicense(): LicenseRecord | null {
   try {
-    if (!fs.existsSync(STORAGE)) return null;
-    const raw = fs.readFileSync(STORAGE, 'utf8');
+    const storage = getStoragePath();
+    if (!fs.existsSync(storage)) return null;
+    const raw = fs.readFileSync(storage, 'utf8');
     return JSON.parse(raw) as LicenseRecord;
+  } catch (e) {
+    return null;
+  }
+}
+
+export function readTokenFromFile(): string | null {
+  const p = process.env.GUMROAD_TOKEN_FILE;
+  if (!p) return null;
+  try {
+    if (!fs.existsSync(p)) return null;
+    return fs.readFileSync(p, 'utf8').trim();
   } catch (e) {
     return null;
   }
@@ -78,8 +95,9 @@ export async function activateLicense(product_id: string, licenseKey: string, to
 
 export function clearLicense() {
   try {
-    if (fs.existsSync(STORAGE)) fs.unlinkSync(STORAGE);
+    const storage = getStoragePath();
+    if (fs.existsSync(storage)) fs.unlinkSync(storage);
   } catch (e) {}
 }
 
-export default { saveLicense, loadLicense, verifyWithGumroad, activateLicense, isLicenseValid, clearLicense };
+export default { saveLicense, loadLicense, verifyWithGumroad, activateLicense, isLicenseValid, clearLicense, readTokenFromFile };
