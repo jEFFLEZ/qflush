@@ -2,6 +2,7 @@ import express from 'express';
 import npzStore from './npz-store';
 import npzRouter from './npz-router';
 import engine from './npz-engine';
+import { stringify } from 'csv-stringify/sync';
 
 const router = express.Router();
 
@@ -43,6 +44,28 @@ router.get('/npz/scores', (req: any, res: any) => {
     const items = Object.values(store).map((r: any) => ({ laneId: r.laneId, score: r.score, lastSuccess: r.lastSuccess, lastFailure: r.lastFailure }));
     items.sort((a: any, b: any) => a.score - b.score);
     res.json(items);
+  } catch (err) {
+    res.status(500).json({ error: String(err) });
+  }
+});
+
+router.post('/npz/scores/reset', (req: any, res: any) => {
+  try {
+    engine.resetScores();
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: String(err) });
+  }
+});
+
+router.get('/npz/scores.csv', (req: any, res: any) => {
+  try {
+    const store = engine.getStore();
+    const items = Object.values(store).map((r: any) => ({ laneId: r.laneId, score: r.score, lastSuccess: r.lastSuccess, lastFailure: r.lastFailure }));
+    items.sort((a: any, b: any) => a.score - b.score);
+    const csv = stringify(items, { header: true });
+    res.set('Content-Type', 'text/csv');
+    res.send(csv);
   } catch (err) {
     res.status(500).json({ error: String(err) });
   }

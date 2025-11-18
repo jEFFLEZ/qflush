@@ -51,10 +51,23 @@ if (first === 'npz:inspect' || (first === 'npz' && argv[1] === 'inspect')) {
 if (first === 'npz:scores' || (first === 'npz' && argv[1] === 'scores')) {
   (async () => {
     try {
-      const code = await runNpzScores();
+      const args = first === 'npz:scores' ? argv.slice(1) : argv.slice(2);
+      const code = await runNpzScores(args);
       process.exit(code ?? 0);
     } catch (err) {
       console.error('npz scores failed', err);
+      process.exit(1);
+    }
+  })();
+}
+
+if (first === 'npz:scores:reset' || (first === 'npz' && argv[1] === 'scores:reset')) {
+  (async () => {
+    try {
+      const code = await runNpzScores(['--reset']);
+      process.exit(code ?? 0);
+    } catch (err) {
+      console.error('npz scores reset failed', err);
       process.exit(1);
     }
   })();
