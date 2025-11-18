@@ -6,9 +6,18 @@ import logger from '../utils/logger';
 import metricsMiddleware from '../utils/npz-metrics';
 import adminRouter from '../utils/npz-admin';
 import npzMiddleware from '../utils/npz-middleware';
-import license from '../utils/license';
+import gumroad from '../utils/gumroad-license';
+import fs from 'fs';
+import path from 'path';
+import client from 'prom-client';
 
 const PORT = process.env.QFLASHD_PORT ? Number(process.env.QFLASHD_PORT) : 4500;
+const AUDIT_LOG = process.env.QFLASHD_AUDIT_LOG || path.join(process.cwd(), '.qflash', 'license-activations.log');
+const REVERIFY_INTERVAL_MS = Number(process.env.QFLASHD_REVERIFY_MS || String(24 * 3600 * 1000)); // default 24h
+
+const activationCounter = new client.Counter({ name: 'qflash_license_activation_total', help: 'Total license activation attempts' });
+const activationSuccess = new client.Counter({ name: 'qflash_license_activation_success_total', help: 'Successful license activations' });
+const activationFailure = new client.Counter({ name: 'qflash_license_activation_failure_total', help: 'Failed license activations' });
 
 const app = express();
 app.use(cookieParser());
@@ -22,6 +31,111 @@ app.use('/proxy', npzMiddleware());
 
 // Admin endpoints (npz inspect, lanes, etc.)
 app.use('/', adminRouter);
+
+function auditLine(line: string) {
+  try {
+    const dir = path.dirname(AUDIT_LOG);
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    fs.appendFileSync(AUDIT_LOG, line + '\n', 'utf8');
+  } catch (e) {
+    logger.warn('Failed to write audit log: ' + String(e));
+  }
+}
+
+// License activation endpoint
+app.post('/license/activate', async (req: Request, res: Response) => {
+  activationCounter.inc();
+  try {
+    const { key, product_id } = req.body || {};
+    if (!key) { activationFailure.inc(); return res.status(400).json({ success: false, error: 'license key missing' }); }
+
+    let token = process.env.GUMROAD_TOKEN || gumroad.readTokenFromFile();
+    if (!token) { activationFailure.inc(); return res.status(500).json({ success: false, error: 'GUMROAD_TOKEN not configured on daemon' }); }
+
+    const productId = product_id || process.env.GUMROAD_PRODUCT_ID || process.env.GUMROAD_PRODUCT_YEARLY || process.env.GUMROAD_PRODUCT_MONTHLY || '';
+
+    const rec = await gumroad.activateLicense(productId, key, token);
+    activationSuccess.inc();
+    auditLine(JSON.stringify({ t: Date.now(), key: key.replace(/.(?=.{4})/g, '*'), productId, ok: true }));
+    return res.json({ success: true, license: rec });
+  } catch (err: any) {
+    activationFailure.inc();
+    auditLine(JSON.stringify({ t: Date.now(), key: (req.body && req.body.key) ? String(req.body.key).replace(/.(?=.{4})/g, '*') : null, ok: false, err: err && err.message ? err.message : String(err) }));
+    logger.warn(`license activation failed: ${err && err.message ? err.message : err}`);
+    return res.status(400).json({ success: false, error: err && err.message ? err.message : String(err) });
+  }
+});
+
+app.get('/license/status', (req: Request, res: Response) => {
+  const rec = gumroad.loadLicense();
+  if (!rec) return res.json({ success: true, license: null });
+  return res.json({ success: true, license: rec, valid: gumroad.isLicenseValid(rec) });
+});
+
+// Webhook for Gumroad events (refund, subscription canceled, etc.)
+app.post('/webhooks/gumroad', (req: Request, res: Response) => {
+  try {
+    const payload = req.body || {};
+    auditLine(JSON.stringify({ t: Date.now(), webhook: payload }));
+
+    // Protect: check minimal expected fields
+    const event = payload.event || payload.type || null;
+    // Gumroad sends purchase object with refunded/chargeback flags inside `purchase`.
+    const purchase = payload.purchase || payload.data || null;
+
+    let shouldClear = false;
+    if (purchase) {
+      if (purchase.refunded || purchase.chargebacked) shouldClear = true;
+      if (purchase.subscription_cancelled_at || purchase.subscription_ended_at) shouldClear = true;
+    }
+
+    if (event && typeof event === 'string') {
+      const e = event.toLowerCase();
+      if (e.includes('refund') || e.includes('chargeback') || e.includes('subscription_cancel')) shouldClear = true;
+    }
+
+    if (shouldClear) {
+      gumroad.clearLicense();
+      auditLine(JSON.stringify({ t: Date.now(), action: 'cleared_local_license_due_to_webhook' }));
+    }
+
+    res.status(200).json({ ok: true });
+  } catch (e) {
+    logger.warn('webhook handling failed: ' + String(e));
+    res.status(500).json({ ok: false });
+  }
+});
+
+// Periodic re-verification of saved license
+async function reverifySavedLicense() {
+  try {
+    const rec = gumroad.loadLicense();
+    if (!rec || !rec.key) return;
+    const token = process.env.GUMROAD_TOKEN || gumroad.readTokenFromFile();
+    if (!token) return;
+    const productId = rec.product_id || process.env.GUMROAD_PRODUCT_YEARLY || process.env.GUMROAD_PRODUCT_MONTHLY || '';
+    try {
+      const data = await gumroad.verifyWithGumroad(productId, rec.key, token);
+      const now = Date.now();
+      rec.lastVerified = now;
+      // update expiresAt if non-recurring and purchase expiry present
+      const purchase = (data as any).purchase || {};
+      if (!rec.recurring && purchase && purchase.ended_at) {
+        rec.expiresAt = new Date(purchase.ended_at).getTime();
+      }
+      gumroad.saveLicense(rec);
+      auditLine(JSON.stringify({ t: now, key: rec.key.replace(/.(?=.{4})/g, '*'), reverify_ok: true }));
+    } catch (e: any) {
+      auditLine(JSON.stringify({ t: Date.now(), key: rec.key.replace(/.(?=.{4})/g, '*'), reverify_ok: false, err: e && e.message ? e.message : String(e) }));
+    }
+  } catch (e) {
+    logger.warn('Reverify license failed: ' + String(e));
+  }
+}
+
+setInterval(() => {
+  reverifySavedLicense().catch(() => {});
+}, REVERIFY_INTERVAL_MS);
 
 app.get('/status', (req: Request, res: Response) => {
   const running = listRunning();
@@ -39,23 +153,5 @@ app.get('/stop/:name?', (req: Request, res: Response) => {
   res.json({ ok: true });
 });
 
-app.post('/license/activate', async (req: Request, res: Response) => {
-  try {
-    const key = req.body.key || req.query.key;
-    const product = req.body.product || req.query.product || process.env.GUMROAD_PRODUCT_MONTHLY;
-    if (!key) return res.status(400).json({ error: 'missing key' });
-    const result = await license.activateLicense(key, product);
-    if (result.ok) return res.json({ ok: true, license: result.license });
-    return res.status(400).json({ ok: false, error: result.error });
-  } catch (err) {
-    return res.status(500).json({ error: String(err) });
-  }
-});
-
-app.get('/license/status', (req: Request, res: Response) => {
-  const lic = license.readLicense();
-  if (!lic) return res.json({ license: null });
-  return res.json({ license: lic });
-});
-
-app.listen(PORT, () => logger.success(`qflashd running on http://localhost:${PORT}`));
+// Use generic product name "qflash" in the startup message
+app.listen(PORT, () => logger.success(`qflash running on http://localhost:${PORT}`));
