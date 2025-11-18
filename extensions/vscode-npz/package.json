@@ -4,6 +4,7 @@
   "description": "Visualize NPZ engine scores and manage lanes from VS Code.",
   "version": "0.0.1",
   "publisher": "qflash",
+  "icon": "icon.png",
   "engines": { "vscode": "^1.70.0" },
   "repository": {
     "type": "git",
