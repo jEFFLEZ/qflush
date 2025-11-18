@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { Request, Response } from 'express';
 import cookieParser from 'cookie-parser';
 import { listRunning, startProcess, stopProcess, stopAll } from '../supervisor';
 import logger from '../utils/logger';
@@ -21,13 +21,13 @@ app.use('/proxy', npzMiddleware());
 // Admin endpoints (npz inspect, lanes, etc.)
 app.use('/', adminRouter);
 
-app.get('/status', (req, res) => {
+app.get('/status', (req: Request, res: Response) => {
   const running = listRunning();
   res.json({ running });
 });
 
-app.get('/stop/:name?', (req, res) => {
-  const name = req.params.name;
+app.get('/stop/:name?', (req: Request, res: Response) => {
+  const name = req.params.name as string | undefined;
   if (name) {
     const ok = stopProcess(name);
     res.json({ ok });

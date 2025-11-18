@@ -4,6 +4,7 @@ import { performance } from 'perf_hooks';
 import logger from './logger';
 import client from 'prom-client';
 import { getNpzNamespace } from './npz-config';
+import engine from './npz-engine';
 
 const NS = getNpzNamespace();
 
@@ -79,14 +80,14 @@ export function setPreferredLane(host: string, laneId: number) {
 
 export function lanesForHost(host: string, lanes: Lane[] = DEFAULT_LANES): Lane[] {
   const pref = getPreferredLane(host);
-  let base = lanes.slice();
-  // filter out tripped lanes by moving them to the end
-  base = base.filter((l) => !isLaneTripped(host, l.id)).concat(base.filter((l) => isLaneTripped(host, l.id)));
-  if (pref === null) return base;
-  const idx = base.findIndex((l) => l.id === pref);
-  if (idx <= 0) return base.slice();
-  const ordered = [base[idx], ...base.slice(0, idx), ...base.slice(idx + 1)];
-  return ordered;
+  // first let engine reorder by score
+  let ordered = engine.orderLanesByScore(lanes);
+  // then apply preferred lane override
+  if (pref === null) return ordered.slice();
+  const idx = ordered.findIndex((l) => l.id === pref);
+  if (idx <= 0) return ordered.slice();
+  const res = [ordered[idx], ...ordered.slice(0, idx), ...ordered.slice(idx + 1)];
+  return res;
 }
 
 // Circuit breaker helpers
@@ -115,12 +116,14 @@ export function recordFailure(host: string, laneId: number) {
   }
   m.set(laneId, st);
   try { laneFailure.inc({ host, lane: String(laneId), namespace: NS } as any); } catch {}
+  try { engine.scoreLane(laneId, 1); } catch {}
 }
 
 export function recordSuccess(host: string, laneId: number) {
   const m = getCircuitMapForHost(host);
   m.delete(laneId);
   try { laneSuccess.inc({ host, lane: String(laneId), namespace: NS } as any); } catch {}
+  try { engine.scoreLane(laneId, -1); } catch {}
 }
 
 export function isLaneTripped(host: string, laneId: number): boolean {
