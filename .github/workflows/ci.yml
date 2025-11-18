@@ -6,11 +6,21 @@ on:
   pull_request:
     branches: [ master, main ]
 
+permissions:
+  contents: write
+
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+      - name: Configure git
+        run: |
+          git config --global user.email "actions@github.com"
+          git config --global user.name "github-actions"
       - name: Use Node.js 20
         uses: actions/setup-node@v4
         with:
@@ -28,8 +38,16 @@ jobs:
   integration-dry-run:
     needs: build-and-test
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+      - name: Configure git
+        run: |
+          git config --global user.email "actions@github.com"
+          git config --global user.name "github-actions"
       - name: Use Node.js 20
         uses: actions/setup-node@v4
         with:
@@ -43,4 +61,3 @@ jobs:
       - name: Integration dry-run
         run: |
           node dist/index.js start --verbose --dry-run
-        timeout-minutes: 10
