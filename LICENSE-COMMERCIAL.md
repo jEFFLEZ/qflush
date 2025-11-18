@@ -25,7 +25,7 @@ Prohibited:
 ✗ Reselling FCL as a standalone tool
 ✗ Publishing a competing FCL alternative
 
-Contact: licensing@funesterie.me
+Contact: cellaurojeffrey@gmail.com
 
 To purchase a commercial license for FCL:
 https://cellaurojeff.gumroad.com/l/jxktq

@@ -1,0 +1,52 @@
+name: CI
+
+on:
+  push:
+    branches: [ master, main, 'fix/*' ]
+  pull_request:
+    branches: [ master, main ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Use Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install dependencies
+        run: |
+          cd qflash
+          npm ci
+      - name: Build
+        run: |
+          cd qflash
+          npm run build
+      - name: Run tests
+        run: |
+          cd qflash
+          npm test
+
+  integration-dry-run:
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Use Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install dependencies
+        run: |
+          cd qflash
+          npm ci
+      - name: Build
+        run: |
+          cd qflash
+          npm run build
+      - name: Integration dry-run
+        run: |
+          cd qflash
+          node dist/index.js start --verbose --dry-run
+        timeout-minutes: 10

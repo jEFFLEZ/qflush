@@ -44,9 +44,21 @@ async function runStart(opts) {
             if (pkgJson && pkgJson.bin) {
                 const binEntry = typeof pkgJson.bin === "string" ? pkgJson.bin : Object.values(pkgJson.bin)[0];
                 const binPath = require("path").join(pkgPath, binEntry);
-                runCmd = { cmd: binPath, args: [], cwd: pkgPath };
+                // prefer running via node when bin is a JS file inside package
+                if (binPath.endsWith(".js") && (0, exec_1.pathExists)(binPath)) {
+                    runCmd = { cmd: process.execPath, args: [binPath], cwd: pkgPath };
+                }
+                else if ((0, exec_1.pathExists)(binPath)) {
+                    runCmd = { cmd: binPath, args: [], cwd: pkgPath };
+                }
+                else {
+                    logger_1.logger.warn(`${mod} bin entry not found at ${binPath}. ${(0, exec_1.rebuildInstructionsFor)(pkgPath)}`);
+                    return;
+                }
             }
             else if (pkg) {
+                // fallback to npx but warn about potential npx execution failures
+                logger_1.logger.warn(`${mod} has no local bin; will run via npx which may fail if package not globally installed.`);
                 runCmd = { cmd: "npx", args: [pkg], cwd: process.cwd() };
             }
             if (!runCmd) {

@@ -2,11 +2,13 @@ from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import cm
+import os
 
 styles = getSampleStyleSheet()
 story = []
 
-logo_path = 'installers/funesterie_logo.png'  # place your logo file here
+base_dir = os.path.dirname(__file__)
+logo_path = os.path.join(base_dir, '..', 'installers', 'funesterie_logo.png')  # resolved relative path
 
 text = """FUNESTERIE COMMERCIAL LICENSE (FCL-PRO 1.0)
 
@@ -25,21 +27,29 @@ Prohibited:
 - Creating competing derivatives
 - Using Funesterie™ branding without permission
 
-Contact: licensing@funesterie.me
+Contact: cellaurojeffrey@gmail.com
+
+To purchase a commercial license for FCL:
+https://cellaurojeff.gumroad.com/l/jxktq
 """
 
 # Add logo if available
 try:
-    img = Image(logo_path, width=8*cm, height=8*cm)
-    story.append(img)
+    if os.path.exists(logo_path):
+        img = Image(logo_path, width=8*cm, height=8*cm)
+        story.append(img)
+    else:
+        print('Logo not found at', logo_path)
 except Exception as e:
-    print('Logo not found or failed to load:', e)
+    print('Logo failed to load:', e)
 
 story.append(Spacer(1, 12))
 story.append(Paragraph(text.replace("\n", "<br/>"), styles["Normal"]))
 story.append(Spacer(1, 12))
 
-output_path = 'installers/FCL_Commercial_License.pdf'
+output_path = os.path.join(base_dir, '..', 'installers', 'FCL_Commercial_License.pdf')
+
+os.makedirs(os.path.dirname(output_path), exist_ok=True)
 
 doc = SimpleDocTemplate(output_path, pagesize=A4)
 doc.build(story)
