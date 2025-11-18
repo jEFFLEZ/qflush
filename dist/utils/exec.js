@@ -4,6 +4,8 @@ exports.spawnSafe = spawnSafe;
 exports.rimrafSync = rimrafSync;
 exports.isPackageInstalled = isPackageInstalled;
 exports.ensurePackageInstalled = ensurePackageInstalled;
+exports.pathExists = pathExists;
+exports.rebuildInstructionsFor = rebuildInstructionsFor;
 const child_process_1 = require("child_process");
 const logger_1 = require("./logger");
 const fs_1 = require("fs");
@@ -56,4 +58,13 @@ function ensurePackageInstalled(pkgName) {
         logger_1.logger.warn(`Failed to install ${pkgName}: ${err.message}`);
         return false;
     }
+}
+// Helpers for CLI pre-launch checks
+function pathExists(pathStr) {
+    return !!pathStr && (0, fs_1.existsSync)(pathStr);
+}
+function rebuildInstructionsFor(pkgPath) {
+    if (!pkgPath)
+        return `Rebuild the package (cd <pkg> && npm install && npm run build && npm install -g .)`;
+    return `Rebuild the package:\n  cd ${pkgPath}\n  npm install\n  npm run build\n  npm install -g .`;
 }

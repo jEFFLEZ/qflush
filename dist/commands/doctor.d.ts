@@ -1,1 +1,1 @@
-export declare function runDoctor(): Promise<void>;
+export declare function runDoctor(argv?: string[]): Promise<void>;
