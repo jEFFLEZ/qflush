@@ -30,6 +30,20 @@ export function activate(context: vscode.ExtensionContext) {
 
     // Send config to webview securely via postMessage
     panel.webview.postMessage({ type: 'config', daemonUrl, token });
+
+    // Handle messages from the webview
+    panel.webview.onDidReceiveMessage(
+      async (message) => {
+        if (message && message.type === 'saveConfig') {
+          const cfg = vscode.workspace.getConfiguration('npz');
+          await cfg.update('daemonUrl', message.daemonUrl, vscode.ConfigurationTarget.Global);
+          await cfg.update('adminToken', message.token, vscode.ConfigurationTarget.Global);
+          panel.webview.postMessage({ type: 'saved', info: 'Configuration saved' });
+        }
+      },
+      undefined,
+      context.subscriptions
+    );
   });
 
   context.subscriptions.push(disposable);

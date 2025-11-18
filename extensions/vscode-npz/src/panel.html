@@ -3,12 +3,31 @@
   <head><meta charset="utf-8"></head>
   <body>
     <h3>NPZ Scores</h3>
+
+    <div>
+      <label for="daemonUrl">Daemon URL:</label>
+      <input id="daemonUrl" type="text" style="width:60%" />
+    </div>
+    <div>
+      <label for="adminToken">Admin Token:</label>
+      <input id="adminToken" type="password" style="width:60%" />
+      <button id="save">Save</button>
+    </div>
+
     <pre id="content">Loading...</pre>
     <button id="refresh">Refresh</button>
     <button id="reset">Reset Scores</button>
     <script>
+      const vscode = acquireVsCodeApi();
       let DAEMON_URL = 'http://localhost:4500';
-      let ADMIN_TOKEN = 'changeme';
+      let ADMIN_TOKEN = '';
+
+      function setInputs() {
+        const d = document.getElementById('daemonUrl');
+        const t = document.getElementById('adminToken');
+        if (d) d.value = DAEMON_URL;
+        if (t) t.value = ADMIN_TOKEN || '';
+      }
 
       async function load(){
         try {
@@ -33,22 +52,33 @@
         }
       });
 
+      document.getElementById('save').addEventListener('click', () => {
+        const d = (document.getElementById('daemonUrl') as HTMLInputElement).value;
+        const t = (document.getElementById('adminToken') as HTMLInputElement).value;
+        DAEMON_URL = d || DAEMON_URL;
+        ADMIN_TOKEN = t || ADMIN_TOKEN;
+        // send save message to extension to persist in settings
+        vscode.postMessage({ type: 'saveConfig', daemonUrl: DAEMON_URL, token: ADMIN_TOKEN });
+        load();
+      });
+
       // Listen for messages from the extension to receive config securely
       window.addEventListener('message', event => {
         const msg = event.data;
         if (msg && msg.type === 'config') {
           if (msg.daemonUrl) DAEMON_URL = msg.daemonUrl;
           if (msg.token) ADMIN_TOKEN = msg.token;
+          setInputs();
           load();
+        } else if (msg && msg.type === 'saved') {
+          // ack from extension
+          const info = msg.info || 'saved';
+          document.getElementById('content').innerText = String(info);
         }
       });
 
-      // Request initial config from extension (some VS Code hosts auto-provide it via postMessage)
-      // If none arrives, load() will use defaults.
-      setTimeout(() => {
-        // give extension a moment to post config
-        load();
-      }, 200);
+      // initial load in case no config arrives
+      setTimeout(() => { setInputs(); load(); }, 200);
     </script>
   </body>
 </html>
