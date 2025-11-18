@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import express, { Request, Response } from 'express';
 import cookieParser from 'cookie-parser';
 import { listRunning, startProcess, stopProcess, stopAll } from '../supervisor';
