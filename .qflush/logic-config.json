@@ -1,4 +1,13 @@
 {
-  "allowedCommandSubstrings": ["npm", "node", "echo"],
-  "commandTimeoutMs": 15000
+  "allowedCommandSubstrings": [
+    "npm",
+    "node",
+    "echo"
+  ],
+  "allowedCommands": [
+    "echo hello",
+    "npm run build"
+  ],
+  "commandTimeoutMs": 15000,
+  "webhookUrl": "http://localhost:58583"
 }
