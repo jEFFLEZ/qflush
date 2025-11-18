@@ -3,6 +3,10 @@
 QFLUSH is the orchestrator of the Funesterie ecosystem.
 Start, stop, purge, inspect, and synchronize modules.
 
+## Rome Index diagram
+
+A small diagram illustrating how external files (the "cambrousse") are indexed and admitted into the Rome architecture via the Rome Indexing Tag (Rome Gate). See `docs/rome-index-diagram.svg`.
+
 ## New: checksum CLI & extension utilities
 
 This release adds a one-time checksum mechanism and tooling to help use it.
