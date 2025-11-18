@@ -1,0 +1,31 @@
+name: Publish Package
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          registry-url: 'https://registry.npmjs.org'
+      - name: Validate tokens
+        run: |
+          if [ -z "${{ secrets.NPM_TOKEN }}" ]; then echo "NPM_TOKEN is missing"; exit 1; fi
+          if [ -z "${{ secrets.GUMROAD_TOKEN }}" ]; then echo "Warning: GUMROAD_TOKEN is not set"; fi
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+      - name: Build
+        run: npm run build --if-present
+      - name: Publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          echo "//registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}" > ~/.npmrc
+          npm publish --access public
+

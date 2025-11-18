@@ -1,0 +1,8 @@
+{"t":1763441256176,"key":"*******************************17E7","ok":false,"err":"Gumroad API returned 404"}
+{"t":1763441628688,"key":"*******************************17E7","ok":false,"err":"Gumroad API returned 404"}
+{"t":1763446285614,"webhook":{"event":"local-test","purchase":{"refunded":false}}}
+{"t":1763453506735,"event":"gumroad_webhook","payload":{"event":"refund","purchase":{"refunded":true,"order_id":"TEST-REFUND-001"}}}
+{"t":1763453506736,"event":"license_cleared_via_webhook"}
+{"t":1763455427216,"event":"gumroad_webhook","payload":{"event":"local-test","purchase":{"refunded":false,"order_id":"LOCAL-TEST"}}}
+{"t":1763455529155,"event":"gumroad_webhook","payload":{"event":"refund","purchase":{"refunded":true,"order_id":"TEST-REFUND-002"}}}
+{"t":1763455529157,"event":"license_cleared_via_webhook"}
