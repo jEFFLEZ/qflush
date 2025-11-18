@@ -1,6 +1,6 @@
 {
-  "name": "vscode-npz",
-  "displayName": "NPZ Visual",
+  "name": "qflash",
+  "displayName": "QFlash",
   "description": "Visualize NPZ engine scores and manage lanes from VS Code.",
   "version": "0.0.1",
   "publisher": "funeste38",
@@ -21,24 +21,24 @@
     "@types/node": "^20.0.0",
     "@types/vscode": "^1.70.0"
   },
-  "activationEvents": ["onCommand:npz.openScores"],
+  "activationEvents": ["onCommand:qflash.openPanel"],
   "contributes": {
     "commands": [
       {
-        "command": "npz.openScores",
-        "title": "NPZ: Open Scores"
+        "command": "qflash.openPanel",
+        "title": "QFlash: Open Panel"
       }
     ],
     "configuration": {
       "type": "object",
-      "title": "NPZ Visual",
+      "title": "QFlash",
       "properties": {
-        "npz.daemonUrl": {
+        "qflash.daemonUrl": {
           "type": "string",
           "default": "http://localhost:4500",
           "description": "URL of the NPZ daemon (including protocol and port)"
         },
-        "npz.adminToken": {
+        "qflash.adminToken": {
           "type": "string",
           "default": "changeme",
           "description": "Admin token to call NPZ admin endpoints"

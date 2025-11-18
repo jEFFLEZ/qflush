@@ -5,31 +5,31 @@ import * as fs from 'fs';
 const TRIAL_DAYS = 7;
 
 function isTrialExpired(context: vscode.ExtensionContext): boolean {
-  const started = context.globalState.get<number>('npz.trialStarted');
+  const started = context.globalState.get<number>('qflash.trialStarted');
   if (!started) return false; // start on first use
   const now = Date.now();
   return now - started > TRIAL_DAYS * 24 * 3600 * 1000;
 }
 
 function ensureTrialStarted(context: vscode.ExtensionContext) {
-  const started = context.globalState.get<number>('npz.trialStarted');
-  if (!started) context.globalState.update('npz.trialStarted', Date.now());
+  const started = context.globalState.get<number>('qflash.trialStarted');
+  if (!started) context.globalState.update('qflash.trialStarted', Date.now());
 }
 
 export function activate(context: vscode.ExtensionContext) {
   ensureTrialStarted(context);
 
-  const disposable = vscode.commands.registerCommand('npz.openScores', () => {
+  const disposable = vscode.commands.registerCommand('qflash.openPanel', () => {
     if (isTrialExpired(context)) {
-      vscode.window.showInformationMessage('NPZ trial expired. Click to purchase a license.', 'Purchase', 'Cancel').then((v) => {
+      vscode.window.showInformationMessage('QFlash trial expired. Click to purchase a license.', 'Purchase', 'Cancel').then((v) => {
         if (v === 'Purchase') vscode.env.openExternal(vscode.Uri.parse('https://github.com/jEFFLEZ/qflash#purchase'));
       });
       return;
     }
 
     const panel = vscode.window.createWebviewPanel(
-      'npzScores',
-      'NPZ Scores',
+      'qflashPanel',
+      'QFlash',
       vscode.ViewColumn.One,
       {
         enableScripts: true,
@@ -47,7 +47,7 @@ export function activate(context: vscode.ExtensionContext) {
 
     panel.webview.html = html;
 
-    const cfg = vscode.workspace.getConfiguration('npz');
+    const cfg = vscode.workspace.getConfiguration('qflash');
     const daemonUrl = cfg.get<string>('daemonUrl') || 'http://localhost:4500';
     const token = cfg.get<string>('adminToken') || '';
 
@@ -58,7 +58,7 @@ export function activate(context: vscode.ExtensionContext) {
     panel.webview.onDidReceiveMessage(
       async (message) => {
         if (message && message.type === 'saveConfig') {
-          const cfg = vscode.workspace.getConfiguration('npz');
+          const cfg = vscode.workspace.getConfiguration('qflash');
           await cfg.update('daemonUrl', message.daemonUrl, vscode.ConfigurationTarget.Global);
           await cfg.update('adminToken', message.token, vscode.ConfigurationTarget.Global);
           panel.webview.postMessage({ type: 'saved', info: 'Configuration saved' });
