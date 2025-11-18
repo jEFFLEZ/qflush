@@ -21,7 +21,7 @@ jobs:
       - name: Install dependencies
         run: |
           cd extensions/vscode-npz
-          npm install --no-audit --no-fund
+          npm ci --no-audit --no-fund
       - name: Build extension
         run: |
           cd extensions/vscode-npz
