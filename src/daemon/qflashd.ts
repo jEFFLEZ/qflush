@@ -72,40 +72,6 @@ app.get('/license/status', (req: Request, res: Response) => {
   return res.json({ success: true, license: rec, valid: gumroad.isLicenseValid(rec) });
 });
 
-// Webhook for Gumroad events (refund, subscription canceled, etc.)
-app.post('/webhooks/gumroad', (req: Request, res: Response) => {
-  try {
-    const payload = req.body || {};
-    auditLine(JSON.stringify({ t: Date.now(), webhook: payload }));
-
-    // Protect: check minimal expected fields
-    const event = payload.event || payload.type || null;
-    // Gumroad sends purchase object with refunded/chargeback flags inside `purchase`.
-    const purchase = payload.purchase || payload.data || null;
-
-    let shouldClear = false;
-    if (purchase) {
-      if (purchase.refunded || purchase.chargebacked) shouldClear = true;
-      if (purchase.subscription_cancelled_at || purchase.subscription_ended_at) shouldClear = true;
-    }
-
-    if (event && typeof event === 'string') {
-      const e = event.toLowerCase();
-      if (e.includes('refund') || e.includes('chargeback') || e.includes('subscription_cancel')) shouldClear = true;
-    }
-
-    if (shouldClear) {
-      gumroad.clearLicense();
-      auditLine(JSON.stringify({ t: Date.now(), action: 'cleared_local_license_due_to_webhook' }));
-    }
-
-    res.status(200).json({ ok: true });
-  } catch (e) {
-    logger.warn('webhook handling failed: ' + String(e));
-    res.status(500).json({ ok: false });
-  }
-});
-
 // Periodic re-verification of saved license
 async function reverifySavedLicense() {
   try {
@@ -153,5 +119,4 @@ app.get('/stop/:name?', (req: Request, res: Response) => {
   res.json({ ok: true });
 });
 
-// Use generic product name "qflash" in the startup message
 app.listen(PORT, () => logger.success(`qflash running on http://localhost:${PORT}`));
