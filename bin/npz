@@ -3,4 +3,17 @@
 # Usage: ./bin/npz [args]
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 NODE_CMD="${NODE:-node}"
+
+# dispatcher: support `npz run qflash`
+if [ "$1" = "run" ] && [ "$2" = "qflash" ]; then
+  CLI="$DIR/dist/cli.js"
+  if [ -f "$CLI" ]; then
+    exec "$NODE_CMD" "$CLI" run qflash "${@:3}"
+  else
+    # fallback to starting the daemon if CLI not built
+    exec "$NODE_CMD" "$DIR/dist/daemon/qflashd.js" "${@:3}"
+  fi
+fi
+
+# default: run daemon with any args forwarded
 exec "$NODE_CMD" "$DIR/dist/daemon/qflashd.js" "$@"
