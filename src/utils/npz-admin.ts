@@ -3,14 +3,12 @@ import npzStore from './npz-store';
 import npzRouter from './npz-router';
 import engine from './npz-engine';
 import { stringify } from 'csv-stringify/sync';
+import { isAdminAuthorized } from './auth';
 
 const router = express.Router();
 
 function requireToken(req: any, res: any, next: any) {
-  const token = process.env.NPZ_ADMIN_TOKEN;
-  if (!token) return res.status(403).json({ error: 'admin token not configured' });
-  const provided = req.headers['x-admin-token'] || req.query.token;
-  if (!provided || provided !== token) return res.status(401).json({ error: 'invalid token' });
+  if (!isAdminAuthorized(req)) return res.status(401).json({ error: 'unauthorized' });
   next();
 }
 
