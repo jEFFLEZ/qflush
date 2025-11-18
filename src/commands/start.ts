@@ -1,5 +1,5 @@
 import { detectModules } from "../utils/detect";
-import { logger } from "../utils/logger";
+import logger from "../utils/logger";
 import { spawnSafe, ensurePackageInstalled } from "../utils/exec";
 import { resolvePaths, SERVICE_MAP } from "../utils/paths";
 import { QFlashOptions } from "../chain/smartChain";
@@ -7,6 +7,7 @@ import { resolvePackagePath, readPackageJson } from "../utils/package";
 import { startProcess } from "../supervisor";
 import { waitForService } from "../utils/health";
 import { runCustomsCheck, hasBlockingIssues, ModuleDescriptor } from "../utils/npz-customs";
+import npz from "../utils/npz";
 
 export async function runStart(opts?: QFlashOptions) {
   logger.info("qflash: starting modules...");
@@ -35,43 +36,39 @@ export async function runStart(opts?: QFlashOptions) {
       return;
     }
 
-    // resolve package path (local node_modules or provided path)
-    let pkgPath = p;
-    if (!pkgPath && pkg) pkgPath = resolvePackagePath(pkg);
+    // resolve using NPZ Joker as primary resolver
+    let resolverTarget = p || (pkg ? undefined : undefined);
+    let resolved = null as any;
+    if (p) {
+      // if path provided, try to use it directly
+      try {
+        const pkgJson = readPackageJson(p);
+        if (pkgJson) resolved = { gate: 'green', cmd: require('path').join(p, (typeof pkgJson.bin === 'string' ? pkgJson.bin : Object.values(pkgJson.bin || {})[0]) || ''), args: [], cwd: p };
+      } catch {}
+    }
 
-    if (!pkgPath && pkg) {
+    if (!resolved && pkg) {
+      resolved = npz.npzResolve(pkg, { cwd: p || process.cwd() });
+    }
+
+    if (!resolved || resolved.gate === 'fail') {
+      logger.warn(`${modName} path and package not found or NPZ failed to resolve, skipping`);
+      return;
+    }
+
+    // If gate is dlx and we don't have the package locally, ensure installed if desired
+    if (resolved.gate === 'dlx' && pkg) {
       const ok = ensurePackageInstalled(pkg);
       if (!ok) {
         logger.warn(`${modName} not found and failed to install ${pkg}, skipping`);
         return;
       }
-      pkgPath = resolvePackagePath(pkg);
     }
 
-    if (!pkgPath) {
-      logger.warn(`${modName} path and package not found, skipping`);
-      return;
-    }
-
-    const pkgJson = readPackageJson(pkgPath);
-
-    // choose how to run: package bin if present, else npx <pkg>
-    let runCmd: { cmd: string; args: string[]; cwd?: string } | null = null;
-    if (pkgJson && pkgJson.bin) {
-      const binEntry = typeof pkgJson.bin === "string" ? pkgJson.bin : Object.values(pkgJson.bin)[0];
-      const binPath = require("path").join(pkgPath, binEntry);
-      runCmd = { cmd: binPath, args: [], cwd: pkgPath };
-    } else if (pkg) {
-      runCmd = { cmd: "npx", args: [pkg], cwd: process.cwd() };
-    }
-
-    if (!runCmd) {
-      logger.warn(`${modName} has no runnable entry, skipping`);
-      return;
-    }
+    const runCmd = { cmd: resolved.cmd, args: resolved.args || [], cwd: resolved.cwd };
 
     logger.info(`Launching ${modName} -> ${runCmd.cmd} ${runCmd.args.join(" ")}`);
-    const child = startProcess(modName, runCmd.cmd, runCmd.args, { cwd: runCmd.cwd });
+    const child = startProcess(modName, runCmd.cmd as string, runCmd.args, { cwd: runCmd.cwd });
 
     if (waitForStart) {
       const svcUrl = flags["health-url"] || flags["health"];

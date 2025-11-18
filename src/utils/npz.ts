@@ -1,7 +1,7 @@
 import { spawnSync } from 'child_process';
 import { existsSync } from 'fs';
 import path from 'path';
-import { logger } from './logger';
+import logger from './logger';
 
 export type ResolveResult = { gate: 'green' | 'yellow' | 'dlx' | 'fail'; cmd?: string; args?: string[]; cwd?: string };
 
@@ -38,20 +38,20 @@ export function npzResolve(nameOrPkg: string, opts: { cwd?: string } = {}): Reso
   // Gate 1: GREEN - local bin
   const local = findLocalBin(nameOrPkg, cwd);
   if (local) {
-    logger.info(`[NPZ:JOKER][GREEN] ${nameOrPkg} -> ${local}`);
+    logger.nez('NPZ:JOKER', `${nameOrPkg} -> ${local}`);
     return { gate: 'green', cmd: local, args: [], cwd };
   }
 
   // Gate 2: YELLOW - module resolution
   const mod = resolveViaModuleGate(nameOrPkg);
   if (mod) {
-    logger.info(`[NPZ:JOKER][YELLOW] ${nameOrPkg} -> ${mod.cmd} ${mod.args.join(' ')}`);
+    logger.nez('NPZ:JOKER', `${nameOrPkg} -> ${mod.cmd} ${mod.args.join(' ')}`);
     return { gate: 'yellow', cmd: mod.cmd, args: mod.args, cwd: mod.cwd };
   }
 
   // Gate 3: DLX - use npx as fallback
   try {
-    logger.info(`[NPZ:JOKER][DLX] ${nameOrPkg} -> npx`);
+    logger.joker('NPZ:JOKER', `${nameOrPkg} -> npx`);
     return { gate: 'dlx', cmd: 'npx', args: [nameOrPkg], cwd };
   } catch (err) {
     logger.warn(`[NPZ:JOKER][FAIL] ${nameOrPkg} cannot be resolved`);
@@ -62,7 +62,7 @@ export function npzResolve(nameOrPkg: string, opts: { cwd?: string } = {}): Reso
 export function runResolved(res: ResolveResult): { ok: boolean; status?: number } {
   if (!res.cmd) return { ok: false };
   const args = res.args || [];
-  logger.info(`[NPZ:JOKER] running ${res.cmd} ${args.join(' ')}`);
+  logger.nez('NPZ:JOKER', `running ${res.cmd} ${args.join(' ')}`);
   try {
     const r = spawnSync(res.cmd, args, { stdio: 'inherit', cwd: res.cwd || process.cwd(), shell: false });
     return { ok: r.status === 0, status: r.status ?? undefined };
