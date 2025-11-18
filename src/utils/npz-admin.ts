@@ -1,6 +1,7 @@
 import express from 'express';
 import npzStore from './npz-store';
 import npzRouter from './npz-router';
+import engine from './npz-engine';
 
 const router = express.Router();
 
@@ -33,6 +34,18 @@ router.get('/npz/circuit/:host', (req: any, res: any) => {
   const host = req.params.host;
   const state = npzRouter.getCircuitState(host);
   res.json(state);
+});
+
+// Admin scores endpoint
+router.get('/npz/scores', (req: any, res: any) => {
+  try {
+    const store = engine.getStore();
+    const items = Object.values(store).map((r: any) => ({ laneId: r.laneId, score: r.score, lastSuccess: r.lastSuccess, lastFailure: r.lastFailure }));
+    items.sort((a: any, b: any) => a.score - b.score);
+    res.json(items);
+  } catch (err) {
+    res.status(500).json({ error: String(err) });
+  }
 });
 
 export default router;
