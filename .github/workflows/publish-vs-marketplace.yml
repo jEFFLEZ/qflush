@@ -8,6 +8,8 @@ on:
 jobs:
   publish-vs-marketplace:
     runs-on: ubuntu-latest
+    env:
+      AZURE_PAT: ${{ secrets.AZURE_PAT }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -18,7 +20,7 @@ jobs:
           node-version: '20'
       - name: Validate AZURE_PAT (warning)
         run: |
-          if [ -z "${{ secrets.AZURE_PAT }}" ]; then echo "AZURE_PAT is missing - Marketplace publish will be skipped"; else echo "AZURE_PAT is set"; fi
+          if [ -z "${AZURE_PAT}" ]; then echo "AZURE_PAT is missing - Marketplace publish will be skipped"; else echo "AZURE_PAT is set"; fi
       - name: Install deps and build extension
         run: |
           cd extensions/vscode-npz
@@ -33,10 +35,8 @@ jobs:
         with:
           name: qflush-vsix
           path: extensions/vscode-npz/*.vsix
-      - name: Publish to Visual Studio Marketplace
-        if: ${{ secrets.AZURE_PAT }}
-        env:
-          AZURE_PAT: ${{ secrets.AZURE_PAT }}
+      - name: Publish to Visual Studio Marketplace (runtime)
         run: |
           cd extensions/vscode-npz
+          if [ -z "${AZURE_PAT}" ]; then echo "AZURE_PAT missing - skip"; exit 0; fi
           npx @vscode/vsce publish --pat $AZURE_PAT || echo 'VSCE publish failed'

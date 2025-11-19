@@ -8,6 +8,8 @@ on:
 jobs:
   publish-open-vsx:
     runs-on: ubuntu-latest
+    env:
+      OPEN_VSX_TOKEN: ${{ secrets.OPEN_VSX_TOKEN }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -18,7 +20,7 @@ jobs:
           node-version: '20'
       - name: Validate token (warning only)
         run: |
-          if [ -z "${{ secrets.OPEN_VSX_TOKEN }}" ]; then echo "OPEN_VSX_TOKEN is not set - Open VSX publish will be skipped"; else echo "OPEN_VSX_TOKEN is set"; fi
+          if [ -z "${OPEN_VSX_TOKEN}" ]; then echo "OPEN_VSX_TOKEN is not set - Open VSX publish will be skipped"; else echo "OPEN_VSX_TOKEN is set"; fi
       - name: Install dependencies
         run: |
           cd extensions/vscode-npz
@@ -32,10 +34,8 @@ jobs:
         with:
           name: qflush-vsix
           path: extensions/vscode-npz/*.vsix
-      - name: Publish to Open VSX
-        if: ${{ secrets.OPEN_VSX_TOKEN }}
-        env:
-          OPEN_VSX_TOKEN: ${{ secrets.OPEN_VSX_TOKEN }}
+      - name: Publish to Open VSX (runtime)
         run: |
           cd extensions/vscode-npz
+          if [ -z "${OPEN_VSX_TOKEN}" ]; then echo "OPEN_VSX_TOKEN missing - skip"; exit 0; fi
           npx ovsx publish *.vsix --pat $OPEN_VSX_TOKEN || echo 'Open VSX publish failed'
