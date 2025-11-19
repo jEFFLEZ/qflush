@@ -9,5 +9,5 @@
     "npm run build"
   ],
   "commandTimeoutMs": 15000,
-  "webhookUrl": "http://localhost:60866"
+  "webhookUrl": "http://localhost:54583"
 }

@@ -1,3 +1,5 @@
+// ROME-TAG: 0xFC1834
+
 import * as fs from 'fs';
 
 export type LogicRule = {

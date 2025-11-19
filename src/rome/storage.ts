@@ -1,3 +1,5 @@
+// ROME-TAG: 0x75DEC5
+
 import * as fs from 'fs';
 import * as path from 'path';
 

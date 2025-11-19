@@ -1,4 +1,6 @@
 #!/usr/bin/env node
+// ROME-TAG: 0x10C74C
+
 import fetch from 'node-fetch';
 import * as fs from 'fs';
 

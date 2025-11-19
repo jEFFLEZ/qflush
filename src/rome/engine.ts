@@ -1,3 +1,5 @@
+// ROME-TAG: 0xD8C57D
+
 import { RomeIndex, RomeTagRecord } from './rome-tag';
 
 export type EngineAction =

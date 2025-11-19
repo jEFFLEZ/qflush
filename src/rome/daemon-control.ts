@@ -1,3 +1,5 @@
+// ROME-TAG: 0xDC10D8
+
 let reloadHandler: (() => Promise<void> | void) | null = null;
 
 export function setReloadHandler(fn: () => Promise<void> | void) {

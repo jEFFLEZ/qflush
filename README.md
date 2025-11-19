@@ -1,181 +1,76 @@
 # @funeste38/qflush ⚡
 
-QFLUSH is the orchestrator of the Funesterie ecosystem.
-Start, stop, purge, inspect, and synchronize modules.
+QFLUSH est l'orchestrateur du réseau Funesterie — démarrage, arrêt, purge, inspection et synchronisation des modules.
 
-## Rome Index diagram
+Version actuelle
+----------------
+Pré-release: v3.1.0 — "Funesterie ne fait que commencer" (pré-release publique).
 
-A small diagram illustrating how external files (the "cambrousse") are indexed and admitted into the Rome architecture via the Rome Indexing Tag (Rome Gate). See `docs/rome-index-diagram.svg`.
+Nouveautés clés en 3.1
+---------------------
+- Intégration officielle du *Rome linker* : scanner de tokens `[[token]]` dans le workspace et génération du fichier `.qflush/rome-links.json`.
+- Endpoints daemon pour exploiter les liens Rome :
+  - `GET  /npz/rome-links` — lister les liens actuels
+  - `POST /npz/rome-links/regenerate` — régénérer et écrire `.qflush/rome-links.json`
+  - `GET  /npz/rome-links/resolve?from=...&token=...` — résoudre un token depuis un fichier
+  - `GET  /npz/rome-links/stream` — SSE pour les mises à jour des liens
+- Mécanisme de checksum NPZ (store/verify/list/clear) et utilitaire CLI `qflush checksum`.
+- Préparation de hooks A11 / SPYDER (commandes placeholders `qflush a11` et `qflush spyder` — "coming soon").
 
-## New: checksum CLI & extension utilities
-
-This release adds a one-time checksum mechanism and tooling to help use it.
-
-Daemon endpoints (local qflush daemon must be running):
-
-- `POST /npz/checksum/store` — store a checksum for an id: `{ id, checksum, ttlMs? }`
-- `POST /npz/checksum/verify` — verify and consume a checksum: `{ id, checksum }`
-- `GET  /npz/checksum/list` — list active checksums and remaining TTL
-- `DELETE /npz/checksum/clear` — clear cache (memory or Redis index)
-
-CLI:
-
-- `qflush checksum store <id> <checksum> [--ttl=ms]`
-- `qflush checksum verify <id> <checksum>`
-- `qflush checksum list`
-- `qflush checksum clear`
-
-VS Code extension (Pourparler):
-
-- New buttons `List checksums` and `Clear checksums` in the Pourparler panel that call the daemon endpoints and display results.
-
-## Release
-
-Latest release: v0.1.4 — https://github.com/jEFFLEZ/qflush/releases/tag/v0.1.4
-
-## Install
-
-- From npm:
+Installation
+------------
+Depuis npm (future publication):
 
 ```
 npm install -g @funeste38/qflush
 ```
 
-- Or download the release tarball from GitHub and install locally:
+Local (tester la pré-release):
 
 ```
-npm install -g ./funeste38-qflush-3.0.3.tgz
+npm pack
+npm install -g ./funeste38-qflush-3.1.0.tgz
+qflush --help
 ```
 
-## Commercial license
+Commandes principales
+---------------------
+- `qflush start`      → lancer la stack (detect → config → start)
+- `qflush kill`       → killer proprement les services
+- `qflush purge`      → vider caches, logs et sessions
+- `qflush inspect`    → afficher l'état et les ports
+- `qflush config`     → générer des `.env` par défaut
+- `qflush rome:links` → calculer et écrire `.qflush/rome-links.json`
 
-To purchase a commercial license for FCL:
-https://cellaurojeff.gumroad.com/l/jxktq
+Endpoints du daemon (qflush daemon must be running)
+--------------------------------------------------
+- `POST /npz/checksum/store`  — stocker un checksum `{ id, checksum, ttlMs? }`
+- `POST /npz/checksum/verify` — vérifier et consommer un checksum `{ id, checksum }`
+- `GET  /npz/checksum/list`   — lister checksums actifs
+- `DELETE /npz/checksum/clear`— vider le store
+- `GET  /npz/rome-index`      — exposer l'index Rome chargé
+- `GET  /npz/rome-links`      — lister liens calculés
+- `POST /npz/rome-links/regenerate` — regénérer tous les liens
+- `GET  /npz/rome-links/resolve`    — résoudre un token (params `from`, `token`)
+- `GET  /npz/rome-links/stream`     — SSE notifications sur mise à jour des liens
 
-## Commands
+Développement & build
+---------------------
+- Build TypeScript : `npm run build` (gcc => `dist/`)
+- Tests unitaires : `npm test` (vitest)
+- Lint Rome : `npm run lint:rome`
 
-- `qflush start`      → launch ecosystem (rome, nezlephant, envaptex, freeland, bat)
-- `qflush kill`       → kill all processes cleanly
-- `qflush purge`      → flush caches + logs + sessions
-- `qflush inspect`    → display status and active ports
-- `qflush config`     → generate default .env/config files
+Roadmap (aperçu)
+-----------------
+- v3.1.x : stabilisation TS, intégration Rome linker, préparation release
+- v3.2+ : notifications temps réel (SSE/WS), résolution interactive des ambiguïtés
+- A11 : interface IA (hooks prévus dans QFLUSH comme orchestrateur)
+- SPYDER : réseau interne / moteur logique (hooks placeholders ajoutés)
 
-## Examples and templates
+Contribuer
+----------
+PRs bienvenues. Voir `docs/qflush-plan.md` pour la stratégie 3.1 et les tâches Copilot-ready.
 
-Example compose files are provided in `examples/`:
-
-- `examples/funesterie.yml` — YAML compose example
-- `examples/funesterie.fcl` — Funesterie Config Language (FCL) example
-
-Use `qflush compose up` to bring up the example stack.
-
-## Flags and advanced options
-
-Global flags (examples):
-- `--dev`            Enable developer mode (may change logging/behavior)
-- `--fresh`          Implicitly purge before starting (maps to `purge` -> `start`)
-- `--force`          Force restart semantics (may add `kill` when starting)
-- `--proxy=NAME`     Proxy selection, forwarded to modules
-
-Service targeting:
-- `--service <name>` Select a service to target (examples: `rome`, `nezlephant`, `envaptex`, `freeland`, `bat`).
-- `--path <path>`    Assign a path for the most recent `--service` declared.
-- `--token <token>`  Assign a token for the most recent `--service` declared.
-
-Examples:
-
-```
-qflush start --service rome --path D:/rome --token ABC123
-qflush start --service nezlephant --service freeland
-qflush start --service nezlephant --service freeland --fresh
-qflush config --service freeland
-qflush purge --fresh
-```
-
-## Migration guide (meta-package)
-
-If you currently depend on individual Funesterie packages like `@funeste38/rome`, `@funeste38/nezlephant`, `@funeste38/freeland`, `@funeste38/bat`, prefer to switch to the meta-package `@funeste38/qflush` which re-exports them.
-
-Quick steps:
-
-1. Add the meta-package in your app:
-
-```bash
-npm install @funeste38/qflush
-```
-
-2. Replace imports in your codebase (example):
-
-Before:
-```js
-import { run } from '@funeste38/rome'
-import { encode } from '@funeste38/nezlephant'
-```
-
-After:
-```js
-import { Rome, Nez, Freeland, Bat } from '@funeste38/qflush'
-Rome.run(...)
-Nez.encode(...)
-```
-
-3. In `package.json` of the app, keep only the dependency on `@funeste38/qflush` and remove the older individual packages.
-
-4. For branch migration: prefer creating new branches from `main` (which contains `@funeste38/qflush`). For older branches, replace imports during the merge.
-
-## One-liner installer
-
-Example PowerShell one-liner (host your installer script raw on GitHub or your CDN):
-
-```powershell
-iwr -useb https://raw.githubusercontent.com/jEFFLEZ/qflush/main/installers/install-qflush.ps1 | iex
-```
-
-## Future
-
-Future improvements will focus on better detection, richer SmartChain rules and optional integrations.
-
-## NPZ (Joker)
-
-NPZ is the resolver/router used by qflush to launch modules and proxy requests.
-
-Environment variables:
-
-- `NPZ_NAMESPACE` - optional, default `npz`. Namespaces metrics and keys to avoid conflicts.
-- `REDIS_URL` - optional, if set NPZ uses Redis for request store.
-- `NPZ_ADMIN_TOKEN` - required to access admin endpoints (`/npz/*`).
-- `QFLUSHD_PORT` - optional, daemon port (default 4500).
-
-Commands:
-
-- `qflush daemon` - run the qflush daemon (exposes /metrics, /proxy, /npz admin)
-- `qflush npz:inspect <id>` or `qflush npz inspect <id>` - inspect a stored NPZ request
-
-Example:
-
-```
-NPZ_NAMESPACE=funest NPZ_ADMIN_TOKEN=secret REDIS_URL=redis://127.0.0.1:6379 npm run build && node dist/daemon/qflushd.js
-```
-
-## Copilot Bridge / Telemetry
-
-QFLUSH can emit telemetry and engine state to a Copilot consumer via multiple transports: webhook, SSE and file. Configure via `.qflush/copilot.json`.
-
-Example config (.qflush/copilot.json):
-
-```json
-{
-  "enabled": true,
-  "transports": ["file","webhook"],
-  "webhookUrl": "https://copilot.example/api/telemetry",
-  "hmacSecretEnv": "COPILOT_HMAC",
-  "filePath": ".qflush/telemetry.json"
-}
-```
-
-Security
-- Use `QFLUSH_TOKEN` env var on the daemon to protect `/copilot/*` and `/npz/engine/*` endpoints. The CLI and Copilot should include the `x-qflush-token` header.
-- Webhook payloads are signed with HMAC sha256 using the secret stored in the env var referenced by `hmacSecretEnv`.
-
-Telemetry persistence
-- Telemetry stored in `.qflush/telemetry.json` and persisted to sqlite (`.qflush/qflush.db`) when `better-sqlite3` is available.
+Licence
+-------
+Voir `LICENSE-FUNESTERIE.txt` et les notices tierces.

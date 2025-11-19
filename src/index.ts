@@ -1,3 +1,5 @@
+// ROME-TAG: 0x2A0018
+
 // Register global error handlers early to avoid the CLI crashing on unhandled errors (redis, etc.)
 process.on('unhandledRejection', (reason) => {
   try { console.warn('Unhandled Rejection:', reason && (reason as any).stack ? (reason as any).stack : String(reason)); } catch { /* ignore */ }
@@ -18,6 +20,9 @@ import runEngine from "./commands/engine";
 import runLogic from "./commands/logic";
 import runCopilot from "./commands/copilot";
 import runCopilotBridge from "./commands/copilot-bridge";
+import runRomeLinks from "./commands/rome-links";
+import runA11 from "./commands/a11";
+import runSpyder from "./commands/spyder";
 
 // Only run the CLI dispatch when this module is the entrypoint
 declare const require: any;
@@ -46,6 +51,20 @@ if (typeof require !== 'undefined' && require.main === module) {
       process.exit(1);
     });
     process.exit(0);
+  }
+
+  if (first === 'a11' || first === 'a11:status') {
+    (async () => {
+      const code = await runA11(argv.slice(1));
+      process.exit(code ?? 0);
+    })();
+  }
+
+  if (first === 'spyder' || first === 'spyder:status' || first === 'spyder:mem') {
+    (async () => {
+      const code = await runSpyder(argv.slice(1));
+      process.exit(code ?? 0);
+    })();
   }
 
   if (first === 'engine') {
@@ -86,6 +105,13 @@ if (typeof require !== 'undefined' && require.main === module) {
   if (first === 'checksum' && argv[1]) {
     (async () => {
       const code = await runChecksum(argv.slice(1));
+      process.exit(code ?? 0);
+    })();
+  }
+
+  if (first === 'rome:links' || (first === 'rome' && argv[1] === 'links')) {
+    (async () => {
+      const code = await runRomeLinks(argv.slice(1));
       process.exit(code ?? 0);
     })();
   }

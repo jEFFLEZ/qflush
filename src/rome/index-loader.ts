@@ -1,3 +1,5 @@
+// ROME-TAG: 0x3BEED1
+
 import * as fs from 'fs';
 import * as path from 'path';
 import { RomeIndex } from './rome-tag';

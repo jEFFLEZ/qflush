@@ -1,3 +1,5 @@
+// ROME-TAG: 0x9FE624
+
 export interface CopilotConfig {
   enabled: boolean;
   telemetryVersion: number;

@@ -4,6 +4,7 @@ import 'dotenv/config';
 const express = require('express');
 const fs = require('fs');
 const path = require('path');
+const { join } = path;
 
 // optional Redis support
 let Redis: any = null;
@@ -72,6 +73,9 @@ import { executeAction } from '../rome/executor';
 import { getEmitter, startIndexWatcher } from '../rome/events';
 import { initCopilotBridge, emitEngineState, emitRuleEvent, emitDiagnostic, getConfig as getCopilotConfig } from '../rome/copilot-bridge';
 
+// linker
+import { computeRomeLinksForFiles, computeRomeLinks, mergeAndWrite, readExistingLinks, resolveRomeToken, romeLinksEmitter } from '../rome/linker';
+
 // initialize copilot bridge
 function initBridgeIfNotTest() {
   try {
@@ -110,6 +114,8 @@ onRomeIndexUpdated(async (payload) => {
     const { oldIndex, newIndex, changedPaths } = payload;
     console.log('rome.index.updated event, changedPaths=', changedPaths);
     loadLogicRules();
+
+    // recompute logic actions
     const idx = getCachedRomeIndex();
     const matches = evaluateAllRules(idx, changedPaths || []);
     if (matches && matches.length) {
@@ -120,6 +126,25 @@ onRomeIndexUpdated(async (payload) => {
           console.log('action result', res);
           engineHistory.push({ t: Date.now(), path: m.path, action: act, result: res });
           try { emitRuleEvent({ rule: 'unknown', path: m.path, matchContext: {}, actions: m.actions, result: res }); } catch (e) {}
+        }
+      }
+    }
+
+    // incremental recompute of rome-links for changed files
+    try {
+      const projectRoot = process.cwd();
+      const absFiles = (changedPaths || []).map((p: string) => join(projectRoot, p));
+      const newLinks = computeRomeLinksForFiles(projectRoot, absFiles);
+      mergeAndWrite(projectRoot, newLinks);
+      console.log('rome-links: updated for', absFiles.length, 'files');
+    } catch (e) {
+      console.warn('rome-links incremental update failed', String(e));
+    }
+
+    if (matches && matches.length) {
+      for (const m of matches) {
+        for (const act of m.actions) {
+          // already handled above
         }
       }
     }
@@ -288,6 +313,90 @@ app.delete('/npz/checksum/clear', async (_req: any, res: any) => {
   checksumCache.clear();
   audit({ t: Date.now(), event: 'checksum_cleared_mem', cleared });
   return res.json({ success: true, cleared, backend: 'memory' });
+});
+
+// expose a simple Rome index HTTP endpoint for admin/clients
+app.get('/npz/rome-index', (_req: any, res: any) => {
+  try {
+    // ensure index is loaded from disk
+    const idx = getCachedRomeIndex() || loadRomeIndexFromDisk();
+    const all = Object.values(idx || {});
+    const q = (_req.query && String(_req.query.type)) || null;
+    const items = q ? all.filter((it: any) => it && it.type === q) : all;
+    return res.json({ success: true, count: items.length, items });
+  } catch (e) {
+    return res.status(500).json({ success: false, error: String(e) });
+  }
+});
+
+// new endpoints for rome-links: list and regenerate
+app.get('/npz/rome-links', (_req: any, res: any) => {
+  try {
+    const projectRoot = process.cwd();
+    const existing = readExistingLinks(projectRoot);
+    return res.json({ success: true, count: existing.length, refs: existing });
+  } catch (e) {
+    return res.status(500).json({ success: false, error: String(e) });
+  }
+});
+
+app.post('/npz/rome-links/regenerate', async (_req: any, res: any) => {
+  try {
+    const projectRoot = process.cwd();
+    const links = computeRomeLinks(projectRoot);
+    mergeAndWrite(projectRoot, links);
+    return res.json({ success: true, count: links.length });
+  } catch (e) {
+    return res.status(500).json({ success: false, error: String(e) });
+  }
+});
+
+// resolve a specific token
+app.get('/npz/rome-links/resolve', (_req: any, res: any) => {
+  try {
+    const projectRoot = process.cwd();
+    const from = _req.query && typeof _req.query.from === 'string' ? String(_req.query.from) : '';
+    const token = _req.query && typeof _req.query.token === 'string' ? String(_req.query.token) : '';
+    if (!token) return res.status(400).json({ success: false, error: 'missing token' });
+    const resolved = resolveRomeToken(projectRoot, from, token);
+    return res.json({ success: true, path: resolved.path, score: resolved.score });
+  } catch (e) {
+    return res.status(500).json({ success: false, error: String(e) });
+  }
+});
+
+// Server-Sent Events stream for rome-links updates
+app.get('/npz/rome-links/stream', (req: any, res: any) => {
+  try {
+    // set SSE headers
+    res.writeHead(200, {
+      Connection: 'keep-alive',
+      'Cache-Control': 'no-cache',
+      'Content-Type': 'text/event-stream',
+      'Access-Control-Allow-Origin': '*',
+    });
+
+    // send initial data
+    const projectRoot = process.cwd();
+    const existing = readExistingLinks(projectRoot);
+    res.write(`event: initial\ndata: ${JSON.stringify({ refs: existing })}\n\n`);
+
+    const handler = (updated: any) => {
+      try {
+        res.write(`event: updated\ndata: ${JSON.stringify({ refs: updated })}\n\n`);
+      } catch (e) {
+        // ignore
+      }
+    };
+    romeLinksEmitter.on('updated', handler);
+
+    // cleanup on client close
+    req.on('close', () => {
+      try { romeLinksEmitter.removeListener('updated', handler); } catch (e) {}
+    });
+  } catch (e) {
+    return res.status(500).json({ success: false, error: String(e) });
+  }
 });
 
 // remove duplicated checksum block at end
