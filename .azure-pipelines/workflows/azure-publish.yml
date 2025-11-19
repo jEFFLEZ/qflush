@@ -13,7 +13,8 @@ stages:
       - job: build
         displayName: Build
         pool:
-          vmImage: 'ubuntu-latest'
+          # Use self-hosted pool similarly to the publish job
+          name: '$(AGENT_POOL)'
         steps:
           - checkout: self
           - task: NodeTool@0
