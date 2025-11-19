@@ -77,7 +77,7 @@ jobs:
         with:
           node-version: '20'
       - name: Install
-        run: npm ci
+        run: npm install --no-audit --no-fund
       - name: Build
         run: npm run build
       - name: Engine dry-run (validate rules)
