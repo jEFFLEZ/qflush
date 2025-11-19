@@ -1,0 +1,43 @@
+name: Publish VS Code extension
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install dependencies
+        run: |
+          cd extensions/vscode-npz
+          if [ -f package-lock.json ]; then npm ci; else npm install --no-audit --no-fund; fi
+      - name: Build extension
+        run: |
+          cd extensions/vscode-npz
+          npm run build
+      - name: Package .vsix
+        run: |
+          cd extensions/vscode-npz
+          npx @vscode/vsce package
+      - name: Publish to Open VSX
+        if: ${{ secrets.OPEN_VSX_TOKEN }}
+        env:
+          OPEN_VSX_TOKEN: ${{ secrets.OPEN_VSX_TOKEN }}
+        run: |
+          cd extensions/vscode-npz
+          npx ovsx publish --pat $OPEN_VSX_TOKEN || echo 'Open VSX publish failed'
+      - name: Publish to VS Marketplace
+        if: ${{ secrets.VSCE_TOKEN }}
+        env:
+          VSCE_TOKEN: ${{ secrets.VSCE_TOKEN }}
+        run: |
+          cd extensions/vscode-npz
+          npx @vscode/vsce publish --pat $VSCE_TOKEN || echo 'VSCE publish failed'
