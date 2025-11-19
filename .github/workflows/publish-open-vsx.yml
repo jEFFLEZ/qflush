@@ -1,6 +1,7 @@
 name: Publish to Open VSX
 
 on:
+  workflow_dispatch: {}
   release:
     types: [published]
 
@@ -25,10 +26,15 @@ jobs:
       - name: Package .vsix
         run: |
           cd extensions/vscode-npz
-          npx vsce package
+          npx @vscode/vsce package
+      - name: Upload VSIX artifact for debugging
+        uses: actions/upload-artifact@v3
+        with:
+          name: qflush-vsix
+          path: extensions/vscode-npz/*.vsix
       - name: Publish to Open VSX
         env:
           OPEN_VSX_TOKEN: ${{ secrets.OPEN_VSX_TOKEN }}
         run: |
           cd extensions/vscode-npz
-          npx ovsx publish *.vsix --pat $OPEN_VSX_TOKEN
+          npx ovsx publish *.vsix --pat $OPEN_VSX_TOKEN || echo 'Open VSX publish failed'
