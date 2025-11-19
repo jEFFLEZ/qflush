@@ -5,14 +5,16 @@ import logger from '../utils/logger';
 
 const DAEMON = process.env.QFLUSH_DAEMON || 'http://localhost:4500';
 
-async function postJson(url: string, body: any) {
+async function postJson(url: string, body: any): Promise<any> {
   const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
-  return await res.json();
+  const json: any = await res.json();
+  return json;
 }
 
-async function getJson(url: string) {
+async function getJson(url: string): Promise<any> {
   const res = await fetch(url);
-  return await res.json();
+  const json: any = await res.json();
+  return json;
 }
 
 export default async function runChecksum(argv: string[] = []) {
@@ -45,8 +47,8 @@ export default async function runChecksum(argv: string[] = []) {
       logger.error('Usage: qflush checksum verify <id> <checksum>');
       return 1;
     }
-    const res = await postJson(`${DAEMON.replace(/\/$/, '')}/npz/checksum/verify`, { id, checksum });
-    if (res && res.success) {
+    const res: any = await postJson(`${DAEMON.replace(/\/$/, '')}/npz/checksum/verify`, { id, checksum });
+    if (res && (res as any).success) {
       logger.success('verify: OK');
       return 0;
     }
@@ -62,7 +64,7 @@ export default async function runChecksum(argv: string[] = []) {
 
   if (sub === 'clear') {
     const res = await fetch(`${DAEMON.replace(/\/$/, '')}/npz/checksum/clear`, { method: 'DELETE' });
-    const j = await res.json();
+    const j: any = await res.json();
     logger.info(JSON.stringify(j));
     return 0;
   }

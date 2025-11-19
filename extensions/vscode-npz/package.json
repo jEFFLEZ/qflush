@@ -1,5 +1,5 @@
 {
-  "name": "qflash",
+  "name": "qflush",
   "displayName": "QFlash Extension",
   "publisher": "funesterie",
   "version": "1.0.0",
@@ -13,29 +13,29 @@
     "package": "npx vsce package"
   },
   "devDependencies": {
-    "@types/node": "^18.0.0",
-    "@types/vscode": "^1.60.0",
-    "typescript": "^4.9.5",
-    "vsce": "^2.10.0"
+    "@types/node": "^24.10.1",
+    "@types/vscode": "^1.106.1",
+    "typescript": "^5.9.3",
+    "vsce": "^2.15.0"
   },
   "description": "Visualize NPZ engine scores and manage lanes from VS Code.",
   "icon": "icon.png",
   "repository": {
     "type": "git",
-    "url": "https://github.com/jEFFLEZ/qflash.git"
+    "url": "https://github.com/jEFFLEZ/qflush.git"
   },
   "license": "MIT",
   "activationEvents": [
-    "onCommand:qflash.openPanel"
+    "onCommand:qflush.openPanel"
   ],
   "contributes": {
     "commands": [
       {
-        "command": "qflash.openPanel",
+        "command": "qflush.openPanel",
         "title": "QFlash: Open Panel"
       },
       {
-        "command": "qflash.showLicenseStatus",
+        "command": "qflush.showLicenseStatus",
         "title": "QFlash: Show License Status"
       }
     ],

@@ -1,7 +1,7 @@
 // ROME-TAG: 0xC4BE64
 
-import fs from 'fs';
-import path from 'path';
+import * as fs from 'fs';
+import * as path from 'path';
 import fetch from 'node-fetch';
 
 const DEFAULT_STORAGE = path.join(process.cwd(), '.qflush', 'license.json');
@@ -63,7 +63,7 @@ export async function verifyWithGumroad(product_id: string, licenseKey: string, 
     body: JSON.stringify(body),
   });
   if (!res.ok) throw new Error(`Gumroad API returned ${res.status}`);
-  const json = await res.json();
+  const json: any = await res.json();
   return json;
 }
 
@@ -74,7 +74,7 @@ export function isLicenseValid(rec: LicenseRecord | null) {
 }
 
 export async function activateLicense(product_id: string, licenseKey: string, token: string) {
-  const data = await verifyWithGumroad(product_id, licenseKey, token);
+  const data: any = await verifyWithGumroad(product_id, licenseKey, token);
   if (data && data.success) {
     const purchase = (data as any).purchase || {};
     const now = Date.now();

@@ -1,8 +1,8 @@
 // ROME-TAG: 0x91FBE1
 
-import fs from 'fs';
-import path from 'path';
-import net from 'net';
+import * as fs from 'fs';
+import * as path from 'path';
+import * as net from 'net';
 import { logger } from './logger';
 
 export type ModuleDescriptor = {

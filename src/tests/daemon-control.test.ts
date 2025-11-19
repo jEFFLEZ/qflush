@@ -5,7 +5,11 @@ setReloadHandler(async () => { called = true; });
 
 (async ()=>{
   const ok = await callReload();
-  if (!ok || !called) { console.error('reload failed', ok, called); process.exit(2); }
+  if (!ok || !called) {
+    console.error('reload failed', ok, called);
+    if (!process.env.VITEST_WORKER_ID) setTimeout(() => process.exit(2), 50);
+    throw new Error('daemon-control test failed');
+  }
   console.log('daemon control test passed');
-  process.exit(0);
+  if (!process.env.VITEST_WORKER_ID) setTimeout(() => process.exit(0), 50);
 })();

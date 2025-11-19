@@ -62,7 +62,7 @@ app.use(express.json());
 // auth middleware
 import { requireQflushToken } from './auth-middleware';
 // daemon control import
-import { setReloadHandler } from '../rome/daemon-control';
+import { setReloadHandler } from './daemon-control';
 
 // load Rome index from .qflush/rome-index.json (if present)
 import { loadRomeIndexFromDisk, getCachedRomeIndex, startRomeIndexAutoRefresh, onRomeIndexUpdated } from '../rome/index-loader';
@@ -395,7 +395,7 @@ export function stopServer() {
 }
 
 // register reload handler to stop/start server (placed after start/stop definitions)
-import { setReloadHandler as __setReloadHandler } from '../rome/daemon-control';
+import { setReloadHandler as __setReloadHandler } from './daemon-control';
 __setReloadHandler(async () => {
   console.log('daemon reload requested');
   try {

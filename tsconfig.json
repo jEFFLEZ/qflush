@@ -1,8 +1,8 @@
 {
   "compilerOptions": {
     "target": "ES2020",
-    "module": "CommonJS",
-    "moduleResolution": "node",
+    "module": "NodeNext",
+    "moduleResolution": "nodenext",
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "skipLibCheck": true,
@@ -10,13 +10,14 @@
     "strict": false,
     "resolveJsonModule": true,
     "outDir": "dist",
-    "rootDir": "src",
+    "rootDir": ".",
     "baseUrl": ".",
     "paths": {
       "@src/*": ["src/*"],
-      "@rome/*": ["src/rome/*"]
+      "@rome/*": ["src/rome/*"],
+      "@utils/*": ["src/utils/*"]
     },
-    "types": ["node", "vitest"]
+    "types": ["node", "vitest", "mocha", "jest"]
   },
   "include": [
     "src/**/*",

@@ -2,7 +2,7 @@
 
 import { spawnSync } from 'child_process';
 import { existsSync } from 'fs';
-import path from 'path';
+import * as path from 'path';
 import logger from './logger';
 
 export type ResolveResult = { gate: 'green' | 'yellow' | 'dlx' | 'fail'; cmd?: string; args?: string[]; cwd?: string };

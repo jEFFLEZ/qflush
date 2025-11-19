@@ -168,7 +168,111 @@
         },
         "runningServices": []
       }
+    },
+    {
+      "id": "engine-1763498178847",
+      "type": "engine_state",
+      "ts": 1763498178847,
+      "payload": {
+        "rules": [],
+        "indexSummary": {
+          "count": 5,
+          "byType": {}
+        },
+        "runningServices": []
+      }
+    },
+    {
+      "id": "engine-1763498674946",
+      "type": "engine_state",
+      "ts": 1763498674946,
+      "payload": {
+        "rules": [],
+        "indexSummary": {
+          "count": 5,
+          "byType": {}
+        },
+        "runningServices": []
+      }
+    },
+    {
+      "id": "engine-1763498976902",
+      "type": "engine_state",
+      "ts": 1763498976902,
+      "payload": {
+        "rules": [],
+        "indexSummary": {
+          "count": 5,
+          "byType": {}
+        },
+        "runningServices": []
+      }
+    },
+    {
+      "id": "engine-1763499384676",
+      "type": "engine_state",
+      "ts": 1763499384676,
+      "payload": {
+        "rules": [],
+        "indexSummary": {
+          "count": 5,
+          "byType": {}
+        },
+        "runningServices": []
+      }
+    },
+    {
+      "id": "engine-1763501236902",
+      "type": "engine_state",
+      "ts": 1763501236902,
+      "payload": {
+        "rules": [],
+        "indexSummary": {
+          "count": 5,
+          "byType": {}
+        },
+        "runningServices": []
+      }
+    },
+    {
+      "id": "engine-1763501395266",
+      "type": "engine_state",
+      "ts": 1763501395266,
+      "payload": {
+        "rules": [],
+        "indexSummary": {
+          "count": 5,
+          "byType": {}
+        },
+        "runningServices": []
+      }
+    },
+    {
+      "id": "engine-1763501417364",
+      "type": "engine_state",
+      "ts": 1763501417364,
+      "payload": {
+        "rules": [],
+        "indexSummary": {
+          "count": 5,
+          "byType": {}
+        },
+        "runningServices": []
+      }
     }
   ],
-  "engine_history": []
+  "engine_history": [
+    {
+      "id": "exec-1763501236466",
+      "ts": 1763501236466,
+      "path": "",
+      "action": "echo hello",
+      "result": {
+        "success": false,
+        "stdout": "",
+        "stderr": "",
+        "code": "ENOENT"
+      }
+    }
+  ]
 }

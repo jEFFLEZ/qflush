@@ -5,7 +5,7 @@ import * as http from 'http';
 import * as https from 'https';
 
 // import Rome tag utilities
-import { makeRomeTagRecord, RomeIndex, normalizeRomePath } from '../../../src/rome/rome-tag';
+import { makeRomeTagRecord, RomeIndex, normalizeRomePath } from '@rome/rome-tag';
 
 const TRIAL_DAYS = 14;
 

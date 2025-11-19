@@ -13,7 +13,8 @@ export default async function runEngine(args: string[]) {
     for (const a of actions) {
       try {
         // simulate by calling executeAction with dryRun
-        const res = await executeAction(a.action || a, { path: a.path || null, dryRun: true });
+        const actionString = String((a as any).action ?? a);
+        const res = await executeAction(actionString, { path: (a as any).path || null, dryRun: true });
         console.log('Simulate', a, '->', res);
       } catch (e) {
         console.warn('simulate failed', e);

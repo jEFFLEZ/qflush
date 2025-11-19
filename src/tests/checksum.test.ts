@@ -17,7 +17,7 @@ function getFreePort(): Promise<number> {
     const srv = net.createServer();
     srv.listen(0, () => {
       // @ts-ignore
-      const port = srv.address().port;
+      const port = (srv.address() as any).port;
       srv.close(() => resolve(port));
     });
     srv.on('error', (err) => reject(err));
@@ -50,11 +50,11 @@ export async function runTests() {
     await startDaemon();
     // store
     let res = await fetch(`${DAEMON_URL()}/npz/checksum/store`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: 't1', checksum: 'abc', ttlMs: 2000 }) });
-    let j = await res.json();
+    let j: any = await res.json();
     if (!j.success) throw new Error('store failed');
 
     res = await fetch(`${DAEMON_URL()}/npz/checksum/list`);
-    j = await res.json();
+    j = await res.json() as any;
     if (!j.success || j.count === 0) throw new Error('list failed');
 
     // verify mismatch
@@ -63,12 +63,12 @@ export async function runTests() {
 
     // verify correct
     res = await fetch(`${DAEMON_URL()}/npz/checksum/verify`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: 't1', checksum: 'abc' }) });
-    j = await res.json();
+    j = await res.json() as any;
     if (!j.success) throw new Error('verify failed');
 
     // clear
     res = await fetch(`${DAEMON_URL()}/npz/checksum/clear`, { method: 'DELETE' });
-    j = await res.json();
+    j = await res.json() as any;
     if (!j.success) throw new Error('clear failed');
 
     console.log('tests PASSED');

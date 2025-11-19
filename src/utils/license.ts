@@ -1,7 +1,7 @@
 // ROME-TAG: 0x3C04E4
 
-import fs from 'fs';
-import path from 'path';
+import * as fs from 'fs';
+import * as path from 'path';
 import fetch from 'node-fetch';
 
 const STORE = path.join(process.cwd(), '.qflush', 'license.json');
@@ -48,21 +48,22 @@ async function verifyWithGumroad(key: string, productId?: string) {
   body.append('license_key', key);
 
   const res = await fetch(url, { method: 'POST', body, headers: { Authorization: `Bearer ${token}` } });
-  const json = await res.json();
+  const json: any = await res.json();
   return json;
 }
 
 export async function activateLicense(key: string, productId?: string) {
-  const resp = await verifyWithGumroad(key, productId);
-  if (resp && resp.success) {
-    const lic = { key, product_id: resp.purchase ? resp.purchase.product_id : productId, valid: true, expires_at: resp.purchase ? resp.purchase.license_expires_at : null, verifiedAt: Date.now() } as LicenseRecord;
+  const resp: any = await verifyWithGumroad(key, productId);
+  if (resp && (resp as any).success) {
+    const purchase = (resp as any).purchase || {};
+    const lic = { key, product_id: purchase.product_id || productId, valid: true, expires_at: purchase ? purchase.license_expires_at : null, verifiedAt: Date.now() } as LicenseRecord;
     saveLicense(lic);
     return { ok: true, license: lic, raw: resp };
   }
   // failure
   const lic = { key, product_id: productId, valid: false, verifiedAt: Date.now() } as LicenseRecord;
   saveLicense(lic);
-  return { ok: false, error: resp }; 
+  return { ok: false, error: resp };
 }
 
 export default { readLicense, saveLicense, activateLicense };

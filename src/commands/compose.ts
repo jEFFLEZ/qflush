@@ -3,7 +3,7 @@
 import { readCompose } from '../compose/parser';
 import { logger } from '../utils/logger';
 import { runStart } from './start';
-import { startProcess, listRunning } from '../supervisor';
+import { startProcess, listRunning, stopProcess } from '../supervisor';
 import { runPurge } from './purge';
 import fs from 'fs';
 import { Tail } from 'tail';
@@ -47,7 +47,7 @@ export async function runCompose(argv: string[]) {
     const running = listRunning();
     if (running.find(r => r.name === name)) {
       // stop
-      await import('../supervisor').then(s => s.stopProcess(name));
+      await stopProcess(name);
     }
     const def = compose.modules[name];
     if (!def) { logger.info('Unknown module'); return; }

@@ -1,3 +1,11 @@
+// Register global error handlers early to avoid the CLI crashing on unhandled errors (redis, etc.)
+process.on('unhandledRejection', (reason) => {
+  try { console.warn('Unhandled Rejection:', reason && (reason as any).stack ? (reason as any).stack : String(reason)); } catch { /* ignore */ }
+});
+process.on('uncaughtException', (err) => {
+  try { console.error('Uncaught Exception:', err && (err as any).stack ? (err as any).stack : String(err)); } catch { /* ignore */ }
+});
+
 import { buildPipeline, executePipeline } from "./chain/smartChain";
 import { showHelp } from "./cli/help";
 import { runCompose } from "./commands/compose";
@@ -28,7 +36,7 @@ if (first === "doctor") {
 }
 if (first === "daemon") {
   // start qflushd in-process
-  void import("./daemon/qflushd").then(() => {
+  void import("./daemon/qflushd.js").then(() => {
     // module starts itself and logs
   }).catch((err) => {
     console.error("failed to start daemon", err);
@@ -72,7 +80,7 @@ if (first === 'license' || (first === 'lic' && argv[1] === 'activate')) {
   })();
 }
 
-if (first === 'checksum') {
+if (first === 'checksum' && argv[1]) {
   (async () => {
     const code = await runChecksum(argv.slice(1));
     process.exit(code ?? 0);

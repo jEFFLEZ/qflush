@@ -25,11 +25,11 @@ async function waitForJson(path: string, attempts = 20, delayMs = 250) {
   // attempt to start local server by importing qflushd if possible
   try {
     // require the compiled daemon from dist if exists
-    const server = await import('../daemon/qflushd');
+    const server = await import('../daemon/qflushd.js');
     // give it a moment to start
     await new Promise((r) => setTimeout(r, 400));
     const res = await fetch('http://localhost:4500/npz/rome-index');
-    const j = await res.json();
+    const j: any = await res.json();
     console.log('rome-index test response:', j && j.count);
     process.exit(0);
   } catch (e) {
@@ -40,7 +40,7 @@ async function waitForJson(path: string, attempts = 20, delayMs = 250) {
 
 (async () => {
   try {
-    const all = await waitForJson('/npz/rome-index', 40, 200);
+    const all: any = await waitForJson('/npz/rome-index', 40, 200);
     if (!all || !Array.isArray(all.items)) {
       console.error('invalid index response', all);
       process.exit(2);
@@ -48,7 +48,7 @@ async function waitForJson(path: string, attempts = 20, delayMs = 250) {
     console.log('rome-index count=', all.count);
 
     // try filter by type 'daemon' (should return 0 or more)
-    const byDaemon = await waitForJson('/npz/rome-index?type=daemon', 10, 200);
+    const byDaemon: any = await waitForJson('/npz/rome-index?type=daemon', 10, 200);
     if (!byDaemon || !Array.isArray(byDaemon.items)) {
       console.error('invalid filtered response', byDaemon);
       process.exit(2);
