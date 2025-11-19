@@ -12,6 +12,7 @@ jobs:
     env:
       OPEN_VSX_TOKEN: ${{ secrets.OPEN_VSX_TOKEN }}
       VSCE_TOKEN: ${{ secrets.VSCE_TOKEN }}
+      NODE_OPTIONS: "-r ${{ github.workspace }}/extensions/vscode-npz/src/polyfill-file.js"
     steps:
       - uses: actions/checkout@v4
       - name: Use Node.js
