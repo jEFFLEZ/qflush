@@ -10,7 +10,8 @@
   "scripts": {
     "vscode:prepublish": "npm run build",
     "build": "tsc -p ./",
-    "package": "npx vsce package"
+    "package": "npx vsce package",
+    "prestart": "node -e \"require('./src/polyfill-file.js')\""
   },
   "devDependencies": {
     "@types/node": "^24.10.1",
