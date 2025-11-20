@@ -21,15 +21,27 @@ const DEFAULT_CONFIG: CopilotConfig = {
 let cfg: CopilotConfig = DEFAULT_CONFIG;
 const emitter = new EventEmitter();
 
+// Respect environment flags to forcibly disable Copilot/telemetry
+const ENV_DISABLE_COPILOT =
+  process.env.QFLUSH_DISABLE_COPILOT === '1' ||
+  String(process.env.QFLUSH_DISABLE_COPILOT).toLowerCase() === 'true' ||
+  process.env.QFLUSH_TELEMETRY === '0';
+
 function loadCfg() {
   try {
     const p = path.join(process.cwd(), '.qflush', 'copilot.json');
     if (fs.existsSync(p)) {
       const raw = fs.readFileSync(p, 'utf8');
       cfg = Object.assign({}, DEFAULT_CONFIG, JSON.parse(raw));
+    } else {
+      cfg = Object.assign({}, DEFAULT_CONFIG);
     }
   } catch (e) {
-    // ignore
+    cfg = Object.assign({}, DEFAULT_CONFIG);
+  }
+
+  if (ENV_DISABLE_COPILOT) {
+    cfg.enabled = false;
   }
 }
 
@@ -44,6 +56,7 @@ function signPayload(payload: string): string | null {
 }
 
 async function sendWebhook(event: TelemetryEvent) {
+  if (!cfg.enabled) return;
   if (!cfg.webhookUrl) return;
   try {
     const payload = JSON.stringify(event);
@@ -58,6 +71,7 @@ async function sendWebhook(event: TelemetryEvent) {
 
 function writeFileEvent(event: TelemetryEvent) {
   try {
+    if (!cfg.enabled) return;
     const p = path.join(process.cwd(), cfg.filePath || '.qflush/telemetry.json');
     const dir = path.dirname(p);
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
