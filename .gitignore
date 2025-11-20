@@ -33,3 +33,14 @@ extensions/vscode-npz/out/
 
 # local nested repo / artifacts
 qflash/
+
+# Local environment files
+.env.local
+.env.*.local
+.env
+
+# qflush runtime state
+.qflush/
+
+# logs
+*.log
