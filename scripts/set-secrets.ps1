@@ -1,11 +1,16 @@
 param(
   [string]$Repo = '',
-  [switch]$PersistLocal
+  [switch]$PersistLocal,
+  [switch]$Quiet,
+  [switch]$NoPrompt
 )
 
 # PowerShell script to set secrets using gh CLI or write to .env.local
 # If -PersistLocal is set, secrets are also stored encrypted under $env:USERPROFILE\.qflush\secrets.json
 # Usage: .\scripts\set-secrets.ps1 -Repo 'owner/repo' -PersistLocal
+
+$VerbosePreference = 'SilentlyContinue'
+if (-not $Quiet) { $VerbosePreference = 'Continue' }
 
 if (-not $Repo) {
   try { $u = git remote get-url github 2>$null } catch { $u = $null }
@@ -32,7 +37,7 @@ function Save-LocalSecret([string]$key, [string]$val) {
     }
     $obj.$key = $enc
     $obj | ConvertTo-Json -Depth 5 | Set-Content -Path $file -Encoding UTF8
-    Write-Output "Saved ${key} to ${file} (encrypted)"
+    Write-Verbose "Saved ${key} to ${file} (encrypted)"
   } catch {
     Write-Warning "Failed to save local secret ${key}: $_"
   }
@@ -42,13 +47,14 @@ foreach ($key in $secrets) {
   # dynamic env var read
   try { $val = [System.Environment]::GetEnvironmentVariable($key) } catch { $val = $null }
   if (-not $val) {
+    if ($NoPrompt) { Write-Verbose "Skipping ${key} (no prompt)"; continue }
     $val = Read-Host "Provide value for ${key} (leave empty to skip)"
   }
-  if (-not $val) { Write-Output "Skipping ${key}"; continue }
+  if (-not $val) { Write-Verbose "Skipping ${key}"; continue }
   if ($useGh) {
     try {
       gh secret set $key --body $val --repo $Repo
-      Write-Output "Set ${key} as GitHub secret in ${Repo}"
+      Write-Verbose "Set ${key} as GitHub secret in ${Repo}"
     } catch {
       Write-Warning "gh secret set failed for ${key}: $_ - falling back to local file"
       # fallback to local
@@ -58,8 +64,8 @@ foreach ($key in $secrets) {
       Add-Content .env.local "${key}=${val}"
     }
   } else {
-    Write-Output "gh not available — writing ${key} to .env.local"
-    if (-not (Test-Path .env.local)) { New-Item -ItemType File -Path .env.local | Out-Null }
+    Write-Verbose "gh not available — writing ${key} to .env.local"
+    if (-not (Test-Path .env.local)) { New-Item -ItemType File -Path '.env.local' | Out-Null }
     # remove any existing line for the key
     (Get-Content .env.local) -replace "^${key}=.*$","" | Set-Content .env.local
     Add-Content .env.local "${key}=${val}"
@@ -68,6 +74,7 @@ foreach ($key in $secrets) {
   if ($PersistLocal) {
     Save-LocalSecret -key $key -val $val
   } else {
+    if ($NoPrompt) { Write-Verbose "NoPersist set, skipping Save-LocalSecret for ${key}"; continue }
     # Ask user whether to persist locally
     $yn = Read-Host "Persist ${key} locally encrypted under %USERPROFILE%\\.qflush? (y/N)"
     if ($yn -and $yn.ToLower().StartsWith('y')) {
@@ -76,4 +83,4 @@ foreach ($key in $secrets) {
   }
 }
 
-Write-Output 'Done.'
+Write-Verbose 'Done.'

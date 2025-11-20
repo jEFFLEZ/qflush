@@ -2,12 +2,19 @@
 // Spawn the given command detached and unref it.
 const { spawn } = require('child_process');
 const args = process.argv.slice(2);
+let quiet = false;
+if (args[0] === '--quiet' || args.includes('--quiet')) {
+  quiet = true;
+  // remove the flag
+  const idx = args.indexOf('--quiet');
+  if (idx >= 0) args.splice(idx, 1);
+}
 if (args.length === 0) {
-  console.error('Usage: node scripts/detach.js <command> [args...]');
+  if (!quiet) console.error('Usage: node scripts/detach.js <command> [args...]');
   process.exit(1);
 }
 const cmd = args[0];
 const cmdArgs = args.slice(1);
 const child = spawn(cmd, cmdArgs, { detached: true, stdio: 'ignore' });
 child.unref();
-console.log(`detached pid=${child.pid}`);
+if (!quiet) console.log(`detached pid=${child.pid}`);

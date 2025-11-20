@@ -14,6 +14,7 @@ Commands:
   purge        Clear caches, logs and sessions
   inspect      Show running services and ports
   config       Generate missing .env/config files
+  secret import  Import secrets from a .env file into local encrypted store (Windows DPAPI)
 
 Options (examples):
   --service rome --path D:/rome --token ABC123     Target a specific service and give path/token
@@ -26,6 +27,12 @@ Examples:
   qflush start --service nezlephant --service freeland --fresh
   qflush config --service freeland
   qflush purge --fresh
+
+Scripts & helpers:
+  node scripts/detach.js [--quiet] <command>   # spawn detached process (use --quiet to suppress output)
+  ./scripts/run-with-timeout.sh <sec> <cmd>    # run command with timeout (POSIX)
+  pwsh ./scripts/run-with-timeout.ps1 -Cmd "node dist/index.js start" -TimeoutSec 12  # PowerShell watchdog (quiet by default)
+  qflush secret import [--env <path>] [--no-acl]   # import .env and store encrypted locally
 
 `);
 }
