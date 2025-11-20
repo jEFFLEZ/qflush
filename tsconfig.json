@@ -12,7 +12,15 @@
     "strict": true,
     "types": ["node", "vitest"],
     "allowJs": true,
-    "checkJs": false
+    "checkJs": false,
+    "baseUrl": "./",
+    "paths": {
+      "@utils/*": ["src/utils/*"],
+      "@daemon/*": ["src/daemon/*"],
+      "@commands/*": ["src/commands/*"],
+      "@rome/*": ["src/rome/*"],
+      "@supervisor/*": ["src/supervisor/*"]
+    }
   },
   "exclude": ["node_modules", "dist", "qflush", "extensions/**/out/**"]
 }
