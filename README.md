@@ -80,3 +80,43 @@ Si tu veux, je peux :
 - enrichir ce README avec des exemples d'API (curl),
 - ajouter des badges CI/coverage,
 - ou pousser ces changements et ouvrir une PR (`push+pr`).
+
+Exemples d'API (endpoints NPZ)
+
+- Store checksum
+
+```bash
+curl -X POST "http://localhost:4500/npz/checksum/store" \
+   -H "Content-Type: application/json" \
+   -d '{"id":"t1","checksum":"abc","ttlMs":60000}'
+```
+
+- List checksums
+
+```bash
+curl "http://localhost:4500/npz/checksum/list"
+```
+
+- Verify checksum (mismatch returns non-200)
+
+```bash
+curl -X POST "http://localhost:4500/npz/checksum/verify" \
+   -H "Content-Type: application/json" \
+   -d '{"id":"t1","checksum":"abc"}'
+```
+
+- Clear checksums
+
+```bash
+curl -X DELETE "http://localhost:4500/npz/checksum/clear"
+```
+
+- Fetch Rome index
+
+```bash
+curl "http://localhost:4500/npz/rome-index"
+```
+
+Notes:
+- En local, la variable `QFLUSHD_PORT` peut être utilisée pour changer le port (ex: `QFLUSHD_PORT=43421`).
+- Les tests d'intégration supposent que le daemon compilé expose ces endpoints (via `dist/daemon/qflushd.js`).
