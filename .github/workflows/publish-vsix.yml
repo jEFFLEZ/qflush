@@ -1,0 +1,12 @@
+name: Publish VSIX (placeholder)
+
+on:
+  push:
+    branches:
+      - vsix-on-main
+
+jobs:
+  placeholder:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "This is a placeholder workflow for the VSIX; implement publishing steps later."
