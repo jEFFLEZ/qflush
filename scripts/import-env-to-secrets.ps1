@@ -1,14 +1,19 @@
 <#
 Import .env file and store secrets encrypted under %USERPROFILE%\.qflush\secrets.json using DPAPI (Windows)
 Usage:
-  pwsh -NoProfile -ExecutionPolicy Bypass -File .\scripts\import-env-to-secrets.ps1 -EnvPath "$env:USERPROFILE\Desktop\.env"
+  pwsh -NoProfile -ExecutionPolicy Bypass -File .\scripts\import-env-to-secrets.ps1 -EnvPath "$env:USERPROFILE\Desktop\.env" [-Quiet]
 
 This script detects common secret variable names (NPM_TOKEN, GUMROAD_TOKEN, COPILOT_HMAC_SECRET, REDIS_URL, etc.) and stores only those values encrypted.
 #>
 param(
   [string]$EnvPath = "$env:USERPROFILE\Desktop\.env",
-  [switch]$RestrictFileAcl
+  [switch]$RestrictFileAcl,
+  [switch]$Quiet
 )
+
+function Log([string]$msg) {
+  if ($Quiet) { Write-Verbose $msg } else { Write-Host $msg }
+}
 
 if (-not (Test-Path $EnvPath)) {
   Write-Error "Env file not found: $EnvPath"
@@ -67,15 +72,16 @@ foreach ($line in $all) {
       $secure = ConvertTo-SecureString $val -AsPlainText -Force
       $enc = $secure | ConvertFrom-SecureString
       $map[$canon] = $enc
-      Write-Host "Queued secret: $canon"
+      Log "Queued secret: $canon"
     } catch {
-      Write-Warning "Failed to encrypt $key: $_"
+      $err = ($_ | Out-String).Trim()
+      if ($Quiet) { Write-Verbose ("Failed to encrypt {0}: {1}" -f $key, $err) } else { Write-Warning ("Failed to encrypt {0}: {1}" -f $key, $err) }
     }
   }
 }
 
 if ($map.Count -eq 0) {
-  Write-Host 'No secrets detected in the .env file.'
+  Log 'No secrets detected in the .env file.'
   exit 0
 }
 
@@ -83,32 +89,39 @@ $dir = Join-Path $env:USERPROFILE '.qflush'
 if (-not (Test-Path $dir)) { New-Item -ItemType Directory -Path $dir | Out-Null }
 $file = Join-Path $dir 'secrets.json'
 try {
-  $existing = @{
-  }
+  $existing = @{}
   if (Test-Path $file) {
     try {
-      $existing = Get-Content $file -Raw | ConvertFrom-Json -ErrorAction Stop
-    } catch {
-      $existing = @{
+      $raw = Get-Content $file -Raw -ErrorAction Stop
+      $parsed = $raw | ConvertFrom-Json -ErrorAction Stop
+      if ($parsed -ne $null) {
+        foreach ($p in $parsed.PSObject.Properties) { $existing[$p.Name] = $p.Value }
       }
+    } catch {
+      $existing = @{}
     }
   }
-  foreach ($k in $map.Keys) {
-    $existing.$k = $map[$k]
-  }
-  $existing | ConvertTo-Json -Depth 5 | Set-Content -Path $file -Encoding UTF8
-  Write-Host "Saved encrypted secrets to $file"
+
+  foreach ($k in $map.Keys) { $existing[$k] = $map[$k] }
+
+  $outObj = [ordered]@{}
+  foreach ($name in $existing.Keys) { $outObj[$name] = $existing[$name] }
+
+  $outObj | ConvertTo-Json -Depth 5 | Set-Content -Path $file -Encoding UTF8
+  Log "Saved encrypted secrets to $file"
   if ($RestrictFileAcl) {
     try {
       icacls $file /inheritance:r /grant:r "$env:USERNAME:(R,W)" | Out-Null
-      Write-Host "Restricted ACL on $file to user $env:USERNAME"
+      Log "Restricted ACL on $file to user $env:USERNAME"
     } catch {
-      Write-Warning "Failed to set ACL: $_"
+      $err2 = ($_ | Out-String).Trim()
+      if ($Quiet) { Write-Verbose ("Failed to set ACL: {0}" -f $err2) } else { Write-Warning ("Failed to set ACL: {0}" -f $err2) }
     }
   }
 } catch {
-  Write-Error "Failed to write secrets file: $_"
+  $err3 = ($_ | Out-String).Trim()
+  if ($Quiet) { Write-Verbose ("Failed to write secrets file: {0}" -f $err3) } else { Write-Error ("Failed to write secrets file: {0}" -f $err3) }
   exit 3
 }
 
-Write-Host 'Done.'
+Log 'Done.'
