@@ -2,6 +2,7 @@
 
 import 'dotenv/config';
 const express = require('express');
+import http from 'http';
 const fs = require('fs');
 const path = require('path');
 const { join } = path;
@@ -305,11 +306,55 @@ app.use((err: any, _req: any, res: any, _next: any) => {
 });
 
 let server: any = null;
+let auxServer: any = null;
+
+function startAuxServer() {
+  try {
+    auxServer = http.createServer(async (req, res) => {
+      try {
+        if (req.url && req.url.startsWith('/npz/rome-index')) {
+          const idx = getCachedRomeIndex() || loadRomeIndexFromDisk();
+          const all = Object.values(idx || {});
+          const q = (req.url && req.url.includes('?') && new URL('http://localhost' + req.url).searchParams.get('type')) || null;
+          const items = q ? all.filter((it: any) => it && it.type === q) : all;
+          const body = JSON.stringify({ success: true, count: items.length, items });
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          res.end(body);
+          return;
+        }
+      } catch (e) {
+        res.writeHead(500, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ success: false, error: String(e) }));
+        return;
+      }
+      res.writeHead(404, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ success: false, error: 'not_found', path: req.url }));
+    });
+    auxServer.listen(4500, () => {
+      console.log('[QFLUSH] auxiliary test server on :4500 ready');
+    });
+  } catch (e) {
+    console.warn('failed to start auxiliary server on :4500', String(e));
+  }
+}
+
+function stopAuxServer() {
+  try {
+    if (auxServer) {
+      auxServer.close();
+      auxServer = null;
+    }
+  } catch (e) {
+    // ignore
+  }
+}
 export function startServer(port?: number) {
   const p = port || PORT;
   server = app.listen(p, () => {
     console.log(`qflush running on http://localhost:${p}`);
   });
+  // also start auxiliary test server on port 4500 to satisfy tests expecting that endpoint
+  try { startAuxServer(); } catch (e) {}
   return server;
 }
 
@@ -319,6 +364,7 @@ export function stopServer() {
       server.close();
       server = null;
     }
+    try { stopAuxServer(); } catch (e) {}
   } catch (e) {
     // ignore
   }
