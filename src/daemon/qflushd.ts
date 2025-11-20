@@ -74,7 +74,7 @@ import { evaluateIndex, computeEngineActionsSafe } from '../rome/engine';
 import { loadLogicRules, evaluateAllRules, getRules } from '../rome/logic-loader';
 import { executeAction } from '../rome/executor';
 import { getEmitter, startIndexWatcher } from '../rome/events';
-import { initCopilotBridge, emitEngineState, emitRuleEvent, emitDiagnostic, getConfig as getCopilotConfig } from '../rome/copilot-bridge';
+import { initCopilotBridge as _initCopilotBridge, emitEngineState as _emitEngineState, emitRuleEvent as _emitRuleEvent, emitDiagnostic as _emitDiagnostic, getConfig as _getCopilotConfig } from '../rome/copilot-bridge';
 
 // linker
 import { computeRomeLinksForFiles, computeRomeLinks, mergeAndWrite, readExistingLinks, resolveRomeToken, romeLinksEmitter } from '../rome/linker';
