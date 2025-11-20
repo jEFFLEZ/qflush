@@ -1,7 +1,7 @@
-// ROME-TAG: 0xF45330
-
+/* ROME-TAG: 0xF45330 */
 import gumroad from '../utils/gumroad-license';
 import logger from '../utils/logger';
+import { getSecret } from '../utils/secrets';
 
 export async function runLicense(argv: string[] = []) {
   const sub = argv[0];
@@ -19,9 +19,9 @@ export async function runLicense(argv: string[] = []) {
     // parse optional --product=ID
     const prodArg = argv.find((a) => a.startsWith('--product='));
     const productId = prodArg ? prodArg.split('=')[1] : process.env.GUMROAD_PRODUCT_ID || process.env.GUMROAD_PRODUCT_YEARLY || process.env.GUMROAD_PRODUCT_MONTHLY;
-    const token = process.env.GUMROAD_TOKEN;
+    const token = getSecret('GUMROAD_TOKEN', { fileEnv: 'GUMROAD_TOKEN_FILE' });
     if (!token) {
-      logger.error('GUMROAD_TOKEN not set in environment. Set it to perform activation.');
+      logger.error('GUMROAD_TOKEN not set (env or file). Set it to perform activation.');
       return 1;
     }
     if (!productId) {
