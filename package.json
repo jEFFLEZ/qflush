@@ -31,7 +31,10 @@
     "daemon:status": "node ./dist/index.js inspect",
     "upgrade": "npm install -g @funeste38/qflush@latest",
     "local-install": "node ./tools/installer.js",
-    "ci-local": "pwsh ./scripts/ci-local.ps1"
+    "ci-local": "pwsh ./scripts/ci-local.ps1",
+    "detach": "node ./scripts/detach.js",
+    "run:timeout": "bash ./scripts/run-with-timeout.sh",
+    "run:timeout:ps1": "pwsh ./scripts/run-with-timeout.ps1"
   },
   "keywords": [
     "funeste38",
