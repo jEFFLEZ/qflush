@@ -3,7 +3,7 @@
 const originalExit = process.exit;
 process.exit = function(code) {
   try {
-    // eslint-disable-next-line no-console
+     
     console.warn('[vitest.setup] intercepted process.exit(', code, ')');
   } catch (_) {}
   return undefined;

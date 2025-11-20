@@ -1,6 +1,6 @@
 {
   "name": "@funeste38/qflush",
-  "version": "3.1.1",
+  "version": "3.1.2",
   "description": "QFLUSH orchestrator",
   "bin": {
     "qflush": "dist/index.js"
@@ -25,7 +25,13 @@
     "test": "vitest --run",
     "lint": "eslint . --ext .ts,.js --fix -c .eslintrc.cjs",
     "lint:rome": "npm run build && node tools/rome-lint.js",
-    "lint:rome:fix": "npm run build && node tools/rome-lint.js --fix"
+    "lint:rome:fix": "npm run build && node tools/rome-lint.js --fix",
+    "daemon:spawn": "node ./dist/index.js daemon --detached",
+    "daemon:stop": "node ./dist/index.js kill",
+    "daemon:status": "node ./dist/index.js inspect",
+    "upgrade": "npm install -g @funeste38/qflush@latest",
+    "local-install": "node ./tools/installer.js",
+    "ci-local": "pwsh ./scripts/ci-local.ps1"
   },
   "keywords": [
     "funeste38",

@@ -7,7 +7,7 @@ import * as path from 'path';
 
 export async function runTests() {
   // start webhook server
-  let calls: any[] = [];
+  const calls: any[] = [];
   const srv = http.createServer((req, res) => {
     let raw = '';
     req.on('data', d=>raw+=d.toString());

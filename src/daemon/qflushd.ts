@@ -6,14 +6,15 @@ const fs = require('fs');
 const path = require('path');
 const { join } = path;
 
-// optional Redis support
+// optional Redis support (now opt-in via QFLUSH_ENABLE_REDIS)
 let Redis: any = null;
 let redisClient: any = null;
 const REDIS_URL = process.env.REDIS_URL || process.env.QFLUSH_REDIS_URL || '';
-if (REDIS_URL) {
+// Force Redis disabled to avoid external dependency and connection attempts during local runs
+const ENABLE_REDIS = false;
+if (REDIS_URL && ENABLE_REDIS) {
   try {
     // require lazily so repo doesn't force dependency
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
     Redis = require('ioredis');
     redisClient = new Redis(REDIS_URL);
     // best-effort connect
@@ -25,12 +26,14 @@ if (REDIS_URL) {
     // ignore if ioredis not installed
     redisClient = null;
   }
+} else if (!ENABLE_REDIS && REDIS_URL) {
+  console.log('REDIS_URL is set but QFLUSH_ENABLE_REDIS is disabled - skipping Redis initialization');
 }
 
 // try to import gumroad helper if present
 let gumroad: any = null;
 try {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
+   
   gumroad = require('../utils/gumroad-license');
 } catch (e) {
   // ignore if not available
@@ -76,84 +79,83 @@ import { initCopilotBridge, emitEngineState, emitRuleEvent, emitDiagnostic, getC
 // linker
 import { computeRomeLinksForFiles, computeRomeLinks, mergeAndWrite, readExistingLinks, resolveRomeToken, romeLinksEmitter } from '../rome/linker';
 
-// initialize copilot bridge
-function initBridgeIfNotTest() {
-  try {
-    if (!process.env.VITEST) {
-      initCopilotBridge();
-    }
-  } catch (e) {
-    // ignore
-  }
+// in-memory engine history buffer (fallback)
+const engineHistory: any[] = [];
+
+// mapping is OFF by default; can be forced on with QFLUSH_ENABLE_MAPPING=1
+const FORCE_DISABLE_MAPPING = true; // set to true to permanently disable automatic mapping in this build
+const ENABLE_MAPPING = !FORCE_DISABLE_MAPPING && (process.env.QFLUSH_ENABLE_MAPPING === '1' || String(process.env.QFLUSH_ENABLE_MAPPING).toLowerCase() === 'true');
+
+if (FORCE_DISABLE_MAPPING) {
+  console.log('Rome mapping permanently disabled in this build (FORCE_DISABLE_MAPPING=true)');
+} else if (!ENABLE_MAPPING) {
+  console.log('Rome mapping is disabled by default. Set QFLUSH_ENABLE_MAPPING=1 to enable automatic mapping and index refresh.');
 }
 
-// start Rome index auto refresh only when not running under tests
-if (!process.env.VITEST) {
+// start Rome index auto refresh only when mapping enabled and not running under tests
+if (!process.env.VITEST && ENABLE_MAPPING) {
   startRomeIndexAutoRefresh(15 * 1000); // refresh every 15s
 }
 
-// in-memory execution history
-const engineHistory: any[] = [];
-// Copilot message history and SSE clients
-const copilotHistory: any[] = [];
-const copilotClients: any[] = [];
-
-// initialize copilot bridge (guarded)
-initBridgeIfNotTest();
-
-// Evaluate engine at startup and on refresh (guarded)
-if (!process.env.VITEST) {
+// Evaluate engine at startup and on refresh (guarded) - only when mapping enabled
+if (!process.env.VITEST && ENABLE_MAPPING) {
   // call the safe compute function from engine
   computeEngineActionsSafe();
 }
 
-// listen to rome.index.updated events
-onRomeIndexUpdated(async (payload) => {
-  try {
-    if (process.env.VITEST) return;
-    const { oldIndex, newIndex, changedPaths } = payload;
-    console.log('rome.index.updated event, changedPaths=', changedPaths);
-    loadLogicRules();
-
-    // recompute logic actions
-    const idx = getCachedRomeIndex();
-    const matches = evaluateAllRules(idx, changedPaths || []);
-    if (matches && matches.length) {
-      for (const m of matches) {
-        for (const act of m.actions) {
-          console.log('Executing action for', m.path, act);
-          const res = await executeAction(act, { path: m.path });
-          console.log('action result', res);
-          engineHistory.push({ t: Date.now(), path: m.path, action: act, result: res });
-          try { emitRuleEvent({ rule: 'unknown', path: m.path, matchContext: {}, actions: m.actions, result: res }); } catch (e) {}
-        }
-      }
-    }
-
-    // incremental recompute of rome-links for changed files
+// listen to rome.index.updated events only when mapping enabled
+if (ENABLE_MAPPING) {
+  onRomeIndexUpdated(async (payload) => {
     try {
-      const projectRoot = process.cwd();
-      const absFiles = (changedPaths || []).map((p: string) => join(projectRoot, p));
-      const newLinks = computeRomeLinksForFiles(projectRoot, absFiles);
-      mergeAndWrite(projectRoot, newLinks);
-      console.log('rome-links: updated for', absFiles.length, 'files');
-    } catch (e) {
-      console.warn('rome-links incremental update failed', String(e));
-    }
+      if (process.env.VITEST) return;
+      const { oldIndex, newIndex, changedPaths } = payload;
+      console.log('rome.index.updated event, changedPaths=', changedPaths);
+      loadLogicRules();
 
-    if (matches && matches.length) {
-      for (const m of matches) {
-        for (const act of m.actions) {
-          // already handled above
+      // recompute logic actions
+      const idx = getCachedRomeIndex();
+      const matches = evaluateAllRules(idx, changedPaths || []);
+      if (matches && matches.length) {
+        for (const m of matches) {
+          for (const act of m.actions) {
+            console.log('Executing action for', m.path, act);
+            const res = await executeAction(act, { path: m.path });
+            console.log('action result', res);
+            engineHistory.push({ t: Date.now(), path: m.path, action: act, result: res });
+            try { emitRuleEvent({ rule: 'unknown', path: m.path, matchContext: {}, actions: m.actions, result: res }); } catch (e) {}
+          }
         }
       }
-    }
-  } catch (e) { console.warn('onRomeIndexUpdated handler failed', String(e)); }
-});
 
-// also start index watcher so file system changes are picked up (guarded)
-if (!process.env.VITEST) {
+      // incremental recompute of rome-links for changed files
+      try {
+        const projectRoot = process.cwd();
+        const absFiles = (changedPaths || []).map((p: string) => join(projectRoot, p));
+        const newLinks = computeRomeLinksForFiles(projectRoot, absFiles);
+        mergeAndWrite(projectRoot, newLinks);
+        console.log('rome-links: updated for', absFiles.length, 'files');
+      } catch (e) {
+        console.warn('rome-links incremental update failed', String(e));
+      }
+
+      if (matches && matches.length) {
+        for (const m of matches) {
+          for (const act of m.actions) {
+            // already handled above
+          }
+        }
+      }
+    } catch (e) { console.warn('onRomeIndexUpdated handler failed', String(e)); }
+  });
+} else {
+  // mapping disabled
+}
+
+// also start index watcher only when mapping enabled
+if (!process.env.VITEST && ENABLE_MAPPING) {
   startIndexWatcher(3000);
+} else if (!ENABLE_MAPPING) {
+  // no-op
 }
 
 // --- One-time checksum cache ---

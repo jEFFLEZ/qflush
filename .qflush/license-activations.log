@@ -132,3 +132,7 @@
 {"t":1763576728913,"event":"checksum_mismatch_mem","id":"t1","provided":"wrong","expected":"abc"}
 {"t":1763576728915,"event":"checksum_verified_mem","id":"t1"}
 {"t":1763576728917,"event":"checksum_cleared_mem","cleared":0}
+{"t":1763585780996,"event":"checksum_stored_mem","id":"t1"}
+{"t":1763585781006,"event":"checksum_mismatch_mem","id":"t1","provided":"wrong","expected":"abc"}
+{"t":1763585781008,"event":"checksum_verified_mem","id":"t1"}
+{"t":1763585781009,"event":"checksum_cleared_mem","cleared":0}

@@ -350,6 +350,19 @@
         },
         "runningServices": []
       }
+    },
+    {
+      "id": "engine-1763585780770",
+      "type": "engine_state",
+      "ts": 1763585780770,
+      "payload": {
+        "rules": [],
+        "indexSummary": {
+          "count": 5,
+          "byType": {}
+        },
+        "runningServices": []
+      }
     }
   ],
   "engine_history": [
@@ -548,6 +561,35 @@
           "source": "assets/banner.png",
           "createdAt": "2025-11-19T18:25:29.247Z",
           "path": "D:\\qflush\\.qflush\\npz\\npz-6p4amqxs.bin"
+        }
+      }
+    },
+    {
+      "id": "exec-1763585781302",
+      "ts": 1763585781302,
+      "path": "",
+      "action": "echo hello",
+      "result": {
+        "success": true,
+        "stdout": "hello\r\n",
+        "stderr": "",
+        "code": 0
+      }
+    },
+    {
+      "id": "npz-1763585781306",
+      "ts": 1763585781306,
+      "path": "assets/banner.png",
+      "action": "npz.encode",
+      "result": {
+        "success": true,
+        "id": "npz-z7ncz9ks",
+        "path": "D:\\qflush\\.qflush\\npz\\npz-z7ncz9ks.bin",
+        "metadata": {
+          "id": "npz-z7ncz9ks",
+          "source": "assets/banner.png",
+          "createdAt": "2025-11-19T20:56:21.304Z",
+          "path": "D:\\qflush\\.qflush\\npz\\npz-z7ncz9ks.bin"
         }
       }
     }
