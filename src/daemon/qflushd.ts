@@ -6,12 +6,12 @@ const fs = require('fs');
 const path = require('path');
 const { join } = path;
 
-// optional Redis support (now opt-in via QFLUSH_ENABLE_REDIS)
-// Redis support removed for local builds to avoid external dependency and failures on Windows.
-let Redis: any = null;
-let redisClient: any = null;
-const REDIS_URL = '';
-const ENABLE_REDIS = false;
+// Optional Redis — create client via helper (returns null when disabled or no URL)
+import { createRedisClient } from '../utils/redis';
+const redisClient = createRedisClient();
+if (!redisClient) {
+  console.log('Redis client not created; using in-memory fallback');
+}
 
 // try to import gumroad helper if present
 let gumroad: any = null;
