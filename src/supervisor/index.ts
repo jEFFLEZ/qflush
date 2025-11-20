@@ -187,13 +187,30 @@ export function freezeAll(reason?: string) {
           // On Windows try pssuspend (Sysinternals) to suspend process; if not available, fall back to taskkill (force stop)
           try {
             const { spawn } = require('child_process');
-            const p = spawn('pssuspend', [String(pid)], { stdio: 'ignore', windowsHide: true });
-            p.on('error', (e: any) => {
-              logger.warn(`supervisor: pssuspend not available for ${name} (pid=${pid}), falling back to taskkill: ${e && e.message}`);
-              try { spawn('taskkill', ['/PID', String(pid), '/T', '/F'], { stdio: 'ignore', windowsHide: true }); } catch (ee) {}
-            });
-            // best-effort: do not wait for completion
-            logger.warn(`supervisor: ${name} attempted suspend via pssuspend (pid=${pid})`);
+            const fs = require('fs');
+            const path = require('path');
+            const candidates = [
+              path.join(process.cwd(), 'tools', 'pssuspend', 'PsSuspend.exe'),
+              path.join(process.cwd(), 'tools', 'pssuspend', 'pssuspend.exe'),
+              'pssuspend',
+            ];
+            let used: string | null = null;
+            for (const c of candidates) {
+              try {
+                if (c === 'pssuspend') { used = c; break; }
+                if (fs.existsSync(c)) { used = c; break; }
+              } catch {}
+            }
+            if (used) {
+              const p = spawn(used, [String(pid)], { stdio: 'ignore', windowsHide: true });
+              p.on('error', (e: any) => {
+                logger.warn(`supervisor: pssuspend execution failed for ${name} (pid=${pid}), falling back to taskkill: ${e && e.message}`);
+                try { spawn('taskkill', ['/PID', String(pid), '/T', '/F'], { stdio: 'ignore', windowsHide: true }); } catch (ee) {}
+              });
+              logger.warn(`supervisor: ${name} attempted suspend via ${used} (pid=${pid})`);
+            } else {
+              try { require('child_process').spawn('taskkill', ['/PID', String(pid), '/T', '/F'], { stdio: 'ignore', windowsHide: true }); } catch (ee) {}
+            }
           } catch (e) {
             try { require('child_process').spawn('taskkill', ['/PID', String(pid), '/T', '/F'], { stdio: 'ignore', windowsHide: true }); } catch (ee) {}
           }
