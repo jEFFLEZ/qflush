@@ -1,6 +1,5 @@
 // Small helper to create an optional Redis client.
 // If QFLUSH_DISABLE_REDIS=1 or no URL is provided, returns null.
-import type { RedisOptions } from 'ioredis';
 
 export function createRedisClient(): any | null {
   const DISABLED = process.env.QFLUSH_DISABLE_REDIS === '1' || String(process.env.QFLUSH_DISABLE_REDIS).toLowerCase() === 'true';
@@ -10,7 +9,7 @@ export function createRedisClient(): any | null {
   try {
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     const Redis = require('ioredis');
-    const opts: RedisOptions = {} as any;
+    const opts: any = {};
     return new Redis(url, opts);
   } catch (e) {
     return null;
