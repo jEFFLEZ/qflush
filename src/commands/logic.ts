@@ -1,4 +1,6 @@
 #!/usr/bin/env node
+// ROME-TAG: 0x66F831
+
 import { loadLogicRules } from '../rome/logic-loader';
 import { loadRomeIndexFromDisk } from '../rome/index-loader';
 import { evaluateRulesForRecord } from '../rome/logic-loader';

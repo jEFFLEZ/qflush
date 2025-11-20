@@ -1,12 +1,12 @@
 // ROME-TAG: 0xA0F9B4
 
-import fetch from 'node-fetch';
+import fetch from '../utils/fetch';
 import logger from '../utils/logger';
 
 const DAEMON = process.env.QFLUSH_DAEMON || 'http://localhost:4500';
 
 async function postJson(url: string, body: any): Promise<any> {
-  const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+  const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) } as any);
   const json: any = await res.json();
   return json;
 }
@@ -63,7 +63,7 @@ export default async function runChecksum(argv: string[] = []) {
   }
 
   if (sub === 'clear') {
-    const res = await fetch(`${DAEMON.replace(/\/$/, '')}/npz/checksum/clear`, { method: 'DELETE' });
+    const res = await fetch(`${DAEMON.replace(/\/$/, '')}/npz/checksum/clear`, { method: 'DELETE' } as any);
     const j: any = await res.json();
     logger.info(JSON.stringify(j));
     return 0;

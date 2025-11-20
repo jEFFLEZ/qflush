@@ -1,3 +1,5 @@
+// ROME-TAG: 0xDF1B54
+
 import { spawn, ChildProcess } from 'child_process';
 
 type StartOptions = { cwd?: string; detached?: boolean; logPath?: string };

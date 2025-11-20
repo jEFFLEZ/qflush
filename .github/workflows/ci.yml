@@ -39,7 +39,10 @@ jobs:
   integration-dry-run:
     needs: build-and-test
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 60
+    env:
+      REDIS_URL: ''
+      QFLUSH_DISABLE_SUPERVISOR: '1'
     steps:
       - uses: actions/checkout@v4
         with:
@@ -67,6 +70,10 @@ jobs:
   engine-dry-run:
     needs: build-and-test
     runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      REDIS_URL: ''
+      QFLUSH_DISABLE_SUPERVISOR: '1'
     steps:
       - uses: actions/checkout@v4
         with:

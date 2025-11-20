@@ -1,6 +1,6 @@
 // ROME-TAG: 0xBBFCDC
 
-import fetch from 'node-fetch';
+import fetch from '../utils/fetch';
 import { spawn } from 'child_process';
 import path from 'path';
 import fs from 'fs';
@@ -49,7 +49,7 @@ export async function runTests() {
   try {
     await startDaemon();
     // store
-    let res = await fetch(`${DAEMON_URL()}/npz/checksum/store`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: 't1', checksum: 'abc', ttlMs: 2000 }) });
+    let res = await fetch(`${DAEMON_URL()}/npz/checksum/store`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: 't1', checksum: 'abc', ttlMs: 2000 }) } as any);
     let j: any = await res.json();
     if (!j.success) throw new Error('store failed');
 
@@ -58,16 +58,16 @@ export async function runTests() {
     if (!j.success || j.count === 0) throw new Error('list failed');
 
     // verify mismatch
-    res = await fetch(`${DAEMON_URL()}/npz/checksum/verify`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: 't1', checksum: 'wrong' }) });
+    res = await fetch(`${DAEMON_URL()}/npz/checksum/verify`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: 't1', checksum: 'wrong' }) } as any);
     if (res.status === 200) throw new Error('mismatch should fail');
 
     // verify correct
-    res = await fetch(`${DAEMON_URL()}/npz/checksum/verify`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: 't1', checksum: 'abc' }) });
+    res = await fetch(`${DAEMON_URL()}/npz/checksum/verify`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: 't1', checksum: 'abc' }) } as any);
     j = await res.json() as any;
     if (!j.success) throw new Error('verify failed');
 
     // clear
-    res = await fetch(`${DAEMON_URL()}/npz/checksum/clear`, { method: 'DELETE' });
+    res = await fetch(`${DAEMON_URL()}/npz/checksum/clear`, { method: 'DELETE' } as any);
     j = await res.json() as any;
     if (!j.success) throw new Error('clear failed');
 
@@ -78,8 +78,4 @@ export async function runTests() {
   } finally {
     await stopDaemon();
   }
-}
-
-if (require.main === module) {
-  runTests().catch((e) => { console.error(e); process.exit(2); });
 }

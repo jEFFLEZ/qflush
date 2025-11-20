@@ -10,6 +10,9 @@ export const SERVICE_MAP: Record<string, { pkg: string; candidates: string[] }> 
   envaptex: { pkg: "@funeste38/envaptex", candidates: ["./envaptex", "./Envaptex"] },
   freeland: { pkg: "@funeste38/freeland", candidates: ["./freeland", "./Freeland"] },
   bat: { pkg: "@funeste38/bat", candidates: ["./bat", "./BAT"] },
+  // placeholders for future projects
+  a11: { pkg: "@funeste38/a11", candidates: ["./a11"] },
+  spyder: { pkg: "@funeste38/spyder", candidates: ["./spyder"] },
 };
 
 export function resolvePaths(detected: any = {}) {
