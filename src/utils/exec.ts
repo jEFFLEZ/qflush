@@ -40,6 +40,12 @@ export function isPackageInstalled(pkgName: string) {
 
 export function ensurePackageInstalled(pkgName: string) {
   if (isPackageInstalled(pkgName)) return true;
+  // In CI or when explicitly requested, avoid attempting global npm installs
+  const skipInstalls = process.env.QFLUSH_SKIP_GLOBAL_INSTALLS === '1' || process.env.CI === 'true' || process.env.GITHUB_ACTIONS === 'true';
+  if (skipInstalls) {
+    logger.info(`Skipping global install of ${pkgName} (CI or skip flag set)`);
+    return false;
+  }
   logger.info(`Installing missing package ${pkgName}...`);
   try {
     execSync(`npm install -g ${pkgName}`, { stdio: "inherit" });
