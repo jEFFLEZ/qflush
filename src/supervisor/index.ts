@@ -22,7 +22,7 @@ type ManagedProc = {
   outStream?: WriteStream | null;
 };
 
-// Use canonical state dir '.qflush' (was '.qflush')
+// Use canonical state dir '.qflush'
 const STATE_DIR = join(process.cwd(), '.qflush');
 const LOGS_DIR = join(STATE_DIR, 'logs');
 const STATE_FILE = join(STATE_DIR, 'services.json');
@@ -63,93 +63,114 @@ export function listRunning() {
 function safeCloseStream(s?: WriteStream | null) {
   if (!s) return;
   try {
-    // prefer non-blocking end with callback
-    try {
-      s.end(() => {});
-    } catch {
-      // fallback to destroy if end fails
+    try { s.end(() => {}); } catch {
       try { (s as any).destroy && (s as any).destroy(); } catch {}
     }
   } catch {}
 }
 
-// Helper: suspend/resume utilities and health-polling for auto-resume
-function suspendProcessPid(pid: number): boolean {
-  if (process.platform === 'win32') {
-    try {
-      const { spawn } = require('child_process');
-      const pssuspendPath = process.env.QFLUSH_PSSUSPEND_PATH || 'pssuspend';
-      const p = spawn(pssuspendPath, [String(pid)], { stdio: 'ignore', windowsHide: true });
-      p.on('error', () => {});
-      return true;
-    } catch (e) {
-      try { require('child_process').spawn('taskkill', ['/PID', String(pid), '/T', '/F'], { stdio: 'ignore', windowsHide: true }); } catch (ee) {}
-      return false;
-    }
-  } else {
-    try {
-      process.kill(pid, 'SIGSTOP');
-      return true;
-    } catch (e) {
-      try { process.kill(pid, 'SIGTERM'); } catch (ee) {}
-      return false;
-    }
+function isAlive(mp?: ManagedProc): boolean {
+  if (!mp || !mp.child || !mp.child.pid) return false;
+  try {
+    process.kill(mp.child.pid as number, 0);
+    return true;
+  } catch {
+    return false;
   }
 }
 
-function resumeProcessPid(pid: number): boolean {
-  if (process.platform === 'win32') {
-    try {
-      const { spawn } = require('child_process');
-      const pssuspendPath = process.env.QFLUSH_PSSUSPEND_PATH || 'pssuspend';
-      // pssuspend -r <pid> resumes
-      const p = spawn(pssuspendPath, ['-r', String(pid)], { stdio: 'ignore', windowsHide: true });
-      p.on('error', () => {});
-      return true;
-    } catch (e) {
-      try { require('child_process').spawn('taskkill', ['/PID', String(pid), '/T', '/F'], { stdio: 'ignore', windowsHide: true }); } catch (ee) {}
-      return false;
-    }
-  } else {
-    try {
-      process.kill(pid, 'SIGCONT');
-      return true;
-    } catch (e) {
-      return false;
-    }
-  }
+// --- Freeze mode (logical only) ---
+export type FreezeMode = 'none' | 'frozen';
+let freezeMode: FreezeMode = 'none';
+
+export function getFreezeMode() {
+  return freezeMode;
 }
 
-function pollUrlUntilHealthy(url: string, intervalMs = 3000, timeoutMs = 300000): Promise<boolean> {
-  return new Promise((resolve) => {
-    const start = Date.now();
-    const check = () => {
+export function resumeAll() {
+  if (freezeMode === 'none') {
+    logger.info('[supervisor] resumeAll: already normal');
+    return;
+  }
+  freezeMode = 'none';
+  logger.info('[supervisor] resumeAll: supervisor back to normal mode (spawns allowed)');
+}
+
+// Simple health watcher (HTTP GET 2xx => healthy)
+function startHealthWatch(url: string, onHealthy: () => void, intervalMs = 3000) {
+  let stopped = false;
+  const tick = async () => {
+    if (stopped) return;
+    try {
+      const u = new URL(url);
+      const mod = u.protocol === 'https:' ? require('https') : require('http');
+      const req = mod.request(url, { method: 'GET', timeout: 4000 }, (res: any) => {
+        const ok = res.statusCode && res.statusCode >= 200 && res.statusCode < 300;
+        // consume body
+        res.on('data', () => {});
+        res.on('end', () => {
+          if (ok) {
+            try { onHealthy(); } catch (e) { logger.warn(`[supervisor] healthWatch onHealthy failed: ${e}`); }
+            stopped = true;
+            return;
+          }
+          if (!stopped) setTimeout(tick, intervalMs);
+        });
+      });
+      req.on('error', () => { if (!stopped) setTimeout(tick, intervalMs); });
+      req.on('timeout', () => { try { req.abort(); } catch {} if (!stopped) setTimeout(tick, intervalMs); });
+      req.end();
+    } catch (e) {
+      if (!stopped) setTimeout(tick, intervalMs);
+    }
+  };
+  tick();
+  return () => { stopped = true; };
+}
+
+// Non-blocking safe kill: fire-and-forget watchdog to ensure no blocking on kill
+function safeKillAsync(child: ChildProcess | null, timeoutMs = 3000) {
+  if (!child || !child.pid) return;
+  const IS_WINDOWS = process.platform === 'win32';
+  let finished = false;
+  const done = (label: string) => {
+    if (finished) return;
+    finished = true;
+    logger.info(`[supervisor] safeKill: ${label} (pid=${child && child.pid})`);
+  };
+
+  const onExit = () => done('process exited');
+  try { child.once && child.once('exit', onExit); } catch {}
+
+  // soft kill
+  try {
+    if (IS_WINDOWS) child.kill(); else child.kill('SIGTERM');
+  } catch (e) {
+    logger.warn(`[supervisor] safeKill soft kill failed: ${String(e)}`);
+  }
+
+  // watchdog
+  setTimeout(() => {
+    if (finished) return;
+    logger.warn('[supervisor] safeKill: timeout, trying hard kill');
+    if (IS_WINDOWS) {
       try {
-        const u = new URL(url);
-        const mod = (u.protocol === 'https:' ? require('https') : require('http'));
-        const req = mod.request(url, { method: 'GET', timeout: 5000 }, (res: any) => {
-          const ok = res.statusCode && res.statusCode >= 200 && res.statusCode < 300;
-          res.resume();
-          if (ok) return resolve(true);
-          if (Date.now() - start > timeoutMs) return resolve(false);
-          setTimeout(check, intervalMs);
-        });
-        req.on('error', () => {
-          if (Date.now() - start > timeoutMs) return resolve(false);
-          setTimeout(check, intervalMs);
-        });
-        req.on('timeout', () => { req.abort(); });
-        req.end();
-      } catch (e) {
-        if (Date.now() - start > timeoutMs) return resolve(false);
-        setTimeout(check, intervalMs);
-      }
-    };
-    check();
-  });
+        const tk = spawn('taskkill', ['/PID', String(child!.pid), '/T', '/F'], { windowsHide: true });
+        tk.on('exit', () => done('hard-killed via taskkill'));
+        tk.on('error', (err: any) => { logger.warn('[supervisor] taskkill failed: ' + String(err)); done('gave up after taskkill error'); });
+      } catch (e) { logger.warn('[supervisor] taskkill spawn failed: ' + String(e)); done('gave up after taskkill spawn error'); }
+    } else {
+      try { process.kill(child!.pid!, 'SIGKILL'); done('hard-killed via SIGKILL'); } catch (e) { logger.warn('[supervisor] SIGKILL failed: ' + String(e)); done('gave up after SIGKILL error'); }
+    }
+  }, timeoutMs);
 }
 
 export function startProcess(name: string, cmd: string, args: string[] = [], opts: any = {}) {
+  if (freezeMode === 'frozen') {
+    logger.warn(`[supervisor] startProcess: ${name} skipped because supervisor is frozen`);
+    return null as any;
+  }
+
   ensureStateDir();
   logger.info(`supervisor: starting ${name} -> ${cmd} ${args.join(' ')}`);
 
@@ -157,24 +178,19 @@ export function startProcess(name: string, cmd: string, args: string[] = [], opt
   const outStream = createWriteStream(logFile, { flags: 'a' });
 
   const spawnOpts: any = { cwd: opts.cwd || process.cwd(), shell: true };
-
-  // decide stdio based on detached/background
   spawnOpts.stdio = ['ignore', 'pipe', 'pipe'];
   if (opts.detached) spawnOpts.detached = true;
 
-  // check existing managed proc
   const existing = managed.get(name);
   if (isAlive(existing)) {
     logger.info(`supervisor: ${name} is already running (pid=${existing!.child!.pid}), skipping start`);
     return existing!.child!;
   }
 
-  // create a placeholder managed entry so subsequent calls see it
   managed.set(name, { name, child: null, info: { name, pid: null, cmd, args, cwd: opts.cwd, log: logFile, detached: !!spawnOpts.detached }, outStream });
 
   const child = spawn(cmd, args, spawnOpts);
 
-  // attach streams
   if (child.stdout) child.stdout.pipe(outStream);
   if (child.stderr) child.stderr.pipe(outStream);
 
@@ -191,14 +207,12 @@ export function startProcess(name: string, cmd: string, args: string[] = [], opt
     persist();
   });
 
-  // if detached, allow process to continue after this parent exits
   if (spawnOpts.detached) {
     try { child.unref(); } catch {}
   }
 
   const record: ProcRecord = { name, pid: child.pid || null, cmd, args, cwd: opts.cwd, log: logFile, detached: !!spawnOpts.detached };
   procs[name] = record;
-  // update managed entry with real child
   managed.set(name, { name, child, info: record, outStream });
   persist();
   return child;
@@ -209,10 +223,13 @@ export function stopProcess(name: string) {
   const m = managed.get(name);
   if (!entry && !m) return false;
   try {
-    if (entry && entry.pid) process.kill(entry.pid, 'SIGTERM');
     if (m && m.child) {
-      try { m.child.kill('SIGTERM'); } catch {}
+      // non-blocking safe kill
+      safeKillAsync(m.child, 3000);
       m.child = null;
+    } else if (entry && entry.pid) {
+      // best-effort taskkill for pid without managed child
+      try { spawn('taskkill', ['/PID', String(entry.pid), '/T', '/F'], { windowsHide: true }); } catch {}
     }
     safeCloseStream(m?.outStream ?? null);
     if (procs[name]) delete procs[name];
@@ -243,67 +260,32 @@ export function clearState() {
 }
 
 export function freezeAll(reason?: string, opts?: { autoResume?: boolean; resumeCheck?: { url?: string; intervalMs?: number; timeoutMs?: number } }) {
-  logger.warn(`supervisor: initiating emergency freeze${reason ? ` - ${reason}` : ''}`);
-  const suspendedPids: number[] = [];
-  for (const [name, m] of managed) {
-    if (!m) continue;
-    try {
-      if (m.child && m.child.pid) {
-        const pid = m.child.pid as number;
-        let suspended = false;
-        if (process.platform === 'win32') {
-          // try suspend
-          suspended = suspendProcessPid(pid);
-          if (!suspended) {
-            logger.warn(`supervisor: failed to suspend ${name} (pid=${pid}), attempted kill fallback`);
-          }
-        } else {
-          // POSIX
-          try {
-            process.kill(pid as number, 'SIGSTOP');
-            suspended = true;
-            logger.warn(`supervisor: ${name} signalled SIGSTOP`);
-          } catch (e) {
-            try { process.kill(pid as number, 'SIGTERM'); logger.warn(`supervisor: ${name} signalled SIGTERM (fallback)`); } catch (ee) {}
-          }
-        }
-        if (suspended) suspendedPids.push(pid);
-      }
-    } catch (err) {
-      logger.warn(`supervisor: failed to freeze ${name} (${err})`);
-    }
-    // close streams
+  if (freezeMode === 'frozen') {
+    logger.info('[supervisor] freezeAll: already frozen');
+    return;
+  }
+  freezeMode = 'frozen';
+  logger.warn(`supervisor: entering frozen mode${reason ? ` - ${reason}` : ''}`);
+
+  // close streams and persist minimal state
+  for (const [, m] of managed) {
     safeCloseStream(m.outStream);
     m.outStream = null;
-    // persist minimal state
-    if (procs[name]) procs[name].pid = m.child && m.child.pid ? m.child.pid : null;
+    if (m.child && m.child.pid && procs[m.name]) procs[m.name].pid = m.child.pid;
   }
   persist();
 
-  // auto-resume logic
   if (opts && opts.autoResume && opts.resumeCheck && opts.resumeCheck.url) {
     const intervalMs = opts.resumeCheck.intervalMs || 3000;
     const timeoutMs = opts.resumeCheck.timeoutMs || 5 * 60 * 1000;
-    logger.info(`supervisor: auto-resume enabled, polling ${opts.resumeCheck.url} every ${intervalMs}ms up to ${timeoutMs}ms`);
-    (async () => {
-      const ok = await pollUrlUntilHealthy(opts.resumeCheck.url!, intervalMs, timeoutMs);
-      if (ok) {
-        logger.info('supervisor: resume-check OK, resuming suspended processes');
-        for (const pid of suspendedPids) {
-          try {
-            const res = resumeProcessPid(pid);
-            logger.info(`supervisor: resume pid=${pid} result=${res}`);
-          } catch (e) {
-            logger.warn(`supervisor: failed to resume pid=${pid} (${e})`);
-          }
-        }
-      } else {
-        logger.warn('supervisor: auto-resume timeout reached, leaving processes suspended');
-      }
-    })();
+    const stopWatch = startHealthWatch(opts.resumeCheck.url!, () => {
+      logger.info('[supervisor] healthWatch detected healthy -> resuming');
+      resumeAll();
+      stopWatch();
+    }, intervalMs);
+    // optional overall timeout to stop watcher
+    setTimeout(() => { try { stopWatch(); } catch {} }, timeoutMs);
   }
-
-  logger.warn('supervisor: emergency freeze complete');
 }
 
 export default {
@@ -313,6 +295,8 @@ export default {
   clearState,
   listRunning,
   freezeAll,
+  resumeAll,
+  getFreezeMode,
 };
 
 

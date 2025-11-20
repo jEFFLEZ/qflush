@@ -59,6 +59,17 @@ import { executeAction } from '../rome/executor';
 import { getEmitter, startIndexWatcher } from '../rome/events';
 import { initCopilotBridge as _initCopilotBridge, emitEngineState as _emitEngineState, emitRuleEvent as _emitRuleEvent, emitDiagnostic as _emitDiagnostic, getConfig as _getCopilotConfig } from '../rome/copilot-bridge';
 
+// Respect environment to disable copilot bridge at runtime
+const DISABLE_COPILOT = process.env.QFLUSH_DISABLE_COPILOT === '1' || String(process.env.QFLUSH_DISABLE_COPILOT).toLowerCase() === 'true' || process.env.QFLUSH_TELEMETRY === '0';
+const ENABLE_COPILOT = !DISABLE_COPILOT;
+
+// Provide safe wrappers (no-op when disabled)
+const initCopilotBridge: any = ENABLE_COPILOT ? _initCopilotBridge : async () => {};
+const emitEngineState: any = ENABLE_COPILOT ? _emitEngineState : () => {};
+const emitRuleEvent: any = ENABLE_COPILOT ? _emitRuleEvent : () => {};
+const emitDiagnostic: any = ENABLE_COPILOT ? _emitDiagnostic : () => {};
+const getCopilotConfig: any = ENABLE_COPILOT ? _getCopilotConfig : () => ({ enabled: false });
+
 // linker
 import { computeRomeLinksForFiles, computeRomeLinks, mergeAndWrite, readExistingLinks, resolveRomeToken, romeLinksEmitter } from '../rome/linker';
 

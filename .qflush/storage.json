@@ -692,6 +692,93 @@
           "path": "D:\\qflush\\.qflush\\npz\\npz-99awdir9.bin"
         }
       }
+    },
+    {
+      "id": "exec-1763645015115",
+      "ts": 1763645015115,
+      "path": "",
+      "action": "echo hello",
+      "result": {
+        "success": true,
+        "stdout": "hello\r\n",
+        "stderr": "",
+        "code": 0
+      }
+    },
+    {
+      "id": "npz-1763645015120",
+      "ts": 1763645015120,
+      "path": "assets/banner.png",
+      "action": "npz.encode",
+      "result": {
+        "success": true,
+        "id": "npz-p8z9sxln",
+        "path": "D:\\qflush\\.qflush\\npz\\npz-p8z9sxln.bin",
+        "metadata": {
+          "id": "npz-p8z9sxln",
+          "source": "assets/banner.png",
+          "createdAt": "2025-11-20T13:23:35.117Z",
+          "path": "D:\\qflush\\.qflush\\npz\\npz-p8z9sxln.bin"
+        }
+      }
+    },
+    {
+      "id": "exec-1763645133511",
+      "ts": 1763645133511,
+      "path": "",
+      "action": "echo hello",
+      "result": {
+        "success": true,
+        "stdout": "hello\r\n",
+        "stderr": "",
+        "code": 0
+      }
+    },
+    {
+      "id": "npz-1763645133516",
+      "ts": 1763645133516,
+      "path": "assets/banner.png",
+      "action": "npz.encode",
+      "result": {
+        "success": true,
+        "id": "npz-81pvl8b8",
+        "path": "D:\\qflush\\.qflush\\npz\\npz-81pvl8b8.bin",
+        "metadata": {
+          "id": "npz-81pvl8b8",
+          "source": "assets/banner.png",
+          "createdAt": "2025-11-20T13:25:33.513Z",
+          "path": "D:\\qflush\\.qflush\\npz\\npz-81pvl8b8.bin"
+        }
+      }
+    },
+    {
+      "id": "exec-1763649015735",
+      "ts": 1763649015735,
+      "path": "",
+      "action": "echo hello",
+      "result": {
+        "success": true,
+        "stdout": "hello\r\n",
+        "stderr": "",
+        "code": 0
+      }
+    },
+    {
+      "id": "npz-1763649015739",
+      "ts": 1763649015739,
+      "path": "assets/banner.png",
+      "action": "npz.encode",
+      "result": {
+        "success": true,
+        "id": "npz-uydltjqw",
+        "path": "D:\\qflush\\.qflush\\npz\\npz-uydltjqw.bin",
+        "metadata": {
+          "id": "npz-uydltjqw",
+          "source": "assets/banner.png",
+          "createdAt": "2025-11-20T14:30:15.737Z",
+          "path": "D:\\qflush\\.qflush\\npz\\npz-uydltjqw.bin"
+        }
+      }
     }
   ]
 }
