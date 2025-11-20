@@ -1,3 +1,5 @@
+// ROME-TAG: 0xD8C57D
+
 import { RomeIndex, RomeTagRecord } from './rome-tag';
 
 export type EngineAction =
@@ -72,3 +74,6 @@ export function computeEngineActionsSafe(index?: RomeIndex): EngineAction[] {
     return [];
   }
 }
+
+// Backwards-compatible alias: some callers use `computeEngineActions`
+export const computeEngineActions = computeEngineActionsSafe;

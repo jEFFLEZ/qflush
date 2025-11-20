@@ -155,7 +155,7 @@ async function tryFetch(fullUrl: string, options: any = {}, timeout = DEFAULT_TI
     let ff: any = (globalThis as any).fetch;
     if (!ff) {
       try {
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
+         
         ff = require('undici').fetch;
       } catch (e) {
         throw new Error('No fetch available (install undici or use Node 18+)');

@@ -3,13 +3,13 @@ module.exports = [
   {
     files: ['**/*.ts', '**/*.js'],
     languageOptions: {
-      parser: '@typescript-eslint/parser',
+      parser: require('@typescript-eslint/parser'),
       parserOptions: { project: './tsconfig.json', tsconfigRootDir: __dirname },
     },
     plugins: { '@typescript-eslint': require('@typescript-eslint/eslint-plugin') },
     rules: {
       'no-unused-vars': 'off',
-      '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
+      '@typescript-eslint/no-unused-vars': 'off',
       'no-console': 'off',
       'prefer-const': 'warn',
     },

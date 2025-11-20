@@ -42,11 +42,11 @@ function persistFileStore() {
 
 loadFileStore();
 
-const USE_REDIS = Boolean(process.env.REDIS_URL);
+const ENABLE_REDIS = (process.env.QFLUSH_ENABLE_REDIS === '1' || String(process.env.QFLUSH_ENABLE_REDIS).toLowerCase() === 'true');
+const USE_REDIS = ENABLE_REDIS && Boolean(process.env.REDIS_URL);
 
 export async function createRequestRecord(idOrMeta?: string | Record<string, any>, maybeMeta?: Record<string, any>) {
   if (USE_REDIS) {
-    // redis createRecord ignores provided id, returns generated id
     const meta = typeof idOrMeta === 'string' ? maybeMeta : (idOrMeta as Record<string, any> | undefined);
     const rec = await redisCreate(meta);
     return rec;

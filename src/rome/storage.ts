@@ -1,3 +1,5 @@
+// ROME-TAG: 0x75DEC5
+
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -16,7 +18,7 @@ function ensureDir() {
 
 try {
   // attempt to use better-sqlite3 if installed
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
+   
   const Database = require('better-sqlite3');
   const dbPath = path.join(DEFAULT_DIR, 'qflush.db');
   db = new Database(dbPath);

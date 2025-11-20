@@ -1,3 +1,5 @@
+// ROME-TAG: 0x077294
+
 import { evaluateIndex } from '../rome/engine';
 
 const sampleIndex = {
@@ -7,7 +9,8 @@ const sampleIndex = {
   'src/tests/foo.test.ts': { type: 'test', path: 'src/tests/foo.test.ts', ext: 'ts', tag: 4, tagHex: '0x000004', savedAt: new Date().toISOString(), version: 1 },
 };
 
-const actions = evaluateIndex(sampleIndex as any);
-console.log('engine test actions:', actions);
-if (actions.length < 4) throw new Error('expected actions for each record');
-process.exit(0);
+export async function runTests() {
+  const actions = evaluateIndex(sampleIndex as any);
+  console.log('engine test actions:', actions);
+  if (actions.length < 4) throw new Error('expected actions for each record');
+}

@@ -1,3 +1,5 @@
+// ROME-TAG: 0xD4EB1C
+
 import * as path from 'path';
 import * as fs from 'fs';
 import { parseLogicFile, LogicRule, evaluateConditionExpr, buildConditionAst, evaluateConditionExprAST } from './logic-parser';

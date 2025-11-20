@@ -1,3 +1,5 @@
+// ROME-TAG: 0xF2B208
+
 import * as fs from 'fs';
 import * as path from 'path';
 import crypto from 'crypto';

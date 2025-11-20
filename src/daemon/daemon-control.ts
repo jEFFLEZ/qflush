@@ -1,3 +1,5 @@
+// ROME-TAG: 0x2037A4
+
 // Lightweight daemon reload handler
 let reloadHandler: (() => void) | null = null;
 

@@ -259,6 +259,123 @@
         },
         "runningServices": []
       }
+    },
+    {
+      "id": "engine-1763574755020",
+      "type": "engine_state",
+      "ts": 1763574755020,
+      "payload": {
+        "rules": [],
+        "indexSummary": {
+          "count": 5,
+          "byType": {}
+        },
+        "runningServices": []
+      }
+    },
+    {
+      "id": "engine-1763574869744",
+      "type": "engine_state",
+      "ts": 1763574869744,
+      "payload": {
+        "rules": [],
+        "indexSummary": {
+          "count": 5,
+          "byType": {}
+        },
+        "runningServices": []
+      }
+    },
+    {
+      "id": "engine-1763574946258",
+      "type": "engine_state",
+      "ts": 1763574946258,
+      "payload": {
+        "rules": [],
+        "indexSummary": {
+          "count": 5,
+          "byType": {}
+        },
+        "runningServices": []
+      }
+    },
+    {
+      "id": "engine-1763575023215",
+      "type": "engine_state",
+      "ts": 1763575023215,
+      "payload": {
+        "rules": [],
+        "indexSummary": {
+          "count": 5,
+          "byType": {}
+        },
+        "runningServices": []
+      }
+    },
+    {
+      "id": "engine-1763575306451",
+      "type": "engine_state",
+      "ts": 1763575306451,
+      "payload": {
+        "rules": [],
+        "indexSummary": {
+          "count": 5,
+          "byType": {}
+        },
+        "runningServices": []
+      }
+    },
+    {
+      "id": "engine-1763576288295",
+      "type": "engine_state",
+      "ts": 1763576288295,
+      "payload": {
+        "rules": [],
+        "indexSummary": {
+          "count": 5,
+          "byType": {}
+        },
+        "runningServices": []
+      }
+    },
+    {
+      "id": "engine-1763576728694",
+      "type": "engine_state",
+      "ts": 1763576728694,
+      "payload": {
+        "rules": [],
+        "indexSummary": {
+          "count": 5,
+          "byType": {}
+        },
+        "runningServices": []
+      }
+    },
+    {
+      "id": "engine-1763585780770",
+      "type": "engine_state",
+      "ts": 1763585780770,
+      "payload": {
+        "rules": [],
+        "indexSummary": {
+          "count": 5,
+          "byType": {}
+        },
+        "runningServices": []
+      }
+    },
+    {
+      "id": "engine-1763599389196",
+      "type": "engine_state",
+      "ts": 1763599389196,
+      "payload": {
+        "rules": [],
+        "indexSummary": {
+          "count": 5,
+          "byType": {}
+        },
+        "runningServices": []
+      }
     }
   ],
   "engine_history": [
@@ -272,6 +389,250 @@
         "stdout": "",
         "stderr": "",
         "code": "ENOENT"
+      }
+    },
+    {
+      "id": "exec-1763574755560",
+      "ts": 1763574755560,
+      "path": "",
+      "action": "echo hello",
+      "result": {
+        "success": false,
+        "stdout": "",
+        "stderr": "",
+        "code": "ENOENT"
+      }
+    },
+    {
+      "id": "exec-1763574870268",
+      "ts": 1763574870268,
+      "path": "",
+      "action": "echo hello",
+      "result": {
+        "success": true,
+        "stdout": "hello\r\n",
+        "stderr": "",
+        "code": 0
+      }
+    },
+    {
+      "id": "npz-1763574870274",
+      "ts": 1763574870274,
+      "path": "assets/banner.png",
+      "action": "npz.encode",
+      "result": {
+        "success": true,
+        "id": "npz-yqqi4qsv",
+        "path": "D:\\qflush\\.qflush\\npz\\npz-yqqi4qsv.bin",
+        "metadata": {
+          "id": "npz-yqqi4qsv",
+          "source": "assets/banner.png",
+          "createdAt": "2025-11-19T17:54:30.271Z",
+          "path": "D:\\qflush\\.qflush\\npz\\npz-yqqi4qsv.bin"
+        }
+      }
+    },
+    {
+      "id": "exec-1763574946823",
+      "ts": 1763574946823,
+      "path": "",
+      "action": "echo hello",
+      "result": {
+        "success": true,
+        "stdout": "hello\r\n",
+        "stderr": "",
+        "code": 0
+      }
+    },
+    {
+      "id": "npz-1763574946829",
+      "ts": 1763574946829,
+      "path": "assets/banner.png",
+      "action": "npz.encode",
+      "result": {
+        "success": true,
+        "id": "npz-c2yux5yk",
+        "path": "D:\\qflush\\.qflush\\npz\\npz-c2yux5yk.bin",
+        "metadata": {
+          "id": "npz-c2yux5yk",
+          "source": "assets/banner.png",
+          "createdAt": "2025-11-19T17:55:46.826Z",
+          "path": "D:\\qflush\\.qflush\\npz\\npz-c2yux5yk.bin"
+        }
+      }
+    },
+    {
+      "id": "exec-1763575023755",
+      "ts": 1763575023755,
+      "path": "",
+      "action": "echo hello",
+      "result": {
+        "success": true,
+        "stdout": "hello\r\n",
+        "stderr": "",
+        "code": 0
+      }
+    },
+    {
+      "id": "npz-1763575023759",
+      "ts": 1763575023759,
+      "path": "assets/banner.png",
+      "action": "npz.encode",
+      "result": {
+        "success": true,
+        "id": "npz-t3rt4n4y",
+        "path": "D:\\qflush\\.qflush\\npz\\npz-t3rt4n4y.bin",
+        "metadata": {
+          "id": "npz-t3rt4n4y",
+          "source": "assets/banner.png",
+          "createdAt": "2025-11-19T17:57:03.757Z",
+          "path": "D:\\qflush\\.qflush\\npz\\npz-t3rt4n4y.bin"
+        }
+      }
+    },
+    {
+      "id": "exec-1763575307000",
+      "ts": 1763575307000,
+      "path": "",
+      "action": "echo hello",
+      "result": {
+        "success": true,
+        "stdout": "hello\r\n",
+        "stderr": "",
+        "code": 0
+      }
+    },
+    {
+      "id": "npz-1763575307005",
+      "ts": 1763575307005,
+      "path": "assets/banner.png",
+      "action": "npz.encode",
+      "result": {
+        "success": true,
+        "id": "npz-or8rvwd2",
+        "path": "D:\\qflush\\.qflush\\npz\\npz-or8rvwd2.bin",
+        "metadata": {
+          "id": "npz-or8rvwd2",
+          "source": "assets/banner.png",
+          "createdAt": "2025-11-19T18:01:47.002Z",
+          "path": "D:\\qflush\\.qflush\\npz\\npz-or8rvwd2.bin"
+        }
+      }
+    },
+    {
+      "id": "exec-1763576288859",
+      "ts": 1763576288859,
+      "path": "",
+      "action": "echo hello",
+      "result": {
+        "success": true,
+        "stdout": "hello\r\n",
+        "stderr": "",
+        "code": 0
+      }
+    },
+    {
+      "id": "npz-1763576288863",
+      "ts": 1763576288863,
+      "path": "assets/banner.png",
+      "action": "npz.encode",
+      "result": {
+        "success": true,
+        "id": "npz-l5uznyt3",
+        "path": "D:\\qflush\\.qflush\\npz\\npz-l5uznyt3.bin",
+        "metadata": {
+          "id": "npz-l5uznyt3",
+          "source": "assets/banner.png",
+          "createdAt": "2025-11-19T18:18:08.861Z",
+          "path": "D:\\qflush\\.qflush\\npz\\npz-l5uznyt3.bin"
+        }
+      }
+    },
+    {
+      "id": "exec-1763576729245",
+      "ts": 1763576729245,
+      "path": "",
+      "action": "echo hello",
+      "result": {
+        "success": true,
+        "stdout": "hello\r\n",
+        "stderr": "",
+        "code": 0
+      }
+    },
+    {
+      "id": "npz-1763576729249",
+      "ts": 1763576729249,
+      "path": "assets/banner.png",
+      "action": "npz.encode",
+      "result": {
+        "success": true,
+        "id": "npz-6p4amqxs",
+        "path": "D:\\qflush\\.qflush\\npz\\npz-6p4amqxs.bin",
+        "metadata": {
+          "id": "npz-6p4amqxs",
+          "source": "assets/banner.png",
+          "createdAt": "2025-11-19T18:25:29.247Z",
+          "path": "D:\\qflush\\.qflush\\npz\\npz-6p4amqxs.bin"
+        }
+      }
+    },
+    {
+      "id": "exec-1763585781302",
+      "ts": 1763585781302,
+      "path": "",
+      "action": "echo hello",
+      "result": {
+        "success": true,
+        "stdout": "hello\r\n",
+        "stderr": "",
+        "code": 0
+      }
+    },
+    {
+      "id": "npz-1763585781306",
+      "ts": 1763585781306,
+      "path": "assets/banner.png",
+      "action": "npz.encode",
+      "result": {
+        "success": true,
+        "id": "npz-z7ncz9ks",
+        "path": "D:\\qflush\\.qflush\\npz\\npz-z7ncz9ks.bin",
+        "metadata": {
+          "id": "npz-z7ncz9ks",
+          "source": "assets/banner.png",
+          "createdAt": "2025-11-19T20:56:21.304Z",
+          "path": "D:\\qflush\\.qflush\\npz\\npz-z7ncz9ks.bin"
+        }
+      }
+    },
+    {
+      "id": "exec-1763599389743",
+      "ts": 1763599389743,
+      "path": "",
+      "action": "echo hello",
+      "result": {
+        "success": true,
+        "stdout": "hello\r\n",
+        "stderr": "",
+        "code": 0
+      }
+    },
+    {
+      "id": "npz-1763599389749",
+      "ts": 1763599389749,
+      "path": "assets/banner.png",
+      "action": "npz.encode",
+      "result": {
+        "success": true,
+        "id": "npz-n4iw5a0y",
+        "path": "D:\\qflush\\.qflush\\npz\\npz-n4iw5a0y.bin",
+        "metadata": {
+          "id": "npz-n4iw5a0y",
+          "source": "assets/banner.png",
+          "createdAt": "2025-11-20T00:43:09.747Z",
+          "path": "D:\\qflush\\.qflush\\npz\\npz-n4iw5a0y.bin"
+        }
       }
     }
   ]

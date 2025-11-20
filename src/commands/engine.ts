@@ -1,4 +1,6 @@
 #!/usr/bin/env node
+// ROME-TAG: 0xE2F4A9
+
 import { loadRomeIndexFromDisk } from '../rome/index-loader';
 import { evaluateIndex } from '../rome/engine';
 import { executeAction } from '../rome/executor';

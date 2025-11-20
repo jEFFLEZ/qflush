@@ -11,7 +11,7 @@ export function getNpzNamespace(): string {
   try {
     // try to require the nezlephant package directly to avoid loading the whole lib index
     // which may pull packages that are not compatible in the runner.
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
+     
     const nez = require('@funeste38/nezlephant');
     if (nez) {
       if (typeof nez.encode === 'function') {

@@ -1,3 +1,5 @@
+// ROME-TAG: 0xDE237C
+
 import { spawn, execFile } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -22,6 +24,19 @@ function safeExecFile(cmd: string, cwd: string, timeoutMs: number): Promise<{ co
     // if simple executable with args, prefer execFile
     if (/^[\w@.\-\/\\]+$/.test(parts[0])) {
       const child = execFile(parts[0], parts.slice(1), { cwd, env: { PATH: process.env.PATH || '' }, timeout: timeoutMs }, (err: any, stdout: any, stderr: any) => {
+        if (err && (err as any).code === 'ENOENT') {
+          // fallback to shell when executable not found (e.g. shell built-ins like echo)
+          const sh = spawn(cmd, { cwd, env: { PATH: process.env.PATH || '' }, shell: true });
+          let out = '';
+          let er = '';
+          sh.stdout?.on('data', (d) => out += d.toString());
+          sh.stderr?.on('data', (d) => er += d.toString());
+          let finished = false;
+          const to = setTimeout(() => { try { sh.kill(); } catch(e){} }, timeoutMs);
+          sh.on('close', (code) => { if (!finished) { finished = true; clearTimeout(to); resolve({ code, stdout: out, stderr: er }); } });
+          sh.on('error', (e) => { if (!finished) { finished = true; clearTimeout(to); resolve({ code: 1, stdout: out, stderr: String(e) }); } });
+          return;
+        }
         if (err && (err as any).code && (err as any).signal === undefined) {
           resolve({ code: (err as any).code, stdout: stdout?.toString?.() || String(stdout), stderr: stderr?.toString?.() || String(stderr) });
         } else if (err) {
