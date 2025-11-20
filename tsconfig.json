@@ -22,5 +22,6 @@
       "@supervisor/*": ["src/supervisor/*"]
     }
   },
-  "exclude": ["node_modules", "dist", "qflush", "extensions/**/out/**"]
+  "exclude": ["node_modules", "dist", "qflush", "extensions/**/out/**"],
+  "include": ["src/**/*"]
 }
