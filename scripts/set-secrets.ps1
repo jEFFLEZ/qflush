@@ -32,43 +32,44 @@ function Save-LocalSecret([string]$key, [string]$val) {
     }
     $obj.$key = $enc
     $obj | ConvertTo-Json -Depth 5 | Set-Content -Path $file -Encoding UTF8
-    Write-Output "Saved $key to $file (encrypted)"
+    Write-Output "Saved ${key} to ${file} (encrypted)"
   } catch {
-    Write-Warning "Failed to save local secret $key: $_"
+    Write-Warning "Failed to save local secret ${key}: $_"
   }
 }
 
 foreach ($key in $secrets) {
-  $val = $env:$key
+  # dynamic env var read
+  try { $val = [System.Environment]::GetEnvironmentVariable($key) } catch { $val = $null }
   if (-not $val) {
-    $val = Read-Host "Provide value for $key (leave empty to skip)"
+    $val = Read-Host "Provide value for ${key} (leave empty to skip)"
   }
-  if (-not $val) { Write-Output "Skipping $key"; continue }
+  if (-not $val) { Write-Output "Skipping ${key}"; continue }
   if ($useGh) {
     try {
       gh secret set $key --body $val --repo $Repo
-      Write-Output "Set $key as GitHub secret in $Repo"
+      Write-Output "Set ${key} as GitHub secret in ${Repo}"
     } catch {
-      Write-Warning "gh secret set failed for $key: $_ - falling back to local file"
+      Write-Warning "gh secret set failed for ${key}: $_ - falling back to local file"
       # fallback to local
       if (-not (Test-Path '.env.local')) { New-Item -ItemType File -Path '.env.local' | Out-Null }
       # remove any existing line for the key
-      (Get-Content .env.local) -replace "^$key=.*$","" | Set-Content .env.local
-      Add-Content .env.local "$key=$val"
+      (Get-Content .env.local) -replace "^${key}=.*$","" | Set-Content .env.local
+      Add-Content .env.local "${key}=${val}"
     }
   } else {
-    Write-Output "gh not available — writing $key to .env.local"
+    Write-Output "gh not available — writing ${key} to .env.local"
     if (-not (Test-Path .env.local)) { New-Item -ItemType File -Path .env.local | Out-Null }
     # remove any existing line for the key
-    (Get-Content .env.local) -replace "^$key=.*$","" | Set-Content .env.local
-    Add-Content .env.local "$key=$val"
+    (Get-Content .env.local) -replace "^${key}=.*$","" | Set-Content .env.local
+    Add-Content .env.local "${key}=${val}"
   }
 
   if ($PersistLocal) {
     Save-LocalSecret -key $key -val $val
   } else {
     # Ask user whether to persist locally
-    $yn = Read-Host "Persist $key locally encrypted under %USERPROFILE%\\.qflush? (y/N)"
+    $yn = Read-Host "Persist ${key} locally encrypted under %USERPROFILE%\\.qflush? (y/N)"
     if ($yn -and $yn.ToLower().StartsWith('y')) {
       Save-LocalSecret -key $key -val $val
     }
