@@ -1,23 +1,14 @@
 {
-<<<<<<< HEAD
   "name": "@funeste38/qflush",
   "version": "3.1.2",
   "description": "QFLUSH orchestrator",
   "bin": {
     "qflush": "dist/index.js"
-=======
-  "name": "@funeste38/qflash",
-  "version": "0.1.1",
-  "description": "Funesterie orchestrator: start, stop, purge, inspect, combine modules.",
-  "bin": {
-    "qflash": "dist/index.js"
->>>>>>> 9c20528 (chore(qflash): initial scaffold, smartchain, installers, CI)
   },
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
     "dist",
-<<<<<<< HEAD
     "lib",
     "installers",
     "README.md",
@@ -46,32 +37,17 @@
     "detach": "node ./scripts/detach.js",
     "run:timeout": "bash ./scripts/run-with-timeout.sh",
     "run:timeout:ps1": "pwsh ./scripts/run-with-timeout.ps1"
-=======
-    "installers",
-    "README.md",
-    "PUBLISH.md"
-  ],
-  "scripts": {
-    "build": "tsc -p tsconfig.json",
-    "prepare": "npm run build",
-    "test": "node dist/tests/smartchain.test.js"
->>>>>>> 9c20528 (chore(qflash): initial scaffold, smartchain, installers, CI)
   },
   "keywords": [
     "funeste38",
     "funesterie",
     "orchestrator",
     "cli",
-<<<<<<< HEAD
     "qflush",
-=======
-    "qflash",
->>>>>>> 9c20528 (chore(qflash): initial scaffold, smartchain, installers, CI)
     "reset",
     "exodia"
   ],
   "author": "funeste38",
-<<<<<<< HEAD
   "license": "SEE LICENSE IN LICENSE-FUNESTERIE.txt",
   "dependencies": {
     "@funeste38/bat": "latest",
@@ -107,12 +83,3 @@
 }
 
 
-=======
-  "license": "MIT",
-  "devDependencies": {
-    "typescript": "^5.6.0",
-    "ts-node": "^10.9.2",
-    "@types/node": "^20.0.0"
-  }
-}
->>>>>>> 9c20528 (chore(qflash): initial scaffold, smartchain, installers, CI)
