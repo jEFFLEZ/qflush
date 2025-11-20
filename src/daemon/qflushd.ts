@@ -3,6 +3,7 @@
 import 'dotenv/config';
 const express = require('express');
 import http from 'http';
+import net from 'net';
 const fs = require('fs');
 const path = require('path');
 const { join } = path;
@@ -308,8 +309,24 @@ app.use((err: any, _req: any, res: any, _next: any) => {
 let server: any = null;
 let auxServer: any = null;
 
-function startAuxServer() {
+async function startAuxServer() {
   try {
+    // quick check: is 4500 already serving? try to connect first and skip if occupied
+    const probe = new Promise<boolean>((resolve) => {
+      const c = net.createConnection({ port: 4500, host: '127.0.0.1' }, () => {
+        try { c.end(); } catch (e) {}
+        resolve(true);
+      });
+      c.on('error', () => resolve(false));
+      // fallback timeout
+      setTimeout(() => { try { c.destroy(); } catch (e) {} ; resolve(false); }, 250);
+    });
+    const occupied = await probe;
+    if (occupied) {
+      console.log('[QFLUSH] auxiliary server port 4500 already in use, skipping auxiliary server');
+      return;
+    }
+
     auxServer = http.createServer(async (req, res) => {
       try {
         if (req.url && req.url.startsWith('/npz/rome-index')) {
@@ -331,27 +348,13 @@ function startAuxServer() {
       res.end(JSON.stringify({ success: false, error: 'not_found', path: req.url }));
     });
     auxServer.on('error', (err: any) => {
-      try {
-        if (err && err.code === 'EADDRINUSE') {
-          console.log('[QFLUSH] auxiliary server port 4500 already in use, skipping auxiliary server');
-          try { auxServer.close(); } catch (e) {}
-          auxServer = null;
-          return;
-        }
-      } catch (e) {
-        // ignore
-      }
       console.warn('auxiliary server error', String(err));
-    });
-    try {
-      auxServer.listen(4500, () => {
-        console.log('[QFLUSH] auxiliary test server on :4500 ready');
-      });
-    } catch (e) {
-      console.warn('failed to bind auxiliary server on :4500', String(e));
       try { auxServer.close(); } catch (e) {}
       auxServer = null;
-    }
+    });
+    auxServer.listen(4500, () => {
+      console.log('[QFLUSH] auxiliary test server on :4500 ready');
+    });
   } catch (e) {
     console.warn('failed to start auxiliary server on :4500', String(e));
   }
