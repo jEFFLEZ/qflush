@@ -1,0 +1,212 @@
+802bee9 2025-11-20 Djeff Merge pull request #9 from jEFFLEZ/ci/diagnostic-tsc
+c1f8960 2025-11-20 Djeff  ci: add tsc diagnostic and dist verification
+456ce13 2025-11-20 Djeff Merge pull request #7 from jEFFLEZ/ci/start-daemon-before-tests
+ec11f81 2025-11-20 Djeff  ci: start compiled daemon before tests and wait for readiness
+1deb367 2025-11-20 Djeff  test: start compiled daemon in vitest setup when VITEST env is set
+c08171c 2025-11-20 Djeff Merge pull request #5 from jEFFLEZ/release/3.1.0
+9d1e407 2025-11-20 Djeff  chore: persist runtime qflush state before revert
+9c1c61a 2025-11-20 Djeff  docs: add qflush repository analysis
+b124ea7 2025-11-20 Djeff  docs: add architecture,diagrams,copilot context
+de9b710 2025-11-19 Djeff up
+a117134 2025-11-19 Djeff chore(ext): bump vscode extension version to 3.1.0
+5a5cd25 2025-11-19 Djeff chore(release): prepare v3.1.0 pre-release — integrate Rome linker, CLI placeholders, docs
+7a454bb 2025-11-19 Djeff fix: align engine/daemon and remove tail retry option; tsconfig adjustments
+9028aae 2025-11-19 Djeff tsconfig: enable allowSyntheticDefaultImports and use NodeNext
+a78f24b 2025-11-19 Djeff fix(engine/daemon): export computeEngineActionsSafe and use it in daemon; add polyfill guard fixes
+7232a3c 2025-11-19 Djeff ci(ext): preload File/Blob polyfill in workflows to avoid undici ReferenceError
+85ea1b1 2025-11-19 Djeff fix(ext): polyfill File/Blob for undici in Node CI; run polyfill on prestart
+bd43f51 2025-11-19 Djeff test: enable vitest globals and narrow include patterns
+cb9b86b 2025-11-19 Djeff test: configure vitest discovery and disable worker threads; guard daemon during tests
+64b0148 2025-11-19 Djeff test: configure vitest setup file and guard daemon/startup during tests
+f5afbe0 2025-11-19 Djeff test: add vitest config to load setup file
+4e2cfd2 2025-11-19 Djeff test: intercept process.exit; prevent daemon auto-start during tests via VITEST guard
+cc640ad 2025-11-19 Djeff test: intercept process.exit in tests via vitest setup
+9395886 2025-11-19 Djeff test/build: fix test imports and exclude qflush submodule from root TS build
+843c9f2 2025-11-19 Djeff test: use vitest imports in gumroad-license tests
+6d2631a 2025-11-19 Djeff build: prevent CLI auto-exit during import; add test types and rome-tag declarations; add vitest devDep to extension
+3406282 2025-11-19 Djeff ci(workflows): runtime token checks and avoid secret expressions
+5edcf59 2025-11-19 Djeff chore(ext): add vitest devDependency and update lockfile
+3bc4880 2025-11-19 Djeff chore: remove tracked vsix artifacts
+02ea199 2025-11-19 Djeff chore: remove checked-in vsix artifacts and ignore nested extensions folder
+6b24602 2025-11-19 Djeff chore(vscode-npz): add package-lock for CI
+b66cd28 2025-11-19 Djeff docs: add admin deploy instructions for self-hosted agent and manual publish
+8cf4e9b 2025-11-19 Djeff ci(github): make token validation non-fatal and fallback install to avoid npm ci errors
+d84b5c1 2025-11-19 Djeff ci(github): fallback to npm install when lockfile missing in publish workflow
+ce8818e 2025-11-19 Djeff chore(ci): add minimal example workspace (lockfile) to satisfy Rome workspace checks
+cb7145f 2025-11-19 Djeff chore(ext): update displayName and bump extension version to 1.0.1
+444ad94 2025-11-19 Djeff ci(github): add workflow_dispatch, use @vscode/vsce and upload vsix artifact
+55a1391 2025-11-19 Djeff ci(github): avoid npm ci in workflows to support missing lockfile
+854f05d 2025-11-19 Djeff fix(ci): add qflush submodule url for CI
+3f1e289 2025-11-19 Djeff ci(github): add workflow to build and publish vscode extension to Marketplace and Open VSX
+f68e133 2025-11-19 Djeff ci(azure): use self-hosted AGENT_POOL for build and publish jobs
+93a3faa 2025-11-19 Djeff ci: add PowerShell script to configure Azure DevOps self-hosted Windows agent
+5d9687c 2025-11-19 Djeff ci(azure): support configurable self-hosted agent pool and docs
+c62e359 2025-11-19 Djeff WIP: save local work before creating main
+98b869b 2025-11-19 Djeff WIP: save local work before creating main
+b6f63d0 2025-11-19 J C Set up CI with Azure Pipelines
+bb07651 2025-11-19 Djeff chore(ext): add Azure vss-extension.json manifest for Marketplace
+f0ba467 2025-11-19 Djeff ci(azure): add tfx publish steps and docs for Azure Marketplace
+43d7068 2025-11-19 Djeff ci(azure): add azure pipeline workflow placeholder for publishing
+b73137b 2025-11-19 Djeff chore(ci): add publish-on-release workflow and docs for secrets
+7b55462 2025-11-18 Djeff chore: stabilize tsconfig and extension tsconfig
+b9f576d 2025-11-18 Djeff ci: fix publish workflows - disable submodules, use npm install and ovsx
+3d1908c 2025-11-18 Djeff fix: remove broken qflush submodule entry
+0517061 2025-11-18 Djeff ci: add verify-secrets workflow to validate action secrets
+b514974 2025-11-18 Djeff chore(release): bump version to 3.0.4
+d143952 2025-11-18 Djeff ci: add publish-to-vs-marketplace workflow (uses AZURE_PAT)
+5ede337 2025-11-18 Djeff ci: publish VS Code extension to Open VSX on release (uses OPEN_VSX_TOKEN)
+a27027a 2025-11-18 Djeff chore(release): add checksum asset and install notes
+3e812ab 2025-11-18 Djeff chore(release): harden executor, add tests, require CI before publish, docs
+cabbc15 2025-11-18 Djeff chore(release): bump version to 3.0.3 and add changelog
+28399f7 2025-11-18 Djeff feat(core): daemon control reload, executor sandboxing, telemetry UI and dry-run support
+66f1f9c 2025-11-18 Djeff feat(logic): variables substitution and schedule parsing for rules
+cbe73b6 2025-11-18 Djeff chore(security/ui/ci): auth middleware, telemetry viewer and engine-dry-run CI job
+d03b7cf 2025-11-18 Djeff feat(engine): storage persistence, NPZ metadata, DSL parser AST, dry-run support
+7a0f020 2025-11-18 Djeff feat(storage): sqlite/json fallback storage + integrate copilot telemetry persistence
+dea68df 2025-11-18 Djeff feat(copilot-bridge): telemetry bridge (webhook/file/SSE) and CLI
+8499f70 2025-11-18 Djeff feat(copilot): add local copilot endpoints and CLI
+0fb95f6 2025-11-18 Djeff feat(logic): executor whitelist exact allowlist, webhook notifications, spawn shell execution
+6a8e8bf 2025-11-18 Djeff feat(logic): executor whitelist, events and engine API
+97bc02a 2025-11-18 Djeff feat(logic): implement logic engine, events, executor and CI improvements
+5d07450 2025-11-18 Djeff ci: mark workspace safe directory to avoid git 128 issues
+dd1f531 2025-11-18 Djeff ci: improve checkout, config git user and increase timeout for integration
+ef3dc77 2025-11-18 Djeff ci: improve publish-on-release checkout permissions and timeout
+66bc5ed 2025-11-18 Djeff Merge pull request #2 from jEFFLEZ/feat/pourparler-rome-index
+6eef8de 2025-11-18 Djeff chore(release): bump version 3.0.2
+a92e6a3 2025-11-18 Djeff test(daemon): reliable rome-index test, dynamic daemon port and server control
+8540b97 2025-11-18 Djeff docs: package README, publish guide and tagline for @qflash/qflush
+dd93792 2025-11-18 Djeff feat(daemon): expose /npz/rome-index and include sample .qflush/rome-index.json
+cd262f9 2025-11-18 Djeff feat(rome): use shared rome-tag in extension and add linter
+7d68325 2025-11-18 Djeff feat(rome-tag): unify tag algorithm and add Rome linter script
+a2bfa6b 2025-11-18 Djeff docs: add Rome index diagram and reference in README
+78d0d1e 2025-11-18 Djeff feat(pourparler): add Rome index tag UI and persist .qflush/rome-index.json
+a873811 2025-11-18 Djeff feat: add checksum CLI, webview list/clear, optional Redis backend, tests and docs
+c084a75 2025-11-18 Djeff npz: prefer 'npm exec --' fallback to npx
+177608b 2025-11-18 Djeff extension: update icon to pirate cards sunset
+86881de 2025-11-18 Djeff refactor: rename project qflash->qflush, qflashd->qflushd and update docs, scripts, functions
+20fa9fc 2025-11-18 Djeff security: add default headers for Netlify (HSTS, CSP, etc)
+f9b37a0 2025-11-18 Djeff ci(netlify): workflow to enable HTTPS and add domain alias
+732e713 2025-11-18 Djeff ci(netlify): workflow to set Netlify env vars and create site
+86aca03 2025-11-18 Djeff ci(netlify): avoid submodule checkout + tolerant checksum generator
+8fde69f 2025-11-18 Djeff ci(netlify): add workflow to deploy site to Netlify
+fab31fc 2025-11-18 Djeff feat(netlify): add webhook and token-exchange serverless functions
+fefbf9e 2025-11-18 Djeff feat(pourparler): generate checksum on prebuild, expose checksum via API and npz checksum command
+24433cd 2025-11-18 Djeff chore(pourparler): generate CSS checksum for npz-pourparler module
+21c6128 2025-11-18 Djeff build: compile all TS changes before publish
+b166830 2025-11-18 Djeff feat(npzz): add help/info and colorized output for npz helper
+7dc5d47 2025-11-18 Djeff feat(npz): proxy npm-like commands and support --cwd to avoid npm conflicts in CI
+f94b53d 2025-11-18 Djeff feat(npz): add 'npz run qflash' dispatcher to call dist/cli.js or fallback to daemon
+224801f 2025-11-18 Djeff chore: add PowerShell npz launcher
+0e083cf 2025-11-18 Djeff chore: add lightweight npz launcher to avoid npm conflicts
+454c40e 2025-11-18 Djeff ci: add VSCE publish workflow for Marketplace using VSCE_TOKEN
+1e18ed8 2025-11-18 Djeff merge: accept incoming changes from fix/qflash-0.1.5 for publish and config
+b8c3d44 2025-11-18 Djeff ci: add workflow to publish VSIX to Gumroad on release or manual
+241edd6 2025-11-18 Djeff chore(extension): set custom icon from repo image
+53d0626 2025-11-18 Djeff ci(publish): run npm ci in extension dir and use cd for build/package steps
+a5cc136 2025-11-18 Djeff ci: ensure npm ci runs in extension folder (use cd)
+d904e8e 2025-11-18 Djeff chore(extension): add README and icon for Open VSX
+0307c42 2025-11-18 Djeff chore(release): include latest extension changes
+54a4be4 2025-11-18 Djeff ci: add Open VSX publish workflow using OPEN_VSX_TOKEN secret
+cb2a878 2025-11-18 Djeff docs(licensing): document local Gumroad flow, remove ngrok traces
+da57d68 2025-11-18 Djeff chore(licensing): remove webhook support, keep local Gumroad verification flow
+b1164de 2025-11-18 Djeff chore: use 'qflash' in startup message
+e7ac1db 2025-11-18 Djeff ci: add Validate tokens step to publish workflows (require NPM/VSCE/OPEN_VSX tokens, warn on missing GUMROAD_TOKEN)
+3308776 2025-11-18 Djeff feat(license): gumroad license activation endpoints and CLI; add env vars
+8ba48fa 2025-11-18 Djeff chore(release): v3.0.7 release + upload-audit workflow + periodic license reverify
+ecad6db 2025-11-18 Djeff feat(licensing): status endpoint, token-file and tests
+5c0cb8c 2025-11-18 Djeff feat(extension): activate license via local qflashd /license/activate endpoint
+457a7b8 2025-11-18 Djeff feat(licensing): daemon endpoint /license/activate and CLI integration
+5068ef1 2025-11-18 Djeff feat(licensing): CLI license activate/status/clear and Gumroad helper
+6449d75 2025-11-18 Djeff feat(licensing): add Gumroad helper and VS Code license entry
+2e42d2c 2025-11-18 Djeff chore(extension): rename vscode extension to qflash and update command/config keys
+65110a1 2025-11-18 Djeff ci(publish): use Node 20 for packaging
+c5d8eb3 2025-11-18 Djeff ci: fix vscode extension package.json syntax
+1b28977 2025-11-18 Djeff ci: remove invalid vscode devDependency to fix CI
+d48ed5e 2025-11-18 Djeff ci(publish): use npm install in open-vsx workflow
+ec768c4 2025-11-18 Djeff ci(publish): add Open VSX publish workflow and docs
+55ff590 2025-11-18 Djeff feat(extension): trial licensing and publisher metadata
+7c04ce7 2025-11-18 Djeff chore(release): bump version v3.0.1 (license added)
+1d0f643 2025-11-18 Djeff chore(license): add Funesterie trial EULA and extension license
+a0b575c 2025-11-18 Djeff vscode: add token/daemon input and persist config from webview
+81936b4 2025-11-18 Djeff chore: update .gitignore to exclude extension build and local artifacts
+bb87530 2025-11-18 Djeff chore: update gitignore and remove tracked build artifacts
+96479c1 2025-11-18 Djeff vscode: use postMessage to send daemonUrl and token to webview securely
+2676333 2025-11-18 Djeff vscode: add settings for daemonUrl and adminToken and inject into panel
+3fe86e6 2025-11-18 Djeff vscode: wire webview to panel.html and token substitution
+b0a2503 2025-11-18 Djeff feat(vscode): scaffold NPZ VSCode extension (webview)
+9a6f62f 2025-11-18 Djeff feat(lib): expose npz-engine as internal lib for visual UI
+aabeef7 2025-11-18 Djeff ci(publish): use npm install to avoid lockfile mismatch on runner
+441c61a 2025-11-18 Djeff chore(release): bump version to 3.0.0
+9c2a6d5 2025-11-18 Djeff feat(auth): add flexible admin auth helper and integrate into npz-admin
+751751e 2025-11-18 Djeff feat(npz): admin CSV/export/reset + CLI csv/reset for npz scores
+f53bd9b 2025-11-18 Djeff feat(npz-admin): add protected /npz/scores endpoint to expose engine scores
+47ff4de 2025-11-18 Djeff feat(cli): add npz:scores command to list engine scores
+656728d 2025-11-18 Djeff chore(env): load dotenv in daemon and add .env.example
+0ba4547 2025-11-18 Djeff feat(npz-engine): weighted scoring, latency weighting, decay, and store exposure
+3c3fd19 2025-11-18 Djeff feat(npz): add decision engine, integrate into router, typers for third-party modules and daemon/admin fixes
+55f3d8d 2025-11-18 Djeff ci: use npm install instead of npm ci to avoid lockfile mismatch on runner
+499fe17 2025-11-18 Djeff ci: run npm commands from repo root (remove cd qflash)
+291c1f0 2025-11-18 Djeff chore(ci): remove tracked nested qflash dir and add package-lock for CI
+77677b6 2025-11-18 Djeff Resolve merge conflicts: keep branch NPZ v2 features and merge master start flow
+960890d 2025-11-18 Djeff chore: bump version to 2.0.0 and NPZ docs v2.0
+51d6bbf 2025-11-18 Djeff docs: add NPZ Joker environment and usage to README
+1500371 2025-11-18 Djeff cli: add npz inspect command and dispatcher support
+16fe682 2025-11-18 Djeff feat(cmd): add npz:inspect CLI command to query npz store
+7129493 2025-11-18 Djeff feat(npz): namespace keys and metrics using NPZ_NAMESPACE to avoid cross-app conflicts
+5b784ec 2025-11-18 Djeff feat(npz): secure admin, metrics counters, npz_id tracing, NPZ README and daemon integration
+37d8488 2025-11-18 Djeff daemon: switch to express, mount NPZ middleware, metrics and admin endpoints
+c44df80 2025-11-18 Djeff feat(npz): add circuit breaker, metrics middleware, and admin endpoints
+e2748cd 2025-11-18 Djeff feat(npz): unify request store with Redis optional and add middleware metrics
+f56b53f 2025-11-18 Djeff feat(npz): add optional Redis-backed request store
+377367f 2025-11-18 Djeff chore(deps): add redis and prom-client for NPZ store and metrics
+c6d427e 2025-11-18 Djeff feat(npz): add request store and Express middleware for NPZ
+af44745 2025-11-18 Djeff chore(deps): add express and uuid for npz middleware
+251c6c9 2025-11-18 Djeff feat(npz): integrate Joker resolver and stylized logger; add colors and integrate into start
+2bc1b20 2025-11-18 Djeff feat(colors): add Nezlephant palette and terminal helpers
+27a072a 2025-11-18 Djeff feat(npz): add Joker resolver and improve router; resolve tsconfig/package conflicts
+2715422 2025-11-18 Djeff npz: add customs and router updates
+b35dea2 2025-11-18 Djeff supervisor: manage ChildProcess instances correctly; start uses customs before launching
+4faa3e4 2025-11-18 Djeff chore: merge package.json & tsconfig.json conflicts
+1a807d2 2025-11-18 Djeff chore: prepare merge fix/qflash-0.1.5 into master
+e382f83 2025-11-18 Djeff ci: add GitHub Actions and integration script
+0ba0f8f 2025-11-18 Djeff update submodule
+d546498 2025-11-18 Djeff chore(release): bump qflash to v0.1.5
+1491937 2025-11-18 Djeff fix(cli): add pre-launch checks and prefer node for JS bins; add CLI check tool; tsconfig moduleResolution=node
+31cedc9 2025-11-17 Djeff chore(licenses): include envapt license in submodule
+073bf6a 2025-11-17 Djeff chore(licenses): add envapt Apache-2.0 license
+859a5d2 2025-11-17 Djeff chore(licenses): update submodule third-party notices
+66f35d4 2025-11-17 Djeff chore(licenses): clarify third-party notices and reference from proprietary LICENSE
+1cdc35c 2025-11-17 Djeff chore(licenses): add third-party license guidance in submodule
+8257e02 2025-11-17 Djeff chore(licenses): add THIRD_PARTY_LICENSES guidance for Apache-2.0 components
+bf1a172 2025-11-17 Djeff chore(docs): normalize purchase link across FCL docs
+79dca14 2025-11-17 Djeff chore(licensing): update purchase URLs in qflash submodule
+4e35f45 2025-11-17 Djeff chore(licensing): update purchase URLs to full Gumroad links
+b21f4de 2025-11-17 Djeff chore(licensing): update contact email to cellaurojeffrey@gmail.com
+d35f056 2025-11-17 Djeff chore(assets): add PDF generator for commercial license and logo
+72722b0 2025-11-17 Djeff chore: add purchase links to license docs and READMEs
+90d754e 2025-11-17 Djeff chore(licensing/docs): add purchase link for commercial license in docs
+230845c 2025-11-17 Djeff chore(licensing): add proprietary FCL license files in qflash submodule
+ea9b0d8 2025-11-17 Djeff chore(licensing): add Funesterie proprietary and ancillary license files and reference them in package.json
+b69a452 2025-11-17 Djeff feat(daemon+doctor): subtree qflash updates
+2f40db2 2025-11-17 Djeff feat(daemon+doctor): add qflashd daemon and doctor --fix; extend compose
+52b00e1 2025-11-17 Djeff feat(daemon+compose): add qflashd daemon, systemd/unit installer, extend compose with restart/logs/background, doctor --fix later
+cc5fc20 2025-11-17 Djeff docs: add release link and examples
+e76f751 2025-11-17 Djeff chore(release): 0.1.4
+13eaa6f 2025-11-17 Djeff chore(release): prepare for 0.1.4
+bbf18a9 2025-11-17 Djeff chore(examples): add funesterie.yml and funesterie.fcl examples
+a2d648d 2025-11-17 Djeff feat(FCL): add Funesterie Config Language support and compose/doctor commands
+18c5354 2025-11-17 Djeff feat(compose+doctor): add funesterie.yml parser, compose commands and doctor checks
+eb30728 2025-11-17 Djeff chore: update dist artifacts and package lock
+0ac8355 2025-11-17 Djeff feat(supervisor): add per-service logs and background/detach support
+05205d0 2025-11-17 Djeff feat(supervisor+health): add health probes, delegate start to supervisor, persist state, integrate purge/kill/inspect
+bfb72a4 2025-11-17 Djeff feat(supervisor): add process supervisor, persistence, integrate with kill/inspect
+65d9283 2025-11-17 Djeff feat(start): parallel start, --wait, restart support; prefer package bin; detection improvements
+124c713 2025-11-17 Djeff feat: prefer package bin, improve detection and start behavior for Funeste38 modules
+25ed658 2025-11-17 Djeff feat(qflash): integrate Funeste38 packages exports (rome, nezlephant, freeland, bat, envaptex)
+3c8d65e 2025-11-17 Djeff feat: add rome to service map and docs
+10a426a 2025-11-17 Djeff feat(start): auto-install and launch real services (nezlephant, envaptex, freeland, bat)
+8eb5310 2025-11-17 Djeff docs: align README and help with real services (nezlephant, envaptex, freeland, bat)
+84f45bb 2025-11-17 Djeff 0.1.3
+1b64180 2025-11-17 Djeff chore(qflash): bump for 0.1.3 and docs
+14cc6d7 2025-11-17 Djeff chore(qflash): docs, smartchain flags, migration scripts
+9c20528 2025-11-17 Djeff chore(qflash): initial scaffold, smartchain, installers, CI

@@ -1,0 +1,21 @@
+name: Upload audit log on failure
+
+on:
+  workflow_run:
+    workflows: ["Publish to Open VSX", "CI", "Publish Package"]
+    types:
+      - completed
+
+jobs:
+  upload-audit:
+    if: ${{ github.event.workflow_run.conclusion == 'failure' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Upload license audit log
+        uses: actions/upload-artifact@v4
+        with:
+          name: license-audit-log
+          path: './.qflash/license-activations.log'
+          if-no-files-found: 'ignore'

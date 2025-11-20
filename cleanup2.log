@@ -1,0 +1,17 @@
+Running cleanup-qflash.ps1
+Repo root: D:\qflush
+Scanning files...
+Patched: D:\qflush\eslint-report.json
+Patched: D:\qflush\FUNESTERIE-ARCHITECTURE.md
+Patched: D:\qflush\package.json
+Patched: D:\qflush\PUBLISH.md
+Patched: D:\qflush\st.txt
+Patched: D:\qflush\THIRD_PARTY_LICENSES.txt
+Exception lors de l'appel de « Replace » avec « 4 » argument(s) : « La valeur ne peut pas être null.
+Nom du paramètre : input »
+Au caractère D:\qflush\scripts\cleanup-qflash.ps1:27 : 5
++     $new = [regex]::Replace($text, 'qflash', 'qflush', 'IgnoreCase')
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:) [], ParentContainsErrorRecordException
+    + FullyQualifiedErrorId : ArgumentNullException
+ 

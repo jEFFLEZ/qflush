@@ -1,0 +1,43 @@
+name: Publish to Visual Studio Marketplace
+
+on:
+  workflow_dispatch: {}
+  release:
+    types: [published]
+
+jobs:
+  publish-vs-marketplace:
+    runs-on: ubuntu-latest
+    env:
+      AZURE_PAT: ${{ secrets.AZURE_PAT }}
+      NODE_OPTIONS: "-r ${{ github.workspace }}/extensions/vscode-npz/src/polyfill-file.js"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: false
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Validate AZURE_PAT (warning)
+        run: |
+          if [ -z "${AZURE_PAT}" ]; then echo "AZURE_PAT is missing - Marketplace publish will be skipped"; else echo "AZURE_PAT is set"; fi
+      - name: Install deps and build extension
+        run: |
+          cd extensions/vscode-npz
+          if [ -f package-lock.json ]; then npm ci; else npm install --no-audit --no-fund; fi
+          npm run build || true
+      - name: Package VSIX
+        run: |
+          cd extensions/vscode-npz
+          npx @vscode/vsce package
+      - name: Upload VSIX artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: qflush-vsix
+          path: extensions/vscode-npz/*.vsix
+      - name: Publish to Visual Studio Marketplace (runtime)
+        run: |
+          cd extensions/vscode-npz
+          if [ -z "${AZURE_PAT}" ]; then echo "AZURE_PAT missing - skip"; exit 0; fi
+          npx @vscode/vsce publish --pat $AZURE_PAT || echo 'VSCE publish failed'

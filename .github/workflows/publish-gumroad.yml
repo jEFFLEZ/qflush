@@ -1,0 +1,47 @@
+name: Publish VSIX to Gumroad
+
+on:
+  workflow_dispatch:
+  release:
+    types: [published]
+
+jobs:
+  publish-gumroad:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Build extension
+        run: |
+          cd extensions/vscode-npz
+          npm ci --no-audit --no-fund
+          npm run build
+          npx vsce package --no-dependencies
+
+      - name: Upload VSIX to Release
+        if: github.event_name == 'release'
+        run: |
+          gh release upload ${{ github.event.release.tag_name }} extensions/vscode-npz/*.vsix --clobber
+
+      - name: Upload to Gumroad
+        env:
+          GUMROAD_TOKEN: ${{ secrets.GUMROAD_TOKEN }}
+          GUMROAD_PRODUCT_ID: ${{ secrets.GUMROAD_PRODUCT_ID }}
+        run: |
+          VSIX=$(ls extensions/vscode-npz/*.vsix | head -n 1)
+          if [ -z "$VSIX" ]; then echo "No VSIX found"; exit 1; fi
+          echo "Uploading $VSIX to Gumroad product $GUMROAD_PRODUCT_ID"
+          # Use curl to upload file to Gumroad (replace endpoint as needed)
+          curl -s -X POST "https://api.gumroad.com/v2/products/$GUMROAD_PRODUCT_ID/attachments" \
+            -F "access_token=$GUMROAD_TOKEN" \
+            -F "file=@${VSIX}" \
+            -F "name=qflash-vsix" \
+            -F "description=VSIX for release ${{ github.ref }}" \
+            -o /tmp/gumroad-upload.json
+          cat /tmp/gumroad-upload.json

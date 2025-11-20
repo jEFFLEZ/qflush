@@ -1,0 +1,35 @@
+name: Publish VS Code Extension
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+      - name: Validate tokens
+        run: |
+          if [ -z "${{ secrets.NPM_TOKEN }}" ]; then echo "NPM_TOKEN is missing"; exit 1; fi
+          if [ -z "${{ secrets.VSCE_TOKEN }}" ]; then echo "VSCE_TOKEN is missing"; exit 1; fi
+          if [ -z "${{ secrets.GUMROAD_TOKEN }}" ]; then echo "Warning: GUMROAD_TOKEN is not set"; fi
+      - name: Install dependencies
+        run: |
+          cd extensions/vscode-npz
+          npm ci --no-audit --no-fund
+      - name: Build extension
+        run: |
+          cd extensions/vscode-npz
+          npm run build
+      - name: Package and publish
+        env:
+          VSCE_TOKEN: ${{ secrets.VSCE_TOKEN }}
+        run: |
+          cd extensions/vscode-npz
+          npx vsce publish --pat $VSCE_TOKEN || npx vsce package

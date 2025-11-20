@@ -1,0 +1,120 @@
+Running cleanup-qflash.ps1
+Repo root: D:\qflush
+Scanning files...
+Patched: D:\qflush\docs\FCL_README.md
+Patched: D:\qflush\docs\LICENSING.md
+Patched: D:\qflush\extensions\visual-studio-npz\NPZVsix\source.extension.vsixmanifest
+Patched: D:\qflush\extensions\visual-studio-npz\NPZVsix\obj\NPZVsix.csproj.nuget.dgspec.json
+Patched: D:\qflush\extensions\visual-studio-npz\NPZVsix\obj\project.assets.json
+Patched: D:\qflush\extensions\visual-studio-npz\NPZVsix\obj\project.nuget.cache
+Patched: D:\qflush\extensions\vscode-npz\package.json
+Patched: D:\qflush\extensions\vscode-npz\src\panel.html
+Patched: D:\qflush\installers\NE-LINER.txt
+Patched: D:\qflush\installers\qflashd.service
+Patched: D:\qflush\qflush\package-lock.json
+Patched: D:\qflush\qflush\package.json
+Patched: D:\qflush\qflush\THIRD_PARTY_LICENSES.txt
+Patched: D:\qflush\qflush\docs\FCL_README.md
+Patched: D:\qflush\qflush\installers\install-all.ps1
+Patched: D:\qflush\qflush\installers\install-qflash.ps1
+Patched: D:\qflush\qflush\installers\qflashd.service
+Patched: D:\qflush\qflush\installers\README-install.md
+Patched: D:\qflush\qflush\src\index.ts
+Patched: D:\qflush\qflush\src\npz-customs.ts
+Patched: D:\qflush\qflush\src\chain\smartChain.ts
+Patched: D:\qflush\qflush\src\cli\help.ts
+Patched: D:\qflush\qflush\src\commands\config.ts
+Patched: D:\qflush\qflush\src\commands\detect.ts
+Patched: D:\qflush\qflush\src\commands\doctor.ts
+Patched: D:\qflush\qflush\src\commands\exodia.ts
+Patched: D:\qflush\qflush\src\commands\inspect.ts
+Patched: D:\qflush\qflush\src\commands\kill.ts
+Patched: D:\qflush\qflush\src\commands\purge.ts
+Patched: D:\qflush\qflush\src\commands\start.ts
+Patched: D:\qflush\qflush\src\daemon\qflashd.ts
+Patched: D:\qflush\qflush\src\supervisor\index.ts
+Patched: D:\qflush\qflush\src\utils\logger.ts
+Patched: D:\qflush\qflush\tools\check-cli.js
+Patched: D:\qflush\scripts\cleanup-qflash.ps1
+Patched: D:\qflush\scripts\fix-install-qflush.ps1
+Patched: D:\qflush\scripts\migrate-to-qflash.ps1
+Patched: D:\qflush\scripts\migrate-to-qflash.sh
+Patched: D:\qflush\src\chain\smartChain.ts
+Patched: D:\qflush\src\commands\config.ts
+Patched: D:\qflush\src\commands\detect.ts
+Patched: D:\qflush\src\commands\exodia.ts
+Patched: D:\qflush\src\commands\inspect.ts
+Patched: D:\qflush\src\commands\kill.ts
+Patched: D:\qflush\src\commands\license-activate.ts
+Patched: D:\qflush\src\commands\purge.ts
+Patched: D:\qflush\src\commands\start.ts
+Patched: D:\qflush\src\supervisor\index.ts
+Patched: D:\qflush\src\utils\npz-engine.ts
+Patched: D:\qflush\src\utils\npz-store.ts
+Patched: D:\qflush\src\utils\NPZ_README.md
+Patched: D:\qflush\tools\check-cli.js
+Renaming files/dirs containing 'qflash' in name...
+Renamed: D:\qflush\scripts\migrate-to-qflash.sh -> D:\qflush\scripts\migrate-to-qflush.sh
+Renamed: D:\qflush\scripts\migrate-to-qflash.ps1 -> D:\qflush\scripts\migrate-to-qflush.ps1
+Renamed: D:\qflush\scripts\cleanup-qflash.ps1 -> D:\qflush\scripts\cleanup-qflush.ps1
+Renamed: D:\qflush\qflush\src\daemon\qflashd.ts -> D:\qflush\qflush\src\daemon\qflushd.ts
+Renamed: D:\qflush\qflush\installers\qflashd.service -> D:\qflush\qflush\installers\qflushd.service
+Renamed: D:\qflush\qflush\installers\install-qflashd.ps1 -> D:\qflush\qflush\installers\install-qflushd.ps1
+Renamed: D:\qflush\qflush\installers\install-qflash.ps1 -> D:\qflush\qflush\installers\install-qflush.ps1
+Renamed: D:\qflush\qflush\.qflash -> D:\qflush\qflush\.qflush
+Renamed: D:\qflush\installers\qflashd.service -> D:\qflush\installers\qflushd.service
+Failed to rename: D:\qflush\.vs\qflash.slnx -> D:\qflush\.vs\qflush.slnx : Impossible de créer un fichier déjà existant.
+
+Failed to rename: D:\qflush\.vs\qflash -> D:\qflush\.vs\qflush : Impossible de créer un fichier déjà existant.
+
+Renamed: D:\qflush\.qflush\qflashd.err -> D:\qflush\.qflush\qflushd.err
+Failed to rename: D:\qflush\.qflash -> D:\qflush\.qflush : Impossible de créer un fichier déjà existant.
+
+Staging changes and committing...
+warning: in the working copy of 'FUNESTERIE-ARCHITECTURE.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'extensions/vscode-npz/package.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'package.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/chain/smartChain.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/commands/config.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/commands/detect.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/commands/exodia.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/commands/inspect.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/commands/kill.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/commands/license-activate.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/commands/purge.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/commands/start.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/supervisor/index.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/utils/npz-engine.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/utils/npz-store.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'st.txt', LF will be replaced by CRLF the next time Git touches it
+[backup/before-cleanup 86b15ce] chore(repo): replace qflash -> qflush and normalize names
+ 43 files changed, 585 insertions(+), 170 deletions(-)
+ rename .qflush/{qflashd.err => qflushd.err} (100%)
+ create mode 100644 cleanup.log
+ create mode 100644 cleanup2.log
+ create mode 100644 cleanup3.log
+ create mode 100644 git-push-remote.log
+ create mode 100644 git-push.log
+ rename installers/{qflashd.service => qflushd.service} (52%)
+ create mode 100644 scripts/cleanup-qflush.ps1
+ delete mode 100644 scripts/migrate-to-qflash.ps1
+ create mode 100644 scripts/migrate-to-qflush.ps1
+ rename scripts/{migrate-to-qflash.sh => migrate-to-qflush.sh} (51%)
+ create mode 100644 week-commits.log
+fatal: The upstream branch of your current branch does not match
+the name of your current branch.  To push to the upstream branch
+on the remote, use
+
+    git push github HEAD:fix/installers-qflush
+
+To push to the branch of the same name on the remote, use
+
+    git push github HEAD
+
+To choose either option permanently, see push.default in 'git help config'.
+
+To avoid automatically configuring an upstream branch when its name
+won't match the local branch, see option 'simple' of branch.autoSetupMerge
+in 'git help config'.
+
+Done. Files patched: 52, renamed: 10

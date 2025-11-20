@@ -1,0 +1,85 @@
+{
+  "name": "@funeste38/qflush",
+  "version": "3.1.2",
+  "description": "QFLUSH orchestrator",
+  "bin": {
+    "qflush": "dist/index.js"
+  },
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "lib",
+    "installers",
+    "README.md",
+    "PUBLISH.md",
+    "LICENSE-FUNESTERIE.txt",
+    "LICENSE-NON-COMMERCIAL.md",
+    "LICENSE-COMMERCIAL.md",
+    "TRADEMARK.md",
+    "README-FCL.md"
+  ],
+  "scripts": {
+    "prebuild": "node ./tools/generate-pourparler-css.js",
+    "build": "tsc -p .",
+    "test": "vitest --run",
+    "test:ci": "vitest --run --coverage",
+    "lint": "eslint . --ext .ts,.js --fix -c .eslintrc.cjs",
+    "lint:rome": "npm run build && node tools/rome-lint.js",
+    "lint:rome:fix": "npm run build && node tools/rome-lint.js --fix",
+    "daemon:spawn": "node ./dist/index.js daemon --detached",
+    "daemon:stop": "node ./dist/index.js kill",
+    "daemon:status": "node ./dist/index.js inspect",
+    "start": "node dist/daemon/qflushd.js",
+    "upgrade": "npm install -g @funeste38/qflush@latest",
+    "local-install": "node ./tools/installer.js",
+    "ci-local": "pwsh ./scripts/ci-local.ps1",
+    "detach": "node ./scripts/detach.js",
+    "run:timeout": "bash ./scripts/run-with-timeout.sh",
+    "run:timeout:ps1": "pwsh ./scripts/run-with-timeout.ps1"
+  },
+  "keywords": [
+    "funeste38",
+    "funesterie",
+    "orchestrator",
+    "cli",
+    "qflush",
+    "reset",
+    "exodia"
+  ],
+  "author": "funeste38",
+  "license": "SEE LICENSE IN LICENSE-FUNESTERIE.txt",
+  "dependencies": {
+    "@funeste38/bat": "latest",
+    "@funeste38/envaptex": "latest",
+    "@funeste38/freeland": "latest",
+    "@funeste38/nezlephant": "latest",
+    "@funeste38/rome": "latest",
+    "cookie-parser": "^1.4.7",
+    "csv-stringify": "^6.6.0",
+    "dotenv": "^17.2.3",
+    "express": "^5.1.0",
+    "js-yaml": "^4.1.1",
+    "node-fetch": "^3.3.2",
+    "prom-client": "^15.1.3",
+    "tail": "^2.2.6",
+    "uuid": "^13.0.0"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.5",
+    "@types/node": "^24.10.1",
+    "@types/node-fetch": "^2.6.13",
+    "@types/uuid": "^11.0.0",
+    "@types/vscode": "^1.106.1",
+    "@typescript-eslint/eslint-plugin": "^8.47.0",
+    "@typescript-eslint/parser": "^8.47.0",
+    "eslint": "^9.39.1",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.10",
+    "@types/jest": "^29.5.2",
+    "@types/mocha": "^10.0.1"
+  }
+}
+
+

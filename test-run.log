@@ -1,0 +1,122 @@
+
+[1m[46m RUN [49m[22m [36mv4.0.10 [39m[90mD:/qflush[39m
+
+[90mstdout[2m | src/tests/legacy-runner.spec.ts
+[22m[39mRome mapping is disabled by default. Set QFLUSH_ENABLE_MAPPING=1 to enable automatic mapping and index refresh.
+
+stderr | src/tests/legacy-runner.spec.ts
+[vitest.setup] started qflush daemon on port 43421
+
+[90mstdout[2m | src/tests/legacy-runner.spec.ts
+[22m[39mqflush running on http://localhost:43421
+
+Rome mapping is disabled by default. Set QFLUSH_ENABLE_MAPPING=1 to enable automatic mapping and index refresh.
+qflush running on http://localhost:63686
+/npz/checksum/store called with { id: 't1', checksum: 'abc', ttlMs: 2000 }
+stored in memory t1
+[90mstdout[2m | src/tests/legacy-runner.spec.ts[2m > [22m[2mlegacy test runner[2m > [22m[2mrun checksum.test.ts
+[22m[39mtests PASSED
+
+[90mstdout[2m | src/tests/legacy-runner.spec.ts[2m > [22m[2mlegacy test runner[2m > [22m[2mrun copilot-hmac.test.ts
+[22m[39mhmac test passed
+
+[90mstdout[2m | src/tests/legacy-runner.spec.ts[2m > [22m[2mlegacy test runner[2m > [22m[2mrun daemon-control.test.ts
+[22m[39mdaemon control test passed
+
+[90mstdout[2m | src/tests/legacy-runner.spec.ts[2m > [22m[2mlegacy test runner[2m > [22m[2mrun engine.test.ts
+[22m[39mengine test actions: [
+  {
+    action: [32m'start-service'[39m,
+    service: [32m'qflush-daemon'[39m,
+    path: [32m'src/daemon/qflushd.ts'[39m
+  },
+  {
+    action: [32m'watch'[39m,
+    path: [32m'src/commands/checksum.ts'[39m,
+    reason: [32m'cli-command'[39m
+  },
+  {
+    action: [32m'start-service'[39m,
+    service: [32m'cli-dispatcher'[39m,
+    path: [32m'src/commands/checksum.ts'[39m
+  },
+  {
+    action: [32m'encode-npz'[39m,
+    path: [32m'assets/banner.png'[39m,
+    codec: [32m'oc8-rgba'[39m
+  },
+  { action: [32m'noop'[39m, path: [32m'src/tests/foo.test.ts'[39m }
+]
+
+[90mstdout[2m | src/tests/legacy-runner.spec.ts[2m > [22m[2mlegacy test runner[2m > [22m[2mrun executor.test.ts
+[22m[39mexecutor tests passed
+
+[90mstdout[2m | src/tests/legacy-runner.spec.ts[2m > [22m[2mlegacy test runner[2m > [22m[2mrun logic-action.test.ts
+[22m[39mrules loaded [33m3[39m
+evaluateAllRules result [
+  {
+    path: [32m'src/index.ts'[39m,
+    actions: [ [32m'daemon.reload'[39m ],
+    rule: [32m'refresh_on_index'[39m
+  },
+  {
+    path: [32m'src/daemon/qflushd.ts'[39m,
+    actions: [ [32m'daemon.reload'[39m ],
+    rule: [32m'refresh_on_index'[39m
+  },
+  {
+    path: [32m'src/commands/checksum.ts'[39m,
+    actions: [ [32m'daemon.reload'[39m ],
+    rule: [32m'refresh_on_index'[39m
+  },
+  {
+    path: [32m'src/utils/npz.ts'[39m,
+    actions: [ [32m'daemon.reload'[39m ],
+    rule: [32m'refresh_on_index'[39m
+  },
+  {
+    path: [32m'extensions/vscode-npz/src/pourparler-web.html'[39m,
+    actions: [ [32m'daemon.reload'[39m ],
+    rule: [32m'refresh_on_index'[39m
+  }
+]
+
+[90mstdout[2m | src/tests/legacy-runner.spec.ts[2m > [22m[2mlegacy test runner[2m > [22m[2mrun logic-parser.unit.test.ts
+[22m[39mlogic-parser unit tests passed
+
+[90mstdout[2m | src/tests/legacy-runner.spec.ts[2m > [22m[2mlegacy test runner[2m > [22m[2mrun logic.test.ts
+[22m[39mparsed rules: [ [32m'build_module'[39m, [32m'encode_assets'[39m, [32m'refresh_on_index'[39m ]
+
+[90mstdout[2m | src/tests/legacy-runner.spec.ts[2m > [22m[2mlegacy test runner[2m > [22m[2mrun rome-index.test.ts
+[22m[39mRome mapping permanently disabled in this build (FORCE_DISABLE_MAPPING=true)
+
+[90mstdout[2m | src/tests/legacy-runner.spec.ts[2m > [22m[2mlegacy test runner[2m > [22m[2mrun rome-index.test.ts
+[22m[39mqflush running on http://localhost:4500
+
+[90mstdout[2m | src/tests/legacy-runner.spec.ts[2m > [22m[2mlegacy test runner[2m > [22m[2mrun rome-index.test.ts
+[22m[39mrome-index test response: [33m0[39m
+
+[90mstdout[2m | src/tests/legacy-runner.spec.ts[2m > [22m[2mlegacy test runner[2m > [22m[2mrun rome-index.test.ts
+[22m[39mrome-index count= [33m0[39m
+
+[90mstdout[2m | src/tests/legacy-runner.spec.ts[2m > [22m[2mlegacy test runner[2m > [22m[2mrun rome-index.test.ts
+[22m[39mrome-index daemon count= [33m1[39m
+
+[90mstdout[2m | src/tests/legacy-runner.spec.ts[2m > [22m[2mlegacy test runner[2m > [22m[2mrun smartchain.test.ts
+[22m[39m[36m[QFLUSH][0m SmartChain built pipeline: detect -> config -> start
+[36m[QFLUSH][0m SmartChain built pipeline: kill -> detect -> config -> start
+[36m[QFLUSH][0m SmartChain built pipeline: detect -> config -> purge -> start
+[36m[QFLUSH][0m SmartChain built pipeline: detect -> config -> start
+[36m[QFLUSH][0m SmartChain built pipeline: detect -> config -> start -> exodia
+SmartChain tests passed
+
+ [32m✓[39m src/tests/legacy-runner.spec.ts [2m([22m[2m12 tests[22m[2m)[22m[33m 3193[2mms[22m[39m
+     [33m[2m✓[22m[39m run checksum.test.ts [33m 2078[2mms[22m[39m
+     [33m[2m✓[22m[39m run executor.test.ts [33m 465[2mms[22m[39m
+     [33m[2m✓[22m[39m run rome-index.test.ts [33m 458[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m1 passed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[32m12 passed[39m[22m[90m (12)[39m
+[2m   Start at [22m 11:04:05
+[2m   Duration [22m 3.55s[2m (transform 226ms, setup 181ms, collect 18ms, tests 3.19s, environment 0ms, prepare 12ms)[22m
+
