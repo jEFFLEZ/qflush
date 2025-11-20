@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 // ROME-TAG: 0x2A0018
 
 // Register global error handlers early to avoid the CLI crashing on unhandled errors (redis, etc.)
@@ -224,20 +223,3 @@ if (typeof require !== 'undefined' && require.main === module) {
     process.exit(1);
   });
 }
-=======
-#!/usr/bin/env node
-import { buildPipeline, executePipeline } from "./chain/smartChain";
-import { showHelp } from "./cli/help";
-
-const argv = process.argv.slice(2);
-if (argv.includes("--help") || argv.includes("-h")) {
-  showHelp();
-  process.exit(0);
-}
-const { pipeline, options } = buildPipeline(argv);
-
-executePipeline(pipeline, options).catch((err) => {
-  console.error("qflash: fatal", err);
-  process.exit(1);
-});
->>>>>>> 9c20528 (chore(qflash): initial scaffold, smartchain, installers, CI)

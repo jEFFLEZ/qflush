@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 ﻿// ROME-TAG: 0xEA570C
 
 import { logger } from "../utils/logger";
@@ -8,20 +7,11 @@ import { qflushOptions } from "../chain/smartChain";
 
 export async function runInspect(opts?: qflushOptions) {
   logger.info("qflush: inspecting ecosystem...");
-=======
-import { logger } from "../utils/logger";
-import { detectModules } from "../utils/detect";
-import { QFlashOptions } from "../chain/smartChain";
-
-export async function runInspect(opts?: QFlashOptions) {
-  logger.info("qflash: inspecting ecosystem...");
->>>>>>> 9c20528 (chore(qflash): initial scaffold, smartchain, installers, CI)
   const detected = opts?.detected || (await detectModules());
   for (const key of Object.keys(detected)) {
     const v = detected[key];
     logger.info(`${key}: ${v.running ? `running (pid=${v.pid || 'unknown'})` : 'stopped'}`);
     if (v.port) logger.info(`  port: ${v.port}`);
-<<<<<<< HEAD
     if (v.installed) logger.info(`  installed: true`);
   }
   const running = listRunning();
@@ -31,7 +21,3 @@ export async function runInspect(opts?: QFlashOptions) {
   }
 }
 
-=======
-  }
-}
->>>>>>> 9c20528 (chore(qflash): initial scaffold, smartchain, installers, CI)
