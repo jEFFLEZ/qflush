@@ -60,6 +60,30 @@ Développement & build
 - Tests unitaires : `npm test` (vitest)
 - Lint Rome : `npm run lint:rome`
 
+Troubleshooting — freezes sous Windows
+-------------------------------------
+Si tu rencontres des problèmes de "freeze" (processus qui ne répondent plus) lors des opérations de supervision, QFLUSH tente de suspendre les processus sur Windows en utilisant `PsSuspend` (Sysinternals). Si `PsSuspend` n'est pas disponible, QFLUSH retombe automatiquement sur `taskkill /F` (arrêt forcé).
+
+Procédure recommandée :
+- Télécharger Sysinternals (PsSuspend) depuis Microsoft : https://learn.microsoft.com/sysinternals/downloads/sysinternals-suite
+- Extraire `PsSuspend.exe` dans un dossier local (ex. `C:\tools\sysinternals`).
+- Soit ajouter ce dossier au `PATH`, soit définir la variable d'environnement `QFLUSH_PSSUSPEND_PATH` qui contient le chemin complet vers `PsSuspend.exe`.
+  - PowerShell : `$env:QFLUSH_PSSUSPEND_PATH='C:\tools\sysinternals\PsSuspend.exe'`
+  - Bash : `export QFLUSH_PSSUSPEND_PATH='/c/tools/sysinternals/PsSuspend.exe'`
+
+Test rapide (PowerShell) :
+```
+Start-Process notepad
+Get-Process notepad
+& 'C:\tools\sysinternals\PsSuspend.exe' <PID>
+& 'C:\tools\sysinternals\PsSuspend.exe' -r <PID>
+```
+
+Notes de sécurité et bonnes pratiques :
+- Ne commite jamais de binaires dans le dépôt. QFLUSH ne contient pas `PsSuspend.exe` ; tu l'installes localement.
+- L'utilisation de `PsSuspend` peut nécessiter des droits administrateur selon le processus ciblé.
+- En l'absence de `PsSuspend`, QFLUSH utilisera `taskkill /F` — attention : cela termine le processus.
+
 Roadmap (aperçu)
 -----------------
 - v3.1.x : stabilisation TS, intégration Rome linker, préparation release
