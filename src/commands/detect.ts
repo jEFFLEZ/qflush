@@ -1,10 +1,10 @@
-// ROME-TAG: 0x9C32F0
+﻿// ROME-TAG: 0x9C32F0
 
 import { detectModules } from "../utils/detect";
 import { logger } from "../utils/logger";
-import { QFlashOptions } from "../chain/smartChain";
+import { qflushOptions } from "../chain/smartChain";
 
-export async function runDetect(_opts?: QFlashOptions) {
+export async function runDetect(_opts?: qflushOptions) {
   logger.info("qflush: detecting modules...");
   const detected = await detectModules();
   for (const k of Object.keys(detected)) {
@@ -14,3 +14,4 @@ export async function runDetect(_opts?: QFlashOptions) {
   // return a normalized object
   return { detected, paths: {} };
 }
+

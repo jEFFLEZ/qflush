@@ -1,4 +1,4 @@
-# Fix + (re)install @funeste38/qflush v3.1.2 and create working shims
+﻿# Fix + (re)install @funeste38/qflush v3.1.2 and create working shims
 # Usage: exécuter dans un PowerShell lancé en Administrateur depuis la racine du repo
 $ErrorActionPreference = 'Stop'
 
@@ -18,7 +18,7 @@ $groot = (& npm root -g).Trim()
 
 # 2) cleanup anciens shims / paquets
 Write-Output "Removing old global packages and shims (if any)..."
-try { npm uninstall -g $pkgName @funeste38/qflash 2>$null } catch {}
+try { npm uninstall -g $pkgName @funeste38/qflush 2>$null } catch {}
 Get-ChildItem $appNpm -Filter 'qflush*' -File -ErrorAction SilentlyContinue | ForEach-Object { Remove-Item $_.FullName -Force -ErrorAction SilentlyContinue }
 
 # 3) if repo present, build & pack

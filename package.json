@@ -1,4 +1,4 @@
-{
+﻿{
   "name": "@funeste38/qflush",
   "version": "3.1.2",
   "description": "QFLUSH orchestrator",
@@ -38,7 +38,7 @@
     "funesterie",
     "orchestrator",
     "cli",
-    "qflash",
+    "qflush",
     "reset",
     "exodia"
   ],
@@ -77,3 +77,4 @@
     "@types/mocha": "^10.0.1"
   }
 }
+

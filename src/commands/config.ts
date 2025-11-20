@@ -1,12 +1,12 @@
-// ROME-TAG: 0x130555
+﻿// ROME-TAG: 0x130555
 
 import { promises as fs } from "fs";
 import { logger } from "../utils/logger";
 import { resolvePaths } from "../utils/paths";
-import { QFlashOptions } from "../chain/smartChain";
+import { qflushOptions } from "../chain/smartChain";
 
-export async function runConfig(opts?: QFlashOptions) {
-  logger.info("qflash: generating default configs...");
+export async function runConfig(opts?: qflushOptions) {
+  logger.info("qflush: generating default configs...");
   const detected = opts?.detected || {};
   const paths = resolvePaths(detected);
   for (const key of Object.keys(paths)) {
@@ -24,3 +24,4 @@ export async function runConfig(opts?: QFlashOptions) {
     }
   }
 }
+

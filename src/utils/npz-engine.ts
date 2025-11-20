@@ -1,4 +1,4 @@
-// ROME-TAG: 0x043BA9
+﻿// ROME-TAG: 0x043BA9
 
 import { getNpzNamespace } from './npz-config';
 import fs from 'fs';
@@ -7,7 +7,7 @@ import logger from './logger';
 import { Lane } from './npz-router';
 
 const NS = getNpzNamespace();
-const ENGINE_FILE = path.join(process.cwd(), '.qflash', `${NS}-npz-engine.json`);
+const ENGINE_FILE = path.join(process.cwd(), '.qflush', `${NS}-npz-engine.json`);
 
 type ScoreRecord = {
   laneId: number;
@@ -121,3 +121,4 @@ export function getStore() {
 }
 
 export default { scoreLane, getLaneScore, orderLanesByScore, resetScores, getStore };
+

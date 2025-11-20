@@ -1,4 +1,4 @@
-{
+﻿{
   "name": "qflush",
   "displayName": "QFlush Extension",
   "publisher": "funesterie",
@@ -45,12 +45,12 @@
       "type": "object",
       "title": "QFlush",
       "properties": {
-        "qflash.daemonUrl": {
+        "qflush.daemonUrl": {
           "type": "string",
           "default": "http://localhost:4500",
           "description": "URL of the NPZ daemon (including protocol and port)"
         },
-        "qflash.adminToken": {
+        "qflush.adminToken": {
           "type": "string",
           "default": "changeme",
           "description": "Admin token to call NPZ admin endpoints"
@@ -59,3 +59,4 @@
     }
   }
 }
+

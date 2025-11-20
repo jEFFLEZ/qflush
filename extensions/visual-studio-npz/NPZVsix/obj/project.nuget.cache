@@ -1,8 +1,8 @@
-{
+﻿{
   "version": 2,
   "dgSpecHash": "ju5ZjcImOO4=",
   "success": true,
-  "projectFilePath": "D:\\qflash\\extensions\\visual-studio-npz\\NPZVsix\\NPZVsix.csproj",
+  "projectFilePath": "D:\\qflush\\extensions\\visual-studio-npz\\NPZVsix\\NPZVsix.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\cella\\.nuget\\packages\\envdte\\17.4.33103.184\\envdte.17.4.33103.184.nupkg.sha512",
     "C:\\Users\\cella\\.nuget\\packages\\envdte100\\17.4.33103.184\\envdte100.17.4.33103.184.nupkg.sha512",
@@ -146,9 +146,9 @@
       "code": "NU1603",
       "level": "Warning",
       "message": "NPZVsix dépend de Microsoft.VisualStudio.SDK (>= 17.4.0) mais Microsoft.VisualStudio.SDK 17.4.0 est introuvable. Microsoft.VisualStudio.SDK 17.4.33103.184 a été résolu à la place.",
-      "projectPath": "D:\\qflash\\extensions\\visual-studio-npz\\NPZVsix\\NPZVsix.csproj",
+      "projectPath": "D:\\qflush\\extensions\\visual-studio-npz\\NPZVsix\\NPZVsix.csproj",
       "warningLevel": 1,
-      "filePath": "D:\\qflash\\extensions\\visual-studio-npz\\NPZVsix\\NPZVsix.csproj",
+      "filePath": "D:\\qflush\\extensions\\visual-studio-npz\\NPZVsix\\NPZVsix.csproj",
       "libraryId": "Microsoft.VisualStudio.SDK",
       "targetGraphs": [
         "net6.0-windows7.0"
@@ -158,9 +158,9 @@
       "code": "NU1603",
       "level": "Warning",
       "message": "NPZVsix dépend de Microsoft.Web.WebView2 (>= 1.0.1343.43) mais Microsoft.Web.WebView2 1.0.1343.43 est introuvable. Microsoft.Web.WebView2 1.0.1370.28 a été résolu à la place.",
-      "projectPath": "D:\\qflash\\extensions\\visual-studio-npz\\NPZVsix\\NPZVsix.csproj",
+      "projectPath": "D:\\qflush\\extensions\\visual-studio-npz\\NPZVsix\\NPZVsix.csproj",
       "warningLevel": 1,
-      "filePath": "D:\\qflash\\extensions\\visual-studio-npz\\NPZVsix\\NPZVsix.csproj",
+      "filePath": "D:\\qflush\\extensions\\visual-studio-npz\\NPZVsix\\NPZVsix.csproj",
       "libraryId": "Microsoft.Web.WebView2",
       "targetGraphs": [
         "net6.0-windows7.0"
@@ -170,9 +170,9 @@
       "code": "NU1701",
       "level": "Warning",
       "message": "Le package 'Microsoft.VisualStudio.Editor 17.4.255' a été restauré en utilisant '.NETFramework,Version=v4.6.1, .NETFramework,Version=v4.6.2, .NETFramework,Version=v4.7, .NETFramework,Version=v4.7.1, .NETFramework,Version=v4.7.2, .NETFramework,Version=v4.8, .NETFramework,Version=v4.8.1' au lieu du framework cible du projet 'net6.0-windows7.0'. Ce package n'est peut-être pas totalement compatible avec votre projet.",
-      "projectPath": "D:\\qflash\\extensions\\visual-studio-npz\\NPZVsix\\NPZVsix.csproj",
+      "projectPath": "D:\\qflush\\extensions\\visual-studio-npz\\NPZVsix\\NPZVsix.csproj",
       "warningLevel": 1,
-      "filePath": "D:\\qflash\\extensions\\visual-studio-npz\\NPZVsix\\NPZVsix.csproj",
+      "filePath": "D:\\qflush\\extensions\\visual-studio-npz\\NPZVsix\\NPZVsix.csproj",
       "libraryId": "Microsoft.VisualStudio.Editor",
       "targetGraphs": [
         "net6.0-windows7.0"
@@ -182,9 +182,9 @@
       "code": "NU1701",
       "level": "Warning",
       "message": "Le package 'Microsoft.VisualStudio.GraphModel 17.4.33103.184' a été restauré en utilisant '.NETFramework,Version=v4.6.1, .NETFramework,Version=v4.6.2, .NETFramework,Version=v4.7, .NETFramework,Version=v4.7.1, .NETFramework,Version=v4.7.2, .NETFramework,Version=v4.8, .NETFramework,Version=v4.8.1' au lieu du framework cible du projet 'net6.0-windows7.0'. Ce package n'est peut-être pas totalement compatible avec votre projet.",
-      "projectPath": "D:\\qflash\\extensions\\visual-studio-npz\\NPZVsix\\NPZVsix.csproj",
+      "projectPath": "D:\\qflush\\extensions\\visual-studio-npz\\NPZVsix\\NPZVsix.csproj",
       "warningLevel": 1,
-      "filePath": "D:\\qflash\\extensions\\visual-studio-npz\\NPZVsix\\NPZVsix.csproj",
+      "filePath": "D:\\qflush\\extensions\\visual-studio-npz\\NPZVsix\\NPZVsix.csproj",
       "libraryId": "Microsoft.VisualStudio.GraphModel",
       "targetGraphs": [
         "net6.0-windows7.0"
@@ -194,9 +194,9 @@
       "code": "NU1701",
       "level": "Warning",
       "message": "Le package 'Microsoft.VisualStudio.Imaging 17.4.33103.184' a été restauré en utilisant '.NETFramework,Version=v4.6.1, .NETFramework,Version=v4.6.2, .NETFramework,Version=v4.7, .NETFramework,Version=v4.7.1, .NETFramework,Version=v4.7.2, .NETFramework,Version=v4.8, .NETFramework,Version=v4.8.1' au lieu du framework cible du projet 'net6.0-windows7.0'. Ce package n'est peut-être pas totalement compatible avec votre projet.",
-      "projectPath": "D:\\qflash\\extensions\\visual-studio-npz\\NPZVsix\\NPZVsix.csproj",
+      "projectPath": "D:\\qflush\\extensions\\visual-studio-npz\\NPZVsix\\NPZVsix.csproj",
       "warningLevel": 1,
-      "filePath": "D:\\qflash\\extensions\\visual-studio-npz\\NPZVsix\\NPZVsix.csproj",
+      "filePath": "D:\\qflush\\extensions\\visual-studio-npz\\NPZVsix\\NPZVsix.csproj",
       "libraryId": "Microsoft.VisualStudio.Imaging",
       "targetGraphs": [
         "net6.0-windows7.0"
@@ -206,9 +206,9 @@
       "code": "NU1701",
       "level": "Warning",
       "message": "Le package 'Microsoft.VisualStudio.Language.Intellisense 17.4.255' a été restauré en utilisant '.NETFramework,Version=v4.6.1, .NETFramework,Version=v4.6.2, .NETFramework,Version=v4.7, .NETFramework,Version=v4.7.1, .NETFramework,Version=v4.7.2, .NETFramework,Version=v4.8, .NETFramework,Version=v4.8.1' au lieu du framework cible du projet 'net6.0-windows7.0'. Ce package n'est peut-être pas totalement compatible avec votre projet.",
-      "projectPath": "D:\\qflash\\extensions\\visual-studio-npz\\NPZVsix\\NPZVsix.csproj",
+      "projectPath": "D:\\qflush\\extensions\\visual-studio-npz\\NPZVsix\\NPZVsix.csproj",
       "warningLevel": 1,
-      "filePath": "D:\\qflash\\extensions\\visual-studio-npz\\NPZVsix\\NPZVsix.csproj",
+      "filePath": "D:\\qflush\\extensions\\visual-studio-npz\\NPZVsix\\NPZVsix.csproj",
       "libraryId": "Microsoft.VisualStudio.Language.Intellisense",
       "targetGraphs": [
         "net6.0-windows7.0"
@@ -218,9 +218,9 @@
       "code": "NU1701",
       "level": "Warning",
       "message": "Le package 'Microsoft.VisualStudio.Language.NavigateTo.Interfaces 17.4.255' a été restauré en utilisant '.NETFramework,Version=v4.6.1, .NETFramework,Version=v4.6.2, .NETFramework,Version=v4.7, .NETFramework,Version=v4.7.1, .NETFramework,Version=v4.7.2, .NETFramework,Version=v4.8, .NETFramework,Version=v4.8.1' au lieu du framework cible du projet 'net6.0-windows7.0'. Ce package n'est peut-être pas totalement compatible avec votre projet.",
-      "projectPath": "D:\\qflash\\extensions\\visual-studio-npz\\NPZVsix\\NPZVsix.csproj",
+      "projectPath": "D:\\qflush\\extensions\\visual-studio-npz\\NPZVsix\\NPZVsix.csproj",
       "warningLevel": 1,
-      "filePath": "D:\\qflash\\extensions\\visual-studio-npz\\NPZVsix\\NPZVsix.csproj",
+      "filePath": "D:\\qflush\\extensions\\visual-studio-npz\\NPZVsix\\NPZVsix.csproj",
       "libraryId": "Microsoft.VisualStudio.Language.NavigateTo.Interfaces",
       "targetGraphs": [
         "net6.0-windows7.0"
@@ -230,9 +230,9 @@
       "code": "NU1701",
       "level": "Warning",
       "message": "Le package 'Microsoft.VisualStudio.Package.LanguageService.15.0 17.4.33103.184' a été restauré en utilisant '.NETFramework,Version=v4.6.1, .NETFramework,Version=v4.6.2, .NETFramework,Version=v4.7, .NETFramework,Version=v4.7.1, .NETFramework,Version=v4.7.2, .NETFramework,Version=v4.8, .NETFramework,Version=v4.8.1' au lieu du framework cible du projet 'net6.0-windows7.0'. Ce package n'est peut-être pas totalement compatible avec votre projet.",
-      "projectPath": "D:\\qflash\\extensions\\visual-studio-npz\\NPZVsix\\NPZVsix.csproj",
+      "projectPath": "D:\\qflush\\extensions\\visual-studio-npz\\NPZVsix\\NPZVsix.csproj",
       "warningLevel": 1,
-      "filePath": "D:\\qflash\\extensions\\visual-studio-npz\\NPZVsix\\NPZVsix.csproj",
+      "filePath": "D:\\qflush\\extensions\\visual-studio-npz\\NPZVsix\\NPZVsix.csproj",
       "libraryId": "Microsoft.VisualStudio.Package.LanguageService.15.0",
       "targetGraphs": [
         "net6.0-windows7.0"
@@ -242,9 +242,9 @@
       "code": "NU1701",
       "level": "Warning",
       "message": "Le package 'Microsoft.VisualStudio.Shell.15.0 17.4.33103.184' a été restauré en utilisant '.NETFramework,Version=v4.6.1, .NETFramework,Version=v4.6.2, .NETFramework,Version=v4.7, .NETFramework,Version=v4.7.1, .NETFramework,Version=v4.7.2, .NETFramework,Version=v4.8, .NETFramework,Version=v4.8.1' au lieu du framework cible du projet 'net6.0-windows7.0'. Ce package n'est peut-être pas totalement compatible avec votre projet.",
-      "projectPath": "D:\\qflash\\extensions\\visual-studio-npz\\NPZVsix\\NPZVsix.csproj",
+      "projectPath": "D:\\qflush\\extensions\\visual-studio-npz\\NPZVsix\\NPZVsix.csproj",
       "warningLevel": 1,
-      "filePath": "D:\\qflash\\extensions\\visual-studio-npz\\NPZVsix\\NPZVsix.csproj",
+      "filePath": "D:\\qflush\\extensions\\visual-studio-npz\\NPZVsix\\NPZVsix.csproj",
       "libraryId": "Microsoft.VisualStudio.Shell.15.0",
       "targetGraphs": [
         "net6.0-windows7.0"
@@ -254,9 +254,9 @@
       "code": "NU1701",
       "level": "Warning",
       "message": "Le package 'Microsoft.VisualStudio.Shell.Design 17.4.33103.184' a été restauré en utilisant '.NETFramework,Version=v4.6.1, .NETFramework,Version=v4.6.2, .NETFramework,Version=v4.7, .NETFramework,Version=v4.7.1, .NETFramework,Version=v4.7.2, .NETFramework,Version=v4.8, .NETFramework,Version=v4.8.1' au lieu du framework cible du projet 'net6.0-windows7.0'. Ce package n'est peut-être pas totalement compatible avec votre projet.",
-      "projectPath": "D:\\qflash\\extensions\\visual-studio-npz\\NPZVsix\\NPZVsix.csproj",
+      "projectPath": "D:\\qflush\\extensions\\visual-studio-npz\\NPZVsix\\NPZVsix.csproj",
       "warningLevel": 1,
-      "filePath": "D:\\qflash\\extensions\\visual-studio-npz\\NPZVsix\\NPZVsix.csproj",
+      "filePath": "D:\\qflush\\extensions\\visual-studio-npz\\NPZVsix\\NPZVsix.csproj",
       "libraryId": "Microsoft.VisualStudio.Shell.Design",
       "targetGraphs": [
         "net6.0-windows7.0"
@@ -266,9 +266,9 @@
       "code": "NU1701",
       "level": "Warning",
       "message": "Le package 'Microsoft.VisualStudio.Shell.Framework 17.4.33103.184' a été restauré en utilisant '.NETFramework,Version=v4.6.1, .NETFramework,Version=v4.6.2, .NETFramework,Version=v4.7, .NETFramework,Version=v4.7.1, .NETFramework,Version=v4.7.2, .NETFramework,Version=v4.8, .NETFramework,Version=v4.8.1' au lieu du framework cible du projet 'net6.0-windows7.0'. Ce package n'est peut-être pas totalement compatible avec votre projet.",
-      "projectPath": "D:\\qflash\\extensions\\visual-studio-npz\\NPZVsix\\NPZVsix.csproj",
+      "projectPath": "D:\\qflush\\extensions\\visual-studio-npz\\NPZVsix\\NPZVsix.csproj",
       "warningLevel": 1,
-      "filePath": "D:\\qflash\\extensions\\visual-studio-npz\\NPZVsix\\NPZVsix.csproj",
+      "filePath": "D:\\qflush\\extensions\\visual-studio-npz\\NPZVsix\\NPZVsix.csproj",
       "libraryId": "Microsoft.VisualStudio.Shell.Framework",
       "targetGraphs": [
         "net6.0-windows7.0"
@@ -278,9 +278,9 @@
       "code": "NU1701",
       "level": "Warning",
       "message": "Le package 'Microsoft.VisualStudio.TaskRunnerExplorer.14.0 14.0.0' a été restauré en utilisant '.NETFramework,Version=v4.6.1, .NETFramework,Version=v4.6.2, .NETFramework,Version=v4.7, .NETFramework,Version=v4.7.1, .NETFramework,Version=v4.7.2, .NETFramework,Version=v4.8, .NETFramework,Version=v4.8.1' au lieu du framework cible du projet 'net6.0-windows7.0'. Ce package n'est peut-être pas totalement compatible avec votre projet.",
-      "projectPath": "D:\\qflash\\extensions\\visual-studio-npz\\NPZVsix\\NPZVsix.csproj",
+      "projectPath": "D:\\qflush\\extensions\\visual-studio-npz\\NPZVsix\\NPZVsix.csproj",
       "warningLevel": 1,
-      "filePath": "D:\\qflash\\extensions\\visual-studio-npz\\NPZVsix\\NPZVsix.csproj",
+      "filePath": "D:\\qflush\\extensions\\visual-studio-npz\\NPZVsix\\NPZVsix.csproj",
       "libraryId": "Microsoft.VisualStudio.TaskRunnerExplorer.14.0",
       "targetGraphs": [
         "net6.0-windows7.0"
@@ -290,9 +290,9 @@
       "code": "NU1701",
       "level": "Warning",
       "message": "Le package 'Microsoft.VisualStudio.Text.UI.Wpf 17.4.255' a été restauré en utilisant '.NETFramework,Version=v4.6.1, .NETFramework,Version=v4.6.2, .NETFramework,Version=v4.7, .NETFramework,Version=v4.7.1, .NETFramework,Version=v4.7.2, .NETFramework,Version=v4.8, .NETFramework,Version=v4.8.1' au lieu du framework cible du projet 'net6.0-windows7.0'. Ce package n'est peut-être pas totalement compatible avec votre projet.",
-      "projectPath": "D:\\qflash\\extensions\\visual-studio-npz\\NPZVsix\\NPZVsix.csproj",
+      "projectPath": "D:\\qflush\\extensions\\visual-studio-npz\\NPZVsix\\NPZVsix.csproj",
       "warningLevel": 1,
-      "filePath": "D:\\qflash\\extensions\\visual-studio-npz\\NPZVsix\\NPZVsix.csproj",
+      "filePath": "D:\\qflush\\extensions\\visual-studio-npz\\NPZVsix\\NPZVsix.csproj",
       "libraryId": "Microsoft.VisualStudio.Text.UI.Wpf",
       "targetGraphs": [
         "net6.0-windows7.0"
@@ -302,9 +302,9 @@
       "code": "NU1701",
       "level": "Warning",
       "message": "Le package 'Microsoft.VisualStudio.TextTemplating 17.4.33103.184' a été restauré en utilisant '.NETFramework,Version=v4.6.1, .NETFramework,Version=v4.6.2, .NETFramework,Version=v4.7, .NETFramework,Version=v4.7.1, .NETFramework,Version=v4.7.2, .NETFramework,Version=v4.8, .NETFramework,Version=v4.8.1' au lieu du framework cible du projet 'net6.0-windows7.0'. Ce package n'est peut-être pas totalement compatible avec votre projet.",
-      "projectPath": "D:\\qflash\\extensions\\visual-studio-npz\\NPZVsix\\NPZVsix.csproj",
+      "projectPath": "D:\\qflush\\extensions\\visual-studio-npz\\NPZVsix\\NPZVsix.csproj",
       "warningLevel": 1,
-      "filePath": "D:\\qflash\\extensions\\visual-studio-npz\\NPZVsix\\NPZVsix.csproj",
+      "filePath": "D:\\qflush\\extensions\\visual-studio-npz\\NPZVsix\\NPZVsix.csproj",
       "libraryId": "Microsoft.VisualStudio.TextTemplating",
       "targetGraphs": [
         "net6.0-windows7.0"
@@ -314,9 +314,9 @@
       "code": "NU1701",
       "level": "Warning",
       "message": "Le package 'Microsoft.VisualStudio.TextTemplating.Interfaces 17.4.33103.184' a été restauré en utilisant '.NETFramework,Version=v4.6.1, .NETFramework,Version=v4.6.2, .NETFramework,Version=v4.7, .NETFramework,Version=v4.7.1, .NETFramework,Version=v4.7.2, .NETFramework,Version=v4.8, .NETFramework,Version=v4.8.1' au lieu du framework cible du projet 'net6.0-windows7.0'. Ce package n'est peut-être pas totalement compatible avec votre projet.",
-      "projectPath": "D:\\qflash\\extensions\\visual-studio-npz\\NPZVsix\\NPZVsix.csproj",
+      "projectPath": "D:\\qflush\\extensions\\visual-studio-npz\\NPZVsix\\NPZVsix.csproj",
       "warningLevel": 1,
-      "filePath": "D:\\qflash\\extensions\\visual-studio-npz\\NPZVsix\\NPZVsix.csproj",
+      "filePath": "D:\\qflush\\extensions\\visual-studio-npz\\NPZVsix\\NPZVsix.csproj",
       "libraryId": "Microsoft.VisualStudio.TextTemplating.Interfaces",
       "targetGraphs": [
         "net6.0-windows7.0"
@@ -326,9 +326,9 @@
       "code": "NU1701",
       "level": "Warning",
       "message": "Le package 'Microsoft.VisualStudio.TextTemplating.VSHost 17.4.33103.184' a été restauré en utilisant '.NETFramework,Version=v4.6.1, .NETFramework,Version=v4.6.2, .NETFramework,Version=v4.7, .NETFramework,Version=v4.7.1, .NETFramework,Version=v4.7.2, .NETFramework,Version=v4.8, .NETFramework,Version=v4.8.1' au lieu du framework cible du projet 'net6.0-windows7.0'. Ce package n'est peut-être pas totalement compatible avec votre projet.",
-      "projectPath": "D:\\qflash\\extensions\\visual-studio-npz\\NPZVsix\\NPZVsix.csproj",
+      "projectPath": "D:\\qflush\\extensions\\visual-studio-npz\\NPZVsix\\NPZVsix.csproj",
       "warningLevel": 1,
-      "filePath": "D:\\qflash\\extensions\\visual-studio-npz\\NPZVsix\\NPZVsix.csproj",
+      "filePath": "D:\\qflush\\extensions\\visual-studio-npz\\NPZVsix\\NPZVsix.csproj",
       "libraryId": "Microsoft.VisualStudio.TextTemplating.VSHost",
       "targetGraphs": [
         "net6.0-windows7.0"
@@ -338,9 +338,9 @@
       "code": "NU1701",
       "level": "Warning",
       "message": "Le package 'Microsoft.VisualStudio.Web.BrowserLink.12.0 12.0.0' a été restauré en utilisant '.NETFramework,Version=v4.6.1, .NETFramework,Version=v4.6.2, .NETFramework,Version=v4.7, .NETFramework,Version=v4.7.1, .NETFramework,Version=v4.7.2, .NETFramework,Version=v4.8, .NETFramework,Version=v4.8.1' au lieu du framework cible du projet 'net6.0-windows7.0'. Ce package n'est peut-être pas totalement compatible avec votre projet.",
-      "projectPath": "D:\\qflash\\extensions\\visual-studio-npz\\NPZVsix\\NPZVsix.csproj",
+      "projectPath": "D:\\qflush\\extensions\\visual-studio-npz\\NPZVsix\\NPZVsix.csproj",
       "warningLevel": 1,
-      "filePath": "D:\\qflash\\extensions\\visual-studio-npz\\NPZVsix\\NPZVsix.csproj",
+      "filePath": "D:\\qflush\\extensions\\visual-studio-npz\\NPZVsix\\NPZVsix.csproj",
       "libraryId": "Microsoft.VisualStudio.Web.BrowserLink.12.0",
       "targetGraphs": [
         "net6.0-windows7.0"

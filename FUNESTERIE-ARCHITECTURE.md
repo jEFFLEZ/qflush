@@ -1,4 +1,4 @@
-FUNESTERIE — Architecture & Vision
+﻿FUNESTERIE — Architecture & Vision
 
 Objectif
 --------
@@ -14,7 +14,7 @@ Sommaire des composants
 
 2) BAT — Process Manager
 - Spawn / stop / restart / status.
-- Détache les services (non bloquant), persiste état dans `.qflash/services.json`, logs dans `.qflash/logs/`.
+- Détache les services (non bloquant), persiste état dans `.qflush/services.json`, logs dans `.qflush/logs/`.
 - Strictement process management — pas de router ni logique.
 
 3) NPZ (Joker) — Router & Admin
@@ -74,7 +74,7 @@ Fichiers utiles
 ---------------
 - `.qflush/rome-index.json` — Rome index
 - `.qflush/rome-links.json` — linker output
-- `.qflash/services.json` & `.qflash/logs/` — BAT state & logs
+- `.qflush/services.json` & `.qflush/logs/` — BAT state & logs
 
 Next steps recommandés
 ----------------------
@@ -86,4 +86,5 @@ Next steps recommandés
 Notes
 -----
 - SPYDER et A11 sont des objectifs long terme. Pour l’instant conserver les noms est acceptable ; implémentations futures clarifieront les responsabilités.
+
 

@@ -1,4 +1,4 @@
-// ROME-TAG: 0x8CD4FC
+﻿// ROME-TAG: 0x8CD4FC
 
 import { logger } from "../utils/logger";
 import { runDetect } from "../commands/detect";
@@ -10,7 +10,7 @@ import { runExodia } from "../commands/exodia";
 
 const ORDER = ["detect", "config", "purge", "kill", "start", "exodia"];
 
-export type QFlashOptions = {
+export type qflushOptions = {
   global?: Record<string, any>;
   modulePaths?: Record<string, string>;
   tokens?: Record<string, string>;
@@ -155,11 +155,11 @@ export function buildPipeline(argv: string[]) {
   final = final.filter((v, i) => final.indexOf(v) === i);
 
   logger.info(`SmartChain built pipeline: ${final.join(" -> ")}`);
-  const options: QFlashOptions = { global: {}, flags, modulePaths, tokens, services };
+  const options: qflushOptions = { global: {}, flags, modulePaths, tokens, services };
   return { pipeline: final, options };
 }
 
-export async function executePipeline(pipeline: string[], options: QFlashOptions) {
+export async function executePipeline(pipeline: string[], options: qflushOptions) {
   for (const step of pipeline) {
     logger.info(`Executing pipeline step: ${step}`);
     switch (step) {
@@ -191,3 +191,4 @@ export async function executePipeline(pipeline: string[], options: QFlashOptions
     }
   }
 }
+

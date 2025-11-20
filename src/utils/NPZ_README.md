@@ -1,6 +1,6 @@
-# NPZ Joker (Gotham Customs) v2.0
+﻿# NPZ Joker (Gotham Customs) v2.0
 
-NPZ ("Joker") is the internal resolver/router used by Qflash to start modules and proxy requests across multiple lanes (primary/backup). It provides:
+NPZ ("Joker") is the internal resolver/router used by qflush to start modules and proxy requests across multiple lanes (primary/backup). It provides:
 
 - Gate-based resolver for binaries/modules: GREEN (local bin), YELLOW (module), DLX (npx), FAIL
 - HTTP proxy router with T0/T1/T2 flow: try primary, fallback, then replay primary with extra header
@@ -15,7 +15,7 @@ NPZ ("Joker") is the internal resolver/router used by Qflash to start modules an
 - Redis-backed store optional via `REDIS_URL`
 - Prometheus metrics and `/metrics` endpoint
 - Admin endpoints protected by `NPZ_ADMIN_TOKEN`
-- NPZ integrated as primary resolver for `qflash start` and as middleware in the daemon
+- NPZ integrated as primary resolver for `qflush start` and as middleware in the daemon
 
 Usage
 
@@ -27,7 +27,7 @@ Environment
 
 - `REDIS_URL` to enable Redis-backed store
 - `NPZ_ADMIN_TOKEN` to protect admin endpoints
-- `QFLASHD_PORT` to set the daemon port
+- `qflushD_PORT` to set the daemon port
 
 Files of interest
 
@@ -45,12 +45,13 @@ Example
 Start the daemon:
 
 ```
-REDIS_URL=redis://127.0.0.1:6379 NPZ_ADMIN_TOKEN=secret node dist/daemon/qflashd.js
+REDIS_URL=redis://127.0.0.1:6379 NPZ_ADMIN_TOKEN=secret node dist/daemon/qflushd.js
 ```
 
 Proxy a request (example):
 
 ```
 curl -v http://localhost:4500/proxy/api/health
+
 
 
