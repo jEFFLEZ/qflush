@@ -1,0 +1,43 @@
+name: Publish VS Code extension
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      OPEN_VSX_TOKEN: ${{ secrets.OPEN_VSX_TOKEN }}
+      VSCE_TOKEN: ${{ secrets.VSCE_TOKEN }}
+      NODE_OPTIONS: "-r ${{ github.workspace }}/extensions/vscode-npz/src/polyfill-file.js"
+    steps:
+      - uses: actions/checkout@v4
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install dependencies
+        run: |
+          cd extensions/vscode-npz
+          if [ -f package-lock.json ]; then npm ci; else npm install --no-audit --no-fund; fi
+      - name: Build extension
+        run: |
+          cd extensions/vscode-npz
+          npm run build
+      - name: Package .vsix
+        run: |
+          cd extensions/vscode-npz
+          npx @vscode/vsce package
+      - name: Publish to Open VSX (runtime check)
+        run: |
+          cd extensions/vscode-npz
+          if [ -z "${OPEN_VSX_TOKEN}" ]; then echo "OPEN_VSX_TOKEN not set - skipping Open VSX publish"; exit 0; fi
+          npx ovsx publish --pat "$OPEN_VSX_TOKEN" || echo 'Open VSX publish failed'
+      - name: Publish to VS Marketplace (runtime check)
+        run: |
+          cd extensions/vscode-npz
+          if [ -z "${VSCE_TOKEN}" ]; then echo "VSCE_TOKEN not set - skipping VS Marketplace publish"; exit 0; fi
+          npx @vscode/vsce publish --pat "$VSCE_TOKEN" || echo 'VSCE publish failed'

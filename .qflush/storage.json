@@ -1,0 +1,784 @@
+{
+  "telemetry": [
+    {
+      "id": "engine-1763490269773",
+      "type": "engine_state",
+      "ts": 1763490269773,
+      "payload": {
+        "rules": [],
+        "indexSummary": {
+          "count": 5,
+          "byType": {}
+        },
+        "runningServices": []
+      }
+    },
+    {
+      "id": "engine-1763490533705",
+      "type": "engine_state",
+      "ts": 1763490533705,
+      "payload": {
+        "rules": [],
+        "indexSummary": {
+          "count": 5,
+          "byType": {}
+        },
+        "runningServices": []
+      }
+    },
+    {
+      "id": "engine-1763490740321",
+      "type": "engine_state",
+      "ts": 1763490740321,
+      "payload": {
+        "rules": [],
+        "indexSummary": {
+          "count": 5,
+          "byType": {}
+        },
+        "runningServices": []
+      }
+    },
+    {
+      "id": "engine-1763490849144",
+      "type": "engine_state",
+      "ts": 1763490849144,
+      "payload": {
+        "rules": [],
+        "indexSummary": {
+          "count": 5,
+          "byType": {}
+        },
+        "runningServices": []
+      }
+    },
+    {
+      "id": "engine-1763491192597",
+      "type": "engine_state",
+      "ts": 1763491192597,
+      "payload": {
+        "rules": [],
+        "indexSummary": {
+          "count": 5,
+          "byType": {}
+        },
+        "runningServices": []
+      }
+    },
+    {
+      "id": "engine-1763491237447",
+      "type": "engine_state",
+      "ts": 1763491237447,
+      "payload": {
+        "rules": [],
+        "indexSummary": {
+          "count": 5,
+          "byType": {}
+        },
+        "runningServices": []
+      }
+    },
+    {
+      "id": "engine-1763491298619",
+      "type": "engine_state",
+      "ts": 1763491298619,
+      "payload": {
+        "rules": [],
+        "indexSummary": {
+          "count": 5,
+          "byType": {}
+        },
+        "runningServices": []
+      }
+    },
+    {
+      "id": "engine-1763491347965",
+      "type": "engine_state",
+      "ts": 1763491347965,
+      "payload": {
+        "rules": [],
+        "indexSummary": {
+          "count": 5,
+          "byType": {}
+        },
+        "runningServices": []
+      }
+    },
+    {
+      "id": "engine-1763491402268",
+      "type": "engine_state",
+      "ts": 1763491402268,
+      "payload": {
+        "rules": [],
+        "indexSummary": {
+          "count": 5,
+          "byType": {}
+        },
+        "runningServices": []
+      }
+    },
+    {
+      "id": "engine-1763491516602",
+      "type": "engine_state",
+      "ts": 1763491516602,
+      "payload": {
+        "rules": [],
+        "indexSummary": {
+          "count": 5,
+          "byType": {}
+        },
+        "runningServices": []
+      }
+    },
+    {
+      "id": "engine-1763491828405",
+      "type": "engine_state",
+      "ts": 1763491828405,
+      "payload": {
+        "rules": [],
+        "indexSummary": {
+          "count": 5,
+          "byType": {}
+        },
+        "runningServices": []
+      }
+    },
+    {
+      "id": "engine-1763492455940",
+      "type": "engine_state",
+      "ts": 1763492455940,
+      "payload": {
+        "rules": [],
+        "indexSummary": {
+          "count": 5,
+          "byType": {}
+        },
+        "runningServices": []
+      }
+    },
+    {
+      "id": "engine-1763496352720",
+      "type": "engine_state",
+      "ts": 1763496352720,
+      "payload": {
+        "rules": [],
+        "indexSummary": {
+          "count": 5,
+          "byType": {}
+        },
+        "runningServices": []
+      }
+    },
+    {
+      "id": "engine-1763498178847",
+      "type": "engine_state",
+      "ts": 1763498178847,
+      "payload": {
+        "rules": [],
+        "indexSummary": {
+          "count": 5,
+          "byType": {}
+        },
+        "runningServices": []
+      }
+    },
+    {
+      "id": "engine-1763498674946",
+      "type": "engine_state",
+      "ts": 1763498674946,
+      "payload": {
+        "rules": [],
+        "indexSummary": {
+          "count": 5,
+          "byType": {}
+        },
+        "runningServices": []
+      }
+    },
+    {
+      "id": "engine-1763498976902",
+      "type": "engine_state",
+      "ts": 1763498976902,
+      "payload": {
+        "rules": [],
+        "indexSummary": {
+          "count": 5,
+          "byType": {}
+        },
+        "runningServices": []
+      }
+    },
+    {
+      "id": "engine-1763499384676",
+      "type": "engine_state",
+      "ts": 1763499384676,
+      "payload": {
+        "rules": [],
+        "indexSummary": {
+          "count": 5,
+          "byType": {}
+        },
+        "runningServices": []
+      }
+    },
+    {
+      "id": "engine-1763501236902",
+      "type": "engine_state",
+      "ts": 1763501236902,
+      "payload": {
+        "rules": [],
+        "indexSummary": {
+          "count": 5,
+          "byType": {}
+        },
+        "runningServices": []
+      }
+    },
+    {
+      "id": "engine-1763501395266",
+      "type": "engine_state",
+      "ts": 1763501395266,
+      "payload": {
+        "rules": [],
+        "indexSummary": {
+          "count": 5,
+          "byType": {}
+        },
+        "runningServices": []
+      }
+    },
+    {
+      "id": "engine-1763501417364",
+      "type": "engine_state",
+      "ts": 1763501417364,
+      "payload": {
+        "rules": [],
+        "indexSummary": {
+          "count": 5,
+          "byType": {}
+        },
+        "runningServices": []
+      }
+    },
+    {
+      "id": "engine-1763574755020",
+      "type": "engine_state",
+      "ts": 1763574755020,
+      "payload": {
+        "rules": [],
+        "indexSummary": {
+          "count": 5,
+          "byType": {}
+        },
+        "runningServices": []
+      }
+    },
+    {
+      "id": "engine-1763574869744",
+      "type": "engine_state",
+      "ts": 1763574869744,
+      "payload": {
+        "rules": [],
+        "indexSummary": {
+          "count": 5,
+          "byType": {}
+        },
+        "runningServices": []
+      }
+    },
+    {
+      "id": "engine-1763574946258",
+      "type": "engine_state",
+      "ts": 1763574946258,
+      "payload": {
+        "rules": [],
+        "indexSummary": {
+          "count": 5,
+          "byType": {}
+        },
+        "runningServices": []
+      }
+    },
+    {
+      "id": "engine-1763575023215",
+      "type": "engine_state",
+      "ts": 1763575023215,
+      "payload": {
+        "rules": [],
+        "indexSummary": {
+          "count": 5,
+          "byType": {}
+        },
+        "runningServices": []
+      }
+    },
+    {
+      "id": "engine-1763575306451",
+      "type": "engine_state",
+      "ts": 1763575306451,
+      "payload": {
+        "rules": [],
+        "indexSummary": {
+          "count": 5,
+          "byType": {}
+        },
+        "runningServices": []
+      }
+    },
+    {
+      "id": "engine-1763576288295",
+      "type": "engine_state",
+      "ts": 1763576288295,
+      "payload": {
+        "rules": [],
+        "indexSummary": {
+          "count": 5,
+          "byType": {}
+        },
+        "runningServices": []
+      }
+    },
+    {
+      "id": "engine-1763576728694",
+      "type": "engine_state",
+      "ts": 1763576728694,
+      "payload": {
+        "rules": [],
+        "indexSummary": {
+          "count": 5,
+          "byType": {}
+        },
+        "runningServices": []
+      }
+    },
+    {
+      "id": "engine-1763585780770",
+      "type": "engine_state",
+      "ts": 1763585780770,
+      "payload": {
+        "rules": [],
+        "indexSummary": {
+          "count": 5,
+          "byType": {}
+        },
+        "runningServices": []
+      }
+    },
+    {
+      "id": "engine-1763599389196",
+      "type": "engine_state",
+      "ts": 1763599389196,
+      "payload": {
+        "rules": [],
+        "indexSummary": {
+          "count": 5,
+          "byType": {}
+        },
+        "runningServices": []
+      }
+    }
+  ],
+  "engine_history": [
+    {
+      "id": "exec-1763501236466",
+      "ts": 1763501236466,
+      "path": "",
+      "action": "echo hello",
+      "result": {
+        "success": false,
+        "stdout": "",
+        "stderr": "",
+        "code": "ENOENT"
+      }
+    },
+    {
+      "id": "exec-1763574755560",
+      "ts": 1763574755560,
+      "path": "",
+      "action": "echo hello",
+      "result": {
+        "success": false,
+        "stdout": "",
+        "stderr": "",
+        "code": "ENOENT"
+      }
+    },
+    {
+      "id": "exec-1763574870268",
+      "ts": 1763574870268,
+      "path": "",
+      "action": "echo hello",
+      "result": {
+        "success": true,
+        "stdout": "hello\r\n",
+        "stderr": "",
+        "code": 0
+      }
+    },
+    {
+      "id": "npz-1763574870274",
+      "ts": 1763574870274,
+      "path": "assets/banner.png",
+      "action": "npz.encode",
+      "result": {
+        "success": true,
+        "id": "npz-yqqi4qsv",
+        "path": "D:\\qflush\\.qflush\\npz\\npz-yqqi4qsv.bin",
+        "metadata": {
+          "id": "npz-yqqi4qsv",
+          "source": "assets/banner.png",
+          "createdAt": "2025-11-19T17:54:30.271Z",
+          "path": "D:\\qflush\\.qflush\\npz\\npz-yqqi4qsv.bin"
+        }
+      }
+    },
+    {
+      "id": "exec-1763574946823",
+      "ts": 1763574946823,
+      "path": "",
+      "action": "echo hello",
+      "result": {
+        "success": true,
+        "stdout": "hello\r\n",
+        "stderr": "",
+        "code": 0
+      }
+    },
+    {
+      "id": "npz-1763574946829",
+      "ts": 1763574946829,
+      "path": "assets/banner.png",
+      "action": "npz.encode",
+      "result": {
+        "success": true,
+        "id": "npz-c2yux5yk",
+        "path": "D:\\qflush\\.qflush\\npz\\npz-c2yux5yk.bin",
+        "metadata": {
+          "id": "npz-c2yux5yk",
+          "source": "assets/banner.png",
+          "createdAt": "2025-11-19T17:55:46.826Z",
+          "path": "D:\\qflush\\.qflush\\npz\\npz-c2yux5yk.bin"
+        }
+      }
+    },
+    {
+      "id": "exec-1763575023755",
+      "ts": 1763575023755,
+      "path": "",
+      "action": "echo hello",
+      "result": {
+        "success": true,
+        "stdout": "hello\r\n",
+        "stderr": "",
+        "code": 0
+      }
+    },
+    {
+      "id": "npz-1763575023759",
+      "ts": 1763575023759,
+      "path": "assets/banner.png",
+      "action": "npz.encode",
+      "result": {
+        "success": true,
+        "id": "npz-t3rt4n4y",
+        "path": "D:\\qflush\\.qflush\\npz\\npz-t3rt4n4y.bin",
+        "metadata": {
+          "id": "npz-t3rt4n4y",
+          "source": "assets/banner.png",
+          "createdAt": "2025-11-19T17:57:03.757Z",
+          "path": "D:\\qflush\\.qflush\\npz\\npz-t3rt4n4y.bin"
+        }
+      }
+    },
+    {
+      "id": "exec-1763575307000",
+      "ts": 1763575307000,
+      "path": "",
+      "action": "echo hello",
+      "result": {
+        "success": true,
+        "stdout": "hello\r\n",
+        "stderr": "",
+        "code": 0
+      }
+    },
+    {
+      "id": "npz-1763575307005",
+      "ts": 1763575307005,
+      "path": "assets/banner.png",
+      "action": "npz.encode",
+      "result": {
+        "success": true,
+        "id": "npz-or8rvwd2",
+        "path": "D:\\qflush\\.qflush\\npz\\npz-or8rvwd2.bin",
+        "metadata": {
+          "id": "npz-or8rvwd2",
+          "source": "assets/banner.png",
+          "createdAt": "2025-11-19T18:01:47.002Z",
+          "path": "D:\\qflush\\.qflush\\npz\\npz-or8rvwd2.bin"
+        }
+      }
+    },
+    {
+      "id": "exec-1763576288859",
+      "ts": 1763576288859,
+      "path": "",
+      "action": "echo hello",
+      "result": {
+        "success": true,
+        "stdout": "hello\r\n",
+        "stderr": "",
+        "code": 0
+      }
+    },
+    {
+      "id": "npz-1763576288863",
+      "ts": 1763576288863,
+      "path": "assets/banner.png",
+      "action": "npz.encode",
+      "result": {
+        "success": true,
+        "id": "npz-l5uznyt3",
+        "path": "D:\\qflush\\.qflush\\npz\\npz-l5uznyt3.bin",
+        "metadata": {
+          "id": "npz-l5uznyt3",
+          "source": "assets/banner.png",
+          "createdAt": "2025-11-19T18:18:08.861Z",
+          "path": "D:\\qflush\\.qflush\\npz\\npz-l5uznyt3.bin"
+        }
+      }
+    },
+    {
+      "id": "exec-1763576729245",
+      "ts": 1763576729245,
+      "path": "",
+      "action": "echo hello",
+      "result": {
+        "success": true,
+        "stdout": "hello\r\n",
+        "stderr": "",
+        "code": 0
+      }
+    },
+    {
+      "id": "npz-1763576729249",
+      "ts": 1763576729249,
+      "path": "assets/banner.png",
+      "action": "npz.encode",
+      "result": {
+        "success": true,
+        "id": "npz-6p4amqxs",
+        "path": "D:\\qflush\\.qflush\\npz\\npz-6p4amqxs.bin",
+        "metadata": {
+          "id": "npz-6p4amqxs",
+          "source": "assets/banner.png",
+          "createdAt": "2025-11-19T18:25:29.247Z",
+          "path": "D:\\qflush\\.qflush\\npz\\npz-6p4amqxs.bin"
+        }
+      }
+    },
+    {
+      "id": "exec-1763585781302",
+      "ts": 1763585781302,
+      "path": "",
+      "action": "echo hello",
+      "result": {
+        "success": true,
+        "stdout": "hello\r\n",
+        "stderr": "",
+        "code": 0
+      }
+    },
+    {
+      "id": "npz-1763585781306",
+      "ts": 1763585781306,
+      "path": "assets/banner.png",
+      "action": "npz.encode",
+      "result": {
+        "success": true,
+        "id": "npz-z7ncz9ks",
+        "path": "D:\\qflush\\.qflush\\npz\\npz-z7ncz9ks.bin",
+        "metadata": {
+          "id": "npz-z7ncz9ks",
+          "source": "assets/banner.png",
+          "createdAt": "2025-11-19T20:56:21.304Z",
+          "path": "D:\\qflush\\.qflush\\npz\\npz-z7ncz9ks.bin"
+        }
+      }
+    },
+    {
+      "id": "exec-1763599389743",
+      "ts": 1763599389743,
+      "path": "",
+      "action": "echo hello",
+      "result": {
+        "success": true,
+        "stdout": "hello\r\n",
+        "stderr": "",
+        "code": 0
+      }
+    },
+    {
+      "id": "npz-1763599389749",
+      "ts": 1763599389749,
+      "path": "assets/banner.png",
+      "action": "npz.encode",
+      "result": {
+        "success": true,
+        "id": "npz-n4iw5a0y",
+        "path": "D:\\qflush\\.qflush\\npz\\npz-n4iw5a0y.bin",
+        "metadata": {
+          "id": "npz-n4iw5a0y",
+          "source": "assets/banner.png",
+          "createdAt": "2025-11-20T00:43:09.747Z",
+          "path": "D:\\qflush\\.qflush\\npz\\npz-n4iw5a0y.bin"
+        }
+      }
+    },
+    {
+      "id": "exec-1763630660318",
+      "ts": 1763630660318,
+      "path": "",
+      "action": "echo hello",
+      "result": {
+        "success": true,
+        "stdout": "hello\r\n",
+        "stderr": "",
+        "code": 0
+      }
+    },
+    {
+      "id": "npz-1763630660324",
+      "ts": 1763630660324,
+      "path": "assets/banner.png",
+      "action": "npz.encode",
+      "result": {
+        "success": true,
+        "id": "npz-ax4ip1um",
+        "path": "D:\\qflush\\.qflush\\npz\\npz-ax4ip1um.bin",
+        "metadata": {
+          "id": "npz-ax4ip1um",
+          "source": "assets/banner.png",
+          "createdAt": "2025-11-20T09:24:20.322Z",
+          "path": "D:\\qflush\\.qflush\\npz\\npz-ax4ip1um.bin"
+        }
+      }
+    },
+    {
+      "id": "exec-1763633047738",
+      "ts": 1763633047738,
+      "path": "",
+      "action": "echo hello",
+      "result": {
+        "success": true,
+        "stdout": "hello\r\n",
+        "stderr": "",
+        "code": 0
+      }
+    },
+    {
+      "id": "npz-1763633047743",
+      "ts": 1763633047743,
+      "path": "assets/banner.png",
+      "action": "npz.encode",
+      "result": {
+        "success": true,
+        "id": "npz-99awdir9",
+        "path": "D:\\qflush\\.qflush\\npz\\npz-99awdir9.bin",
+        "metadata": {
+          "id": "npz-99awdir9",
+          "source": "assets/banner.png",
+          "createdAt": "2025-11-20T10:04:07.740Z",
+          "path": "D:\\qflush\\.qflush\\npz\\npz-99awdir9.bin"
+        }
+      }
+    },
+    {
+      "id": "exec-1763645015115",
+      "ts": 1763645015115,
+      "path": "",
+      "action": "echo hello",
+      "result": {
+        "success": true,
+        "stdout": "hello\r\n",
+        "stderr": "",
+        "code": 0
+      }
+    },
+    {
+      "id": "npz-1763645015120",
+      "ts": 1763645015120,
+      "path": "assets/banner.png",
+      "action": "npz.encode",
+      "result": {
+        "success": true,
+        "id": "npz-p8z9sxln",
+        "path": "D:\\qflush\\.qflush\\npz\\npz-p8z9sxln.bin",
+        "metadata": {
+          "id": "npz-p8z9sxln",
+          "source": "assets/banner.png",
+          "createdAt": "2025-11-20T13:23:35.117Z",
+          "path": "D:\\qflush\\.qflush\\npz\\npz-p8z9sxln.bin"
+        }
+      }
+    },
+    {
+      "id": "exec-1763645133511",
+      "ts": 1763645133511,
+      "path": "",
+      "action": "echo hello",
+      "result": {
+        "success": true,
+        "stdout": "hello\r\n",
+        "stderr": "",
+        "code": 0
+      }
+    },
+    {
+      "id": "npz-1763645133516",
+      "ts": 1763645133516,
+      "path": "assets/banner.png",
+      "action": "npz.encode",
+      "result": {
+        "success": true,
+        "id": "npz-81pvl8b8",
+        "path": "D:\\qflush\\.qflush\\npz\\npz-81pvl8b8.bin",
+        "metadata": {
+          "id": "npz-81pvl8b8",
+          "source": "assets/banner.png",
+          "createdAt": "2025-11-20T13:25:33.513Z",
+          "path": "D:\\qflush\\.qflush\\npz\\npz-81pvl8b8.bin"
+        }
+      }
+    },
+    {
+      "id": "exec-1763649015735",
+      "ts": 1763649015735,
+      "path": "",
+      "action": "echo hello",
+      "result": {
+        "success": true,
+        "stdout": "hello\r\n",
+        "stderr": "",
+        "code": 0
+      }
+    },
+    {
+      "id": "npz-1763649015739",
+      "ts": 1763649015739,
+      "path": "assets/banner.png",
+      "action": "npz.encode",
+      "result": {
+        "success": true,
+        "id": "npz-uydltjqw",
+        "path": "D:\\qflush\\.qflush\\npz\\npz-uydltjqw.bin",
+        "metadata": {
+          "id": "npz-uydltjqw",
+          "source": "assets/banner.png",
+          "createdAt": "2025-11-20T14:30:15.737Z",
+          "path": "D:\\qflush\\.qflush\\npz\\npz-uydltjqw.bin"
+        }
+      }
+    }
+  ]
+}

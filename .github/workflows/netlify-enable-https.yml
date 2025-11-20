@@ -1,0 +1,55 @@
+name: Netlify Enable HTTPS
+
+on:
+  workflow_dispatch:
+
+jobs:
+  enable-https:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup tools
+        run: |
+          sudo apt-get update && sudo apt-get install -y jq curl
+          npm i -g netlify-cli
+
+      - name: Enable HTTPS (force SSL)
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_NAME: "qflash-funesterie"
+        run: |
+          set -e
+          SITE_ID=$(netlify sites:list --json | jq -r ".[] | select(.name==\"${NETLIFY_SITE_NAME}\") | .id")
+          if [ -z "$SITE_ID" ] || [ "$SITE_ID" = "null" ]; then
+            echo "Site not found: ${NETLIFY_SITE_NAME}"
+            exit 1
+          fi
+          echo "Found site: $SITE_ID"
+          # enable force_ssl via Netlify API
+          echo "Enabling force_ssl for site $SITE_ID"
+          curl -s -X PATCH "https://api.netlify.com/api/v1/sites/$SITE_ID" \
+            -H "Authorization: Bearer $NETLIFY_AUTH_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d '{"force_ssl":true}' | jq .
+          echo "HTTPS (force SSL) enabled (request sent)."
+
+      - name: Ensure domain alias
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_NAME: "qflash-funesterie"
+        run: |
+          set -e
+          SITE_ID=$(netlify sites:list --json | jq -r ".[] | select(.name==\"${NETLIFY_SITE_NAME}\") | .id")
+          DOMAIN="qflash.funesterie.pro"
+          # add domain alias if not present
+          EXISTS=$(netlify domains:list --site $SITE_ID --json | jq -r ".[] | select(.hostname==\"$DOMAIN\") | .id" || true)
+          if [ -z "$EXISTS" ]; then
+            echo "Adding domain $DOMAIN to site $SITE_ID"
+            netlify domains:add $DOMAIN --site $SITE_ID || true
+          else
+            echo "Domain $DOMAIN already added"
+          fi
+          # show domain status
+          netlify domains:list --site $SITE_ID --json | jq .
