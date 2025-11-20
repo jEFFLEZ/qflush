@@ -663,6 +663,35 @@
           "path": "D:\\qflush\\.qflush\\npz\\npz-ax4ip1um.bin"
         }
       }
+    },
+    {
+      "id": "exec-1763633047738",
+      "ts": 1763633047738,
+      "path": "",
+      "action": "echo hello",
+      "result": {
+        "success": true,
+        "stdout": "hello\r\n",
+        "stderr": "",
+        "code": 0
+      }
+    },
+    {
+      "id": "npz-1763633047743",
+      "ts": 1763633047743,
+      "path": "assets/banner.png",
+      "action": "npz.encode",
+      "result": {
+        "success": true,
+        "id": "npz-99awdir9",
+        "path": "D:\\qflush\\.qflush\\npz\\npz-99awdir9.bin",
+        "metadata": {
+          "id": "npz-99awdir9",
+          "source": "assets/banner.png",
+          "createdAt": "2025-11-20T10:04:07.740Z",
+          "path": "D:\\qflush\\.qflush\\npz\\npz-99awdir9.bin"
+        }
+      }
     }
   ]
 }

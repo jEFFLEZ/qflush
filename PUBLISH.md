@@ -1,8 +1,8 @@
-# Publishing @qflash/qflush
+﻿# Publishing @qflush/qflush
 
-This document explains how to publish the `@qflash/qflush` package to npm and includes recommended `package.json` fields.
+This document explains how to publish the `@qflush/qflush` package to npm and includes recommended `package.json` fields.
 
-NOTE: The public npm listing (package page) is currently under reconstruction. The package can still be published and installed via `npm install @qflash/qflush`, but the npm website display may be incomplete until the rebuild is finished.
+NOTE: The public npm listing (package page) is currently under reconstruction. The package can still be published and installed via `npm install @qflush/qflush`, but the npm website display may be incomplete until the rebuild is finished.
 
 Checklist before publishing:
 
@@ -19,7 +19,7 @@ Recommended package.json fields:
 
 ```json
 {
-  "name": "@qflash/qflush",
+  "name": "@qflush/qflush",
   "version": "0.0.0",
   "description": "QFLUSH — The Funesterie Runtime System",
   "main": "dist/index.js",
@@ -31,7 +31,7 @@ Recommended package.json fields:
 
 Publish steps:
 
-1. Login to npm: `npm login` (use account that owns `@qflash` scope)
+1. Login to npm: `npm login` (use account that owns `@qflush` scope)
 2. From project root `cd qflush`
 3. Build: `npm run build`
 4. Publish: `npm publish --access public`
@@ -40,7 +40,7 @@ Testing globally without publishing:
 
 - Link locally: `cd qflush && npm link`
 - Test: `qflush --help` or `qflush start` or `qflush checksum list`
-- Remove link: `npm unlink -g @qflash/qflush`
+- Remove link: `npm unlink -g @qflush/qflush`
 
 Notes on 2FA:
 
@@ -48,5 +48,6 @@ Notes on 2FA:
 
 Troubleshooting:
 
-- If publish fails due to package name, ensure the scope `@qflash` exists and you have permission to publish under it.
+- If publish fails due to package name, ensure the scope `@qflush` exists and you have permission to publish under it.
 - If `dist` missing on publish, `prepare` should build, but check logs for errors.
+

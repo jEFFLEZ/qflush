@@ -1,4 +1,4 @@
-// ROME-TAG: 0xA65E04
+﻿// ROME-TAG: 0xA65E04
 
 import license from '../utils/license';
 
@@ -6,7 +6,7 @@ export default async function runLicenseActivate(args: string[]) {
   const key = args[0];
   const product = args[1] || process.env.GUMROAD_PRODUCT_MONTHLY;
   if (!key) {
-    console.error('usage: qflash license:activate <key> [product_id]');
+    console.error('usage: qflush license:activate <key> [product_id]');
     return 1;
   }
   try {
@@ -22,3 +22,4 @@ export default async function runLicenseActivate(args: string[]) {
     return 3;
   }
 }
+

@@ -1,13 +1,13 @@
-// ROME-TAG: 0x263C6D
+﻿// ROME-TAG: 0x263C6D
 
 import { logger } from "../utils/logger";
 import { resolvePaths } from "../utils/paths";
 import { rimrafSync } from "../utils/exec";
 import { clearState } from "../supervisor";
-import { QFlashOptions } from "../chain/smartChain";
+import { qflushOptions } from "../chain/smartChain";
 
-export async function runPurge(opts?: QFlashOptions) {
-  logger.info("qflash: purging caches, logs, sessions and supervisor state...");
+export async function runPurge(opts?: qflushOptions) {
+  logger.info("qflush: purging caches, logs, sessions and supervisor state...");
   const paths = resolvePaths(opts?.detected || {});
   const targets = [] as string[];
   for (const key of Object.keys(paths)) {
@@ -30,3 +30,4 @@ export async function runPurge(opts?: QFlashOptions) {
   clearState();
   logger.info("Purge complete.");
 }
+

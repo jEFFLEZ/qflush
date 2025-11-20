@@ -1,17 +1,17 @@
-// ROME-TAG: 0xF73710
+﻿// ROME-TAG: 0xF73710
 
 import { detectModules } from "../utils/detect";
 import logger from "../utils/logger";
 import { spawnSafe, ensurePackageInstalled, pathExists, rebuildInstructionsFor } from "../utils/exec";
 import { resolvePaths, SERVICE_MAP } from "../utils/paths";
-import { QFlashOptions } from "../chain/smartChain";
+import { qflushOptions } from "../chain/smartChain";
 import { resolvePackagePath, readPackageJson } from "../utils/package";
 import { startProcess } from "../supervisor";
 import { waitForService } from "../utils/health";
 import { runCustomsCheck, hasBlockingIssues, ModuleDescriptor } from "../utils/npz-customs";
 import npz from "../utils/npz";
 
-export async function runStart(opts?: QFlashOptions) {
+export async function runStart(opts?: qflushOptions) {
   logger.info("qflush: starting modules...");
   const detected = opts?.detected || (await detectModules());
   const paths = resolvePaths(detected);
@@ -183,3 +183,4 @@ export async function runStart(opts?: QFlashOptions) {
 
   logger.success("qflush: start sequence initiated for selected modules");
 }
+

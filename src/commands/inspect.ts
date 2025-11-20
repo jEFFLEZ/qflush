@@ -1,11 +1,11 @@
-// ROME-TAG: 0xEA570C
+﻿// ROME-TAG: 0xEA570C
 
 import { logger } from "../utils/logger";
 import { detectModules } from "../utils/detect";
 import { listRunning } from "../supervisor";
-import { QFlashOptions } from "../chain/smartChain";
+import { qflushOptions } from "../chain/smartChain";
 
-export async function runInspect(opts?: QFlashOptions) {
+export async function runInspect(opts?: qflushOptions) {
   logger.info("qflush: inspecting ecosystem...");
   const detected = opts?.detected || (await detectModules());
   for (const key of Object.keys(detected)) {
@@ -20,3 +20,4 @@ export async function runInspect(opts?: QFlashOptions) {
     for (const r of running) logger.info(`  ${r.name}: pid=${r.pid} cmd=${r.cmd}`);
   }
 }
+

@@ -1,4 +1,4 @@
-// ROME-TAG: 0xACAF19
+﻿// ROME-TAG: 0xACAF19
 
 import { spawn, ChildProcess } from 'child_process';
 import { writeFileSync, existsSync, mkdirSync, readFileSync, unlinkSync, createWriteStream, WriteStream } from 'fs';
@@ -22,7 +22,8 @@ type ManagedProc = {
   outStream?: WriteStream | null;
 };
 
-const STATE_DIR = join(process.cwd(), '.qflash');
+// Use canonical state dir '.qflush' (was '.qflush')
+const STATE_DIR = join(process.cwd(), '.qflush');
 const LOGS_DIR = join(STATE_DIR, 'logs');
 const STATE_FILE = join(STATE_DIR, 'services.json');
 let procs: Record<string, ProcRecord> = {};
@@ -205,3 +206,4 @@ export default {
   listRunning,
   freezeAll,
 };
+

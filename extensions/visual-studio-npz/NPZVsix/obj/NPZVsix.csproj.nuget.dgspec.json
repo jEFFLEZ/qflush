@@ -1,17 +1,17 @@
-{
+﻿{
   "format": 1,
   "restore": {
-    "D:\\qflash\\extensions\\visual-studio-npz\\NPZVsix\\NPZVsix.csproj": {}
+    "D:\\qflush\\extensions\\visual-studio-npz\\NPZVsix\\NPZVsix.csproj": {}
   },
   "projects": {
-    "D:\\qflash\\extensions\\visual-studio-npz\\NPZVsix\\NPZVsix.csproj": {
+    "D:\\qflush\\extensions\\visual-studio-npz\\NPZVsix\\NPZVsix.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\qflash\\extensions\\visual-studio-npz\\NPZVsix\\NPZVsix.csproj",
+        "projectUniqueName": "D:\\qflush\\extensions\\visual-studio-npz\\NPZVsix\\NPZVsix.csproj",
         "projectName": "NPZVsix",
-        "projectPath": "D:\\qflash\\extensions\\visual-studio-npz\\NPZVsix\\NPZVsix.csproj",
+        "projectPath": "D:\\qflush\\extensions\\visual-studio-npz\\NPZVsix\\NPZVsix.csproj",
         "packagesPath": "C:\\Users\\cella\\.nuget\\packages\\",
-        "outputPath": "D:\\qflash\\extensions\\visual-studio-npz\\NPZVsix\\obj\\",
+        "outputPath": "D:\\qflush\\extensions\\visual-studio-npz\\NPZVsix\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"

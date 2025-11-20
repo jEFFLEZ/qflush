@@ -1,12 +1,12 @@
-QFlash Licensing (Gumroad)
+﻿qflush Licensing (Gumroad)
 
 Overview
 
 This project integrates with Gumroad for license sales and verification. You can sell monthly or yearly licenses and validate keys using Gumroad's license API.
 
 Recommended products on Gumroad:
-- QFlash Monthly - €5/month
-- QFlash Yearly - €39/year
+- qflush Monthly - €5/month
+- qflush Yearly - €39/year
 
 Steps to configure
 
@@ -18,7 +18,7 @@ Daemon setup
 
 - Run the daemon (recommended):
   - Set `GUMROAD_TOKEN` and optionally `GUMROAD_PRODUCT_YEARLY` / `GUMROAD_PRODUCT_MONTHLY`.
-  - Start: `qflash daemon` or `node dist/daemon/qflashd.js`.
+  - Start: `qflush daemon` or `node dist/daemon/qflushd.js`.
   - The daemon exposes endpoints:
     - `POST /license/activate` { key, product_id? }
     - `GET /license/status` -> { license, valid }
@@ -33,19 +33,19 @@ VS Code extension flow
 CLI flow
 
 - You can also activate using the CLI (suitable for headless installs):
-  - `GUMROAD_TOKEN=... qflash license activate <key>`
-  - `qflash license status` to view the saved local license
+  - `GUMROAD_TOKEN=... qflush license activate <key>`
+  - `qflush license status` to view the saved local license
 
 Audit and metrics
 
-- The daemon writes a simple audit log by default to `./.qflash/license-activations.log` and exposes Prometheus counters:
-  - `qflash_license_activation_total`
-  - `qflash_license_activation_success_total`
-  - `qflash_license_activation_failure_total`
+- The daemon writes a simple audit log by default to `./.qflush/license-activations.log` and exposes Prometheus counters:
+  - `qflush_license_activation_total`
+  - `qflush_license_activation_success_total`
+  - `qflush_license_activation_failure_total`
 
 Local license storage
 
-The CLI/daemon stores a local license record in `./.qflash/license.json`. You can override with `GUMROAD_LICENSE_PATH`.
+The CLI/daemon stores a local license record in `./.qflush/license.json`. You can override with `GUMROAD_LICENSE_PATH`.
 
 Security
 
@@ -53,16 +53,16 @@ Do not hardcode your Gumroad token in client-side code. Use the daemon to keep t
 
 ---
 
-QFlash licensing (local Gumroad verification)
+qflush licensing (local Gumroad verification)
 
 Overview
 
-QFlash uses Gumroad to sell license keys. The recommended flow is local verification: the user pastes a license key into the app/extension which calls the local daemon to verify the key directly with Gumroad.
+qflush uses Gumroad to sell license keys. The recommended flow is local verification: the user pastes a license key into the app/extension which calls the local daemon to verify the key directly with Gumroad.
 
 Simple local flow (recommended)
 
 1. User purchases a license on Gumroad and receives a license key.
-2. User opens QFlash (or the VS Code extension) and enters the license key.
+2. User opens qflush (or the VS Code extension) and enters the license key.
 3. The client calls the local daemon endpoint `POST /license/activate` with `{ key }`.
 4. The daemon calls Gumroad's verify API, saves the license locally on success, and returns the result.
 
@@ -74,7 +74,7 @@ Why this is sufficient
 Daemon configuration
 
 - Set `GUMROAD_TOKEN` and product IDs in the daemon environment (or `GUMROAD_TOKEN_FILE` and `GUMROAD_LICENSE_PATH` if preferred).
-- Default local license path: `./.qflash/license.json`.
+- Default local license path: `./.qflush/license.json`.
 
 Commands
 
@@ -93,6 +93,7 @@ Notes about webhooks
 Security
 
 - Do not commit `GUMROAD_TOKEN` to the repo. Use `.env`, environment variables, or a token file referenced by `GUMROAD_TOKEN_FILE`.
-- Audit log (activations) is at `./.qflash/license-activations.log`.
+- Audit log (activations) is at `./.qflush/license-activations.log`.
 
 If you want the fully automated server-driven flow (webhooks + auto-disable), use a public endpoint (ngrok, domain, or server) and enable webhooks in Gumroad. Otherwise the local flow above is safest and simplest.
+

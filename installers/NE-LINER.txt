@@ -1,8 +1,8 @@
-NE-LINER — Corrected one‑liner & notes (FR)
+﻿NE-LINER — Corrected one‑liner & notes (FR)
 
 But / Purpose
 -----------
-Court rappel et one‑liner corrigé pour installer / démarrer `qflush` sans confusion avec `qflash`.
+Court rappel et one‑liner corrigé pour installer / démarrer `qflush` sans confusion avec `qflush`.
 
 One‑liner PowerShell (installe et exécute l'installateur officiel pour `qflush`):
 
@@ -10,7 +10,7 @@ One‑liner PowerShell (installe et exécute l'installateur officiel pour `qflus
 
 Remarques importantes
 ---------------------
-- Nom correct du binaire : `qflush` (pas `qflash`).
+- Nom correct du binaire : `qflush` (pas `qflush`).
 - Le shim `%APPDATA%\\npm\\qflush.cmd` / `qflush.ps1` doit appeler le wrapper JS ou `dist/index.js`.
   - Pour la version, le shim doit appeler de façon sûre :
     node "<path-to-package>/package.json" via un petit wrapper JS ou `node -e "try{console.log(require('...').version)}catch(e){console.log('unknown')}"`.
@@ -46,15 +46,16 @@ Modifications appliquées
 J'ai corrigé les scripts et docs suivants pour utiliser le nom `qflush` et chemins cohérents :
 - `installers/ONE-LINER.txt` (one-liner now references `install-qflush.ps1`)
 - `installers/install-all.ps1` (uses `QFlush` naming, destination folder `Funeste38\QFlush`)
-- `installers/install-qflash.ps1` (messages updated to `qflush`, package name `@funeste38/qflush`)
-- `installers/install-qflashd.ps1` (messages updated to `qflushd`)
+- `installers/install-qflush.ps1` (messages updated to `qflush`, package name `@funeste38/qflush`)
+- `installers/install-qflushd.ps1` (messages updated to `qflushd`)
 - Created wrapper/shims: `%APPDATA%\\npm\\qflush-cli.js`, `qflush.cmd`, `qflush.ps1` when repairing installation.
 
 Notes pour devs
 ---------------
 - Éviter d'utiliser `node -e` avec des chemins Windows bruts dans les shims ; préférer un wrapper JS.
-- Si un autre binaire `qflash` existe, désinstallez le pour éviter collision :
-  npm uninstall -g @funeste38/qflash
+- Si un autre binaire `qflush` existe, désinstallez le pour éviter collision :
+  npm uninstall -g @funeste38/qflush
 
-Si tu veux que je renomme physiquement les scripts `install-qflash.ps1` → `install-qflush.ps1` et `install-qflashd.ps1` → `install-qflushd.ps1`, dis‑le et je le ferai (cela créera de nouveaux files and update references).
+Si tu veux que je renomme physiquement les scripts `install-qflush.ps1` → `install-qflush.ps1` et `install-qflushd.ps1` → `install-qflushd.ps1`, dis‑le et je le ferai (cela créera de nouveaux files and update references).
+
 

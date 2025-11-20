@@ -1,4 +1,4 @@
-// ROME-TAG: 0x11D9FC
+﻿// ROME-TAG: 0x11D9FC
 
 import fs from 'fs';
 import path from 'path';
@@ -6,7 +6,8 @@ import { createRecord as redisCreate, getRecord as redisGet, updateRecord as red
 import { getNpzNamespace } from './npz-config';
 
 const NS = getNpzNamespace();
-const STORE_DIR = path.join(process.cwd(), '.qflash');
+// Use .qflush as canonical state directory (was .qflush)
+const STORE_DIR = path.join(process.cwd(), '.qflush');
 const REQUEST_STORE = path.join(STORE_DIR, `${NS}-npz-requests.json`);
 
 type NpzRecord = {
@@ -86,3 +87,4 @@ export async function getRequestRecord(id: string) {
 }
 
 export default { createRequestRecord, updateRequestRecord, getRequestRecord };
+

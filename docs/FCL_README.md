@@ -1,4 +1,4 @@
-Funesterie Config Language (FCL) - README
+﻿Funesterie Config Language (FCL) - README
 
 FCL is a small, human-friendly format to declare projects, services and pipelines for Funesterie.
 
@@ -28,6 +28,7 @@ Examples:
 
 Usage:
 - Place `funesterie.fcl` in the repo root.
-- `qflash compose up` will read `funesterie.fcl` if present and bring up declared services.
+- `qflush compose up` will read `funesterie.fcl` if present and bring up declared services.
 
 This README is minimal and the spec is intentionally small to keep portability.
+

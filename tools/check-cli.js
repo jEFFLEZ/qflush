@@ -1,4 +1,4 @@
-#!/usr/bin/env node
+﻿#!/usr/bin/env node
 const fs = require('fs');
 const path = require('path');
 const pkgPath = path.join(__dirname, '..', 'package.json');
@@ -16,7 +16,7 @@ const binPath = path.join(__dirname, '..', bin);
 if (!fs.existsSync(binPath)) {
   console.error(`CLI entry missing: ${binPath}`);
   console.error('Réparez en reconstruisant le paquet localement:');
-  console.error('  cd qflash');
+  console.error('  cd qflush');
   console.error('  npm install');
   console.error('  npm run build');
   console.error('  npm install -g .');
@@ -24,3 +24,4 @@ if (!fs.existsSync(binPath)) {
 }
 console.log('CLI check OK:', binPath);
 process.exit(0);
+
