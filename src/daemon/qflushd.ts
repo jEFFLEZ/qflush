@@ -7,28 +7,11 @@ const path = require('path');
 const { join } = path;
 
 // optional Redis support (now opt-in via QFLUSH_ENABLE_REDIS)
+// Redis support removed for local builds to avoid external dependency and failures on Windows.
 let Redis: any = null;
 let redisClient: any = null;
-const REDIS_URL = process.env.REDIS_URL || process.env.QFLUSH_REDIS_URL || '';
-// Force Redis disabled to avoid external dependency and connection attempts during local runs
+const REDIS_URL = '';
 const ENABLE_REDIS = false;
-if (REDIS_URL && ENABLE_REDIS) {
-  try {
-    // require lazily so repo doesn't force dependency
-    Redis = require('ioredis');
-    redisClient = new Redis(REDIS_URL);
-    // best-effort connect
-    redisClient.on('error', (err: any) => {
-      console.warn('qflush: redis error', String(err));
-      redisClient = null;
-    });
-  } catch (e) {
-    // ignore if ioredis not installed
-    redisClient = null;
-  }
-} else if (!ENABLE_REDIS && REDIS_URL) {
-  console.log('REDIS_URL is set but QFLUSH_ENABLE_REDIS is disabled - skipping Redis initialization');
-}
 
 // try to import gumroad helper if present
 let gumroad: any = null;
@@ -159,72 +142,12 @@ if (!process.env.VITEST && ENABLE_MAPPING) {
 }
 
 // --- One-time checksum cache ---
-// If Redis is configured, use Redis keys with TTL and a sorted set index for listing. Otherwise fallback to in-memory Map.
+// Redis removed: use in-memory Map only
 const CHECKSUM_DEFAULT_TTL_MS = Number(process.env.QFLUSH_CHECKSUM_TTL_MS) || 60 * 1000; // 60 seconds default
 
 // in-memory fallback store
 type ChecksumEntry = { checksum: string; expiresAt: number };
 const checksumCache = new Map<string, ChecksumEntry>();
-
-// Redis key helpers
-const REDIS_KEY_PREFIX = 'qflush:npz:checksum:';
-const REDIS_INDEX_KEY = 'qflush:npz:checksum:ids';
-
-async function redisStore(id: string, checksum: string, ttlMs: number) {
-  if (!redisClient) return false;
-  const key = REDIS_KEY_PREFIX + id;
-  const expiresAt = Date.now() + ttlMs;
-  // set key with PX TTL
-  await redisClient.set(key, checksum, 'PX', ttlMs);
-  // add to sorted set with score = expiresAt
-  await redisClient.zadd(REDIS_INDEX_KEY, expiresAt, id);
-  return true;
-}
-
-async function redisGet(id: string) {
-  if (!redisClient) return null;
-  const key = REDIS_KEY_PREFIX + id;
-  const val = await redisClient.get(key);
-  if (!val) return null;
-  // obtain TTL to compute expiresAt
-  const ttlMs = await redisClient.pttl(key);
-  const expiresAt = Date.now() + (ttlMs > 0 ? ttlMs : 0);
-  return { checksum: val, expiresAt };
-}
-
-async function redisDelete(id: string) {
-  if (!redisClient) return false;
-  const key = REDIS_KEY_PREFIX + id;
-  await redisClient.del(key);
-  await redisClient.zrem(REDIS_INDEX_KEY, id);
-  return true;
-}
-
-async function redisList() {
-  if (!redisClient) return [] as { id: string; expiresAt: number }[];
-  // remove expired ids from index
-  const now = Date.now();
-  await redisClient.zremrangebyscore(REDIS_INDEX_KEY, 0, now - 1);
-  const items = await redisClient.zrangebyscore(REDIS_INDEX_KEY, now, '+inf', 'WITHSCORES');
-  // zrangebyscore with WITHSCORES returns [id, score, id, score, ...]
-  const results: { id: string; expiresAt: number }[] = [];
-  for (let i = 0; i < items.length; i += 2) {
-    const id = items[i];
-    const score = Number(items[i + 1]);
-    results.push({ id, expiresAt: score });
-  }
-  return results;
-}
-
-async function redisClear() {
-  if (!redisClient) return 0;
-  const ids = await redisClient.zrange(REDIS_INDEX_KEY, 0, -1);
-  if (ids.length === 0) return 0;
-  const keys = ids.map((id: string) => REDIS_KEY_PREFIX + id);
-  await redisClient.del(...keys);
-  const removed = await redisClient.del(REDIS_INDEX_KEY);
-  return ids.length;
-}
 
 // Insert checksum handlers here (before pourparler endpoints)
 app.post('/npz/checksum/store', async (req: any, res: any) => {
@@ -232,17 +155,7 @@ app.post('/npz/checksum/store', async (req: any, res: any) => {
   console.log('/npz/checksum/store called with', req.body);
   if (!id || !checksum) return res.status(400).json({ success: false, error: 'missing id or checksum' });
   const ttl = typeof ttlMs === 'number' && ttlMs > 0 ? ttlMs : CHECKSUM_DEFAULT_TTL_MS;
-  if (redisClient) {
-    try {
-      await redisStore(String(id), String(checksum), ttl);
-      audit({ t: Date.now(), event: 'checksum_stored_redis', id: String(id) });
-      console.log('stored in redis', id);
-      return res.json({ success: true, id: String(id), ttlMs: ttl, backend: 'redis' });
-    } catch (e) {
-      console.warn('redis store failed', String(e));
-      // fallback to in-memory
-    }
-  }
+
   checksumCache.set(String(id), { checksum: String(checksum), expiresAt: Date.now() + ttl });
   audit({ t: Date.now(), event: 'checksum_stored_mem', id: String(id) });
   console.log('stored in memory', id);
@@ -252,22 +165,6 @@ app.post('/npz/checksum/store', async (req: any, res: any) => {
 app.post('/npz/checksum/verify', async (req: any, res: any) => {
   const { id, checksum } = req.body || {};
   if (!id || !checksum) return res.status(400).json({ success: false, error: 'missing id or checksum' });
-
-  if (redisClient) {
-    try {
-      const rec = await redisGet(String(id));
-      if (!rec) return res.status(404).json({ success: false, error: 'checksum not found or expired' });
-      if (rec.checksum !== String(checksum)) {
-        audit({ t: Date.now(), event: 'checksum_mismatch_redis', id: String(id), provided: String(checksum), expected: rec.checksum });
-        return res.status(400).json({ success: false, error: 'checksum mismatch' });
-      }
-      await redisDelete(String(id));
-      audit({ t: Date.now(), event: 'checksum_verified_redis', id: String(id) });
-      return res.json({ success: true, id: String(id), backend: 'redis' });
-    } catch (e) {
-      // fallback to memory
-    }
-  }
 
   const entry = checksumCache.get(String(id));
   if (!entry) return res.status(404).json({ success: false, error: 'checksum not found or expired' });
@@ -282,16 +179,6 @@ app.post('/npz/checksum/verify', async (req: any, res: any) => {
 });
 
 app.get('/npz/checksum/list', async (_req: any, res: any) => {
-  if (redisClient) {
-    try {
-      const items = await redisList();
-      const now = Date.now();
-      const result = items.map((it: any) => ({ id: it.id, expiresInMs: Math.max(0, it.expiresAt - now) }));
-      return res.json({ success: true, count: result.length, items: result, backend: 'redis' });
-    } catch (e) {
-      // fallback
-    }
-  }
   const now = Date.now();
   const results: { id: string; expiresInMs: number }[] = [];
   for (const [id, entry] of checksumCache.entries()) {
@@ -302,15 +189,6 @@ app.get('/npz/checksum/list', async (_req: any, res: any) => {
 
 // clear checksums: DELETE /npz/checksum/clear
 app.delete('/npz/checksum/clear', async (_req: any, res: any) => {
-  if (redisClient) {
-    try {
-      const cleared = await redisClear();
-      audit({ t: Date.now(), event: 'checksum_cleared_redis', cleared });
-      return res.json({ success: true, cleared, backend: 'redis' });
-    } catch (e) {
-      // fallback
-    }
-  }
   const cleared = checksumCache.size;
   checksumCache.clear();
   audit({ t: Date.now(), event: 'checksum_cleared_mem', cleared });
