@@ -1,3 +1,50 @@
+# qflush — Aperçu et guide développeur
+
+Résumé rapide
+- qflush est l'orchestrateur (CLI + daemon) principal du projet Funesterie. Le coeur se trouve dans `src/` et la sortie build dans `dist/`.
+
+Architecture (big picture)
+- Entrées principales:
+  - `src/daemon/qflushd.ts` : serveur HTTP (endpoints admin & NPZ).
+  - `src/rome/*` : moteur d'indexation, linker et logique ( règles, exécution d'actions ).
+  - `src/commands/*` : implémentation des commandes CLI exposées dans `package.json`.
+  - `src/utils/*` : helpers (redis, secrets, fetch, hmac, etc.).
+
+- Flux de données : le daemon expose des endpoints `/npz/*` pour checksum, rome-index et rome-links ; le moteur Rome parcourt et évalue des règles qui déclenchent des actions (ex : `daemon.reload`, `start-service`).
+
+Convention de build / piège courant
+- TypeScript : `tsconfig.json` doit avoir `rootDir: "src"` et `include: ["src/**/*"]` — cela permet à `tsc` de générer `dist/daemon/qflushd.js` (les scripts CI s'attendent à `dist/daemon/*`).
+
+Commandes utiles
+- Installer dépendances : `npm ci --no-audit --no-fund`
+- Builder : `npm run build` (exécute `tsc -p .`).
+- Lancer le daemon compilé : `node dist/daemon/qflushd.js` ou `npm start`.
+- Tests : `npm test` (Vitest). En CI/Vitest le bootstrap démarre automatiquement la version compilée du daemon via `vitest.setup.js`.
+
+Comportements runtime & variables d'environnement importants
+- `QFLUSHD_PORT` : port du daemon (défaut 4500 ou 43421 selon scripts). Tests/CI attendent parfois `4500`.
+- `QFLUSH_ENABLE_REDIS` : contrôle l'utilisation de Redis (0 = in-memory fallback).
+- `QFLUSH_DISABLE_COPILOT` / `QFLUSH_TELEMETRY` : désactiver la passerelle copilot/telemetry en runtime.
+- `VITEST` : si défini, `vitest.setup.js` tente de require et démarrer `dist/daemon/qflushd`.
+
+Points d'intégration et tests
+- CI (workflow `CI`) : installe deps, compile (`npx tsc`) et démarre le daemon, puis exécute les tests. Les tests d'intégration vérifient les endpoints `/npz/checksum/*` et `/npz/rome-index`.
+- Si vous rencontrez des erreurs de type `dist/daemon/qflushd.js missing` : vérifier `tsconfig.json` (rootDir/include) puis `npm run build`.
+
+Où regarder en priorité
+- `src/daemon/qflushd.ts` — comportement du serveur et endpoints.
+- `src/rome/` — logique d'indexation et exécution d'actions.
+- `src/commands/` — exemples d'utilisation du moteur via la CLI.
+- `package.json` — scripts exposés (build, test, start, daemon:spawn, etc.).
+
+Proposition pour la suite
+- Voulez-vous que je :
+  1) Nettoie le repo pour retirer `dist/` du commit (si vous préférez éviter d'avoir des artefacts de build dans la PR),
+  2) Ajoute des extraits d'exemples d'API pour `/npz/*` dans `docs/quick-start.md`,
+  3) Ou merge la PR maintenant et continuer l'amélioration de la documentation ?
+
+---
+Pour feedback ou détails supplémentaires, dites-moi quelle partie vous voulez développer en priorité.
 # QFLUSH — Funesterie Orchestrator ⚡
 
 QFLUSH est l'orchestrateur local de la Funesterie : un CLI + daemon pour démarrer, arrêter, purger, inspecter et synchroniser des modules et flux de travail dans un workspace. Il fournit des endpoints NPZ pour checksum, index Rome et liens, des utilitaires de build et des scripts d'intégration.
