@@ -375,5 +375,18 @@
       },
       "runningServices": []
     }
+  },
+  {
+    "type": "engine_state",
+    "telemetryVersion": 1,
+    "timestamp": "2025-11-20T00:43:09.194Z",
+    "payload": {
+      "rules": [],
+      "indexSummary": {
+        "count": 5,
+        "byType": {}
+      },
+      "runningServices": []
+    }
   }
 ]
