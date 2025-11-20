@@ -372,8 +372,8 @@ export function startServer(port?: number) {
   server = app.listen(p, () => {
     console.log(`qflush running on http://localhost:${p}`);
   });
-  // also start auxiliary test server on port 4500 to satisfy tests expecting that endpoint
-  try { startAuxServer(); } catch (e) {}
+  // start auxiliary test server only when daemon uses port 4500
+  try { if (p === 4500) startAuxServer(); } catch (e) {}
   return server;
 }
 
