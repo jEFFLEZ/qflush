@@ -63,7 +63,13 @@ export function listRunning() {
 function safeCloseStream(s?: WriteStream | null) {
   if (!s) return;
   try {
-    s.end();
+    // prefer non-blocking end with callback
+    try {
+      s.end(() => {});
+    } catch {
+      // fallback to destroy if end fails
+      try { (s as any).destroy && (s as any).destroy(); } catch {}
+    }
   } catch {}
 }
 
@@ -176,12 +182,28 @@ export function freezeAll(reason?: string) {
     if (!m) continue;
     try {
       if (m.child && m.child.pid) {
+        const pid = m.child.pid as number;
         if (process.platform === 'win32') {
-          // Windows: SIGSTOP not supported; try graceful termination
-          try { m.child.kill('SIGTERM'); logger.warn(`supervisor: ${name} signalled SIGTERM (win32)`); } catch (e) {}
+          // On Windows try pssuspend (Sysinternals) to suspend process; if not available, fall back to taskkill (force stop)
+          try {
+            const { spawn } = require('child_process');
+            const p = spawn('pssuspend', [String(pid)], { stdio: 'ignore', windowsHide: true });
+            p.on('error', (e: any) => {
+              logger.warn(`supervisor: pssuspend not available for ${name} (pid=${pid}), falling back to taskkill: ${e && e.message}`);
+              try { spawn('taskkill', ['/PID', String(pid), '/T', '/F'], { stdio: 'ignore', windowsHide: true }); } catch (ee) {}
+            });
+            // best-effort: do not wait for completion
+            logger.warn(`supervisor: ${name} attempted suspend via pssuspend (pid=${pid})`);
+          } catch (e) {
+            try { require('child_process').spawn('taskkill', ['/PID', String(pid), '/T', '/F'], { stdio: 'ignore', windowsHide: true }); } catch (ee) {}
+          }
         } else {
-          try { process.kill(m.child.pid as number, 'SIGSTOP'); logger.warn(`supervisor: ${name} signalled SIGSTOP`); } catch (e) {
-            try { m.child.kill('SIGTERM'); } catch {}
+          // POSIX: try SIGSTOP then fallback to SIGTERM
+          try {
+            process.kill(pid as number, 'SIGSTOP');
+            logger.warn(`supervisor: ${name} signalled SIGSTOP`);
+          } catch (e) {
+            try { process.kill(pid as number, 'SIGTERM'); logger.warn(`supervisor: ${name} signalled SIGTERM (fallback)`); } catch (ee) {}
           }
         }
       }
@@ -206,4 +228,5 @@ export default {
   listRunning,
   freezeAll,
 };
+
 
