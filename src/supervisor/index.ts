@@ -184,33 +184,16 @@ export function freezeAll(reason?: string) {
       if (m.child && m.child.pid) {
         const pid = m.child.pid as number;
         if (process.platform === 'win32') {
-          // On Windows try pssuspend (Sysinternals) to suspend process; if not available, fall back to taskkill (force stop)
+          // Prefer explicit env var QFLUSH_PSSUSPEND_PATH or rely on 'pssuspend' in PATH.
           try {
             const { spawn } = require('child_process');
-            const fs = require('fs');
-            const path = require('path');
-            const candidates = [
-              path.join(process.cwd(), 'tools', 'pssuspend', 'PsSuspend.exe'),
-              path.join(process.cwd(), 'tools', 'pssuspend', 'pssuspend.exe'),
-              'pssuspend',
-            ];
-            let used: string | null = null;
-            for (const c of candidates) {
-              try {
-                if (c === 'pssuspend') { used = c; break; }
-                if (fs.existsSync(c)) { used = c; break; }
-              } catch {}
-            }
-            if (used) {
-              const p = spawn(used, [String(pid)], { stdio: 'ignore', windowsHide: true });
-              p.on('error', (e: any) => {
-                logger.warn(`supervisor: pssuspend execution failed for ${name} (pid=${pid}), falling back to taskkill: ${e && e.message}`);
-                try { spawn('taskkill', ['/PID', String(pid), '/T', '/F'], { stdio: 'ignore', windowsHide: true }); } catch (ee) {}
-              });
-              logger.warn(`supervisor: ${name} attempted suspend via ${used} (pid=${pid})`);
-            } else {
-              try { require('child_process').spawn('taskkill', ['/PID', String(pid), '/T', '/F'], { stdio: 'ignore', windowsHide: true }); } catch (ee) {}
-            }
+            const pssuspendPath = process.env.QFLUSH_PSSUSPEND_PATH || 'pssuspend';
+            const p = spawn(pssuspendPath, [String(pid)], { stdio: 'ignore', windowsHide: true });
+            p.on('error', (e: any) => {
+              logger.warn(`supervisor: pssuspend not available or failed for ${name} (pid=${pid}) - falling back to taskkill: ${e && e.message}`);
+              try { spawn('taskkill', ['/PID', String(pid), '/T', '/F'], { stdio: 'ignore', windowsHide: true }); } catch (ee) {}
+            });
+            logger.warn(`supervisor: ${name} attempted suspend via ${pssuspendPath} (pid=${pid})`);
           } catch (e) {
             try { require('child_process').spawn('taskkill', ['/PID', String(pid), '/T', '/F'], { stdio: 'ignore', windowsHide: true }); } catch (ee) {}
           }
