@@ -98,3 +98,61 @@ PRs bienvenues. Voir `docs/qflush-plan.md` pour la stratégie 3.1 et les tâches
 Licence
 -------
 Voir `LICENSE-FUNESTERIE.txt` et les notices tierces.
+
+QFLUSH — Quickstart
+
+This repository contains QFLUSH (daemon, CLI and helpers).
+
+Quick local setup
+
+1) Copy .env example and keep safe defaults (disable Redis/Copilot for local dev):
+   - PowerShell:
+     Copy-Item .env.example .env; notepad .env
+   - Bash:
+     cp .env.example .env; ${EDITOR:-nano} .env
+
+2) Install dependencies and build:
+   npm ci --no-audit --no-fund
+   npm run build
+
+3) Run tests:
+   npm test
+
+Secrets and tokens
+
+- For local testing you can store secrets encrypted (Windows DPAPI) using the helper:
+  pwsh -NoProfile -ExecutionPolicy Bypass -File .\scripts\import-env-to-secrets.ps1 -EnvPath "$env:USERPROFILE\Desktop\.env" -RestrictFileAcl
+
+- To set GitHub repo secrets (if `gh` is available):
+  pwsh .\scripts\set-secrets.ps1 -Repo 'owner/repo' -PersistLocal -Quiet -NoPrompt
+
+Packaging & publishing
+
+- Create an npm package tarball locally:
+  npm pack
+  -> produces `funeste38-qflush-<version>.tgz`
+
+- Create a GitHub release and upload the tarball (requires `gh` auth with `repo` scope):
+  gh release create vX.Y.Z ./funeste38-qflush-*.tgz --repo owner/repo --title "qflush vX.Y.Z" --notes "release"
+
+Automated release (CI)
+
+- A workflow `.github/workflows/publish-tgz.yml` is included to pack and publish the tgz when a tag `v*` is pushed.
+  To trigger the workflow create and push a tag:
+    git tag -a vX.Y.Z -m "release vX.Y.Z"
+    git push origin vX.Y.Z
+
+Scripts & helpers
+
+- `scripts/run-with-timeout.ps1` - run a command with a timeout (quiet by default).
+- `scripts/run-with-timeout.sh` - POSIX watchdog.
+- `scripts/detach.js` - spawn a detached process (use `--quiet`).
+- `scripts/import-env-to-secrets.ps1` - import a .env file and store encrypted secrets (Windows DPAPI).
+- `scripts/set-secrets.ps1` - set GitHub secrets via `gh` or write `.env.local`; supports `-Quiet` and `-NoPrompt`.
+
+Notes
+
+- `.env` is gitignored by design. Do not commit tokens or secrets.
+- Default dev mode disables Redis and Copilot (see `.env.example`).
+
+If you want, I can also open a PR with this README update (`push+pr`) or create a shorter `docs/quick-start.md`. Reply with `push+pr` or `docs` if desired.
