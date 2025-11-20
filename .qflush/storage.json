@@ -634,6 +634,35 @@
           "path": "D:\\qflush\\.qflush\\npz\\npz-n4iw5a0y.bin"
         }
       }
+    },
+    {
+      "id": "exec-1763630660318",
+      "ts": 1763630660318,
+      "path": "",
+      "action": "echo hello",
+      "result": {
+        "success": true,
+        "stdout": "hello\r\n",
+        "stderr": "",
+        "code": 0
+      }
+    },
+    {
+      "id": "npz-1763630660324",
+      "ts": 1763630660324,
+      "path": "assets/banner.png",
+      "action": "npz.encode",
+      "result": {
+        "success": true,
+        "id": "npz-ax4ip1um",
+        "path": "D:\\qflush\\.qflush\\npz\\npz-ax4ip1um.bin",
+        "metadata": {
+          "id": "npz-ax4ip1um",
+          "source": "assets/banner.png",
+          "createdAt": "2025-11-20T09:24:20.322Z",
+          "path": "D:\\qflush\\.qflush\\npz\\npz-ax4ip1um.bin"
+        }
+      }
     }
   ]
 }

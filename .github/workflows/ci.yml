@@ -28,13 +28,25 @@ jobs:
           node-version: '20'
       - name: Install dependencies
         run: |
-          npm install --no-audit --no-fund
-      - name: Build
+          npm ci --no-audit --no-fund
+      - name: Show versions
         run: |
-          npm run build
+          node -v
+          npm -v
+          npx -v
+          npx tsc --version || true
+      - name: Build (tsc) and capture logs
+        run: |
+          npx tsc -p . --pretty false > tsc-output.log 2>&1 || (echo "tsc failed, printing log:" && sed -n '1,200p' tsc-output.log && exit 1)
+          echo "tsc succeeded"
+      - name: Show dist contents (diagnostic)
+        run: |
+          echo "dist tree:" && ls -la dist || echo "dist directory not present"
+          echo "dist/daemon tree:" && ls -la dist/daemon || echo "dist/daemon not present"
+          echo "tsc head log:" && sed -n '1,200p' tsc-output.log || true
       - name: Verify compiled daemon exists
         run: |
-          if [ ! -f ./dist/daemon/qflushd.js ]; then echo "dist/daemon/qflushd.js missing"; ls -la ./dist || true; exit 1; fi
+          if [ ! -f ./dist/daemon/qflushd.js ]; then echo "ERROR: dist/daemon/qflushd.js missing"; sed -n '1,200p' tsc-output.log || true; exit 1; fi
       - name: Start qflush daemon (background) and wait for readiness
         env:
           QFLUSHD_PORT: 43421
@@ -78,7 +90,7 @@ jobs:
           node-version: '20'
       - name: Install dependencies
         run: |
-          npm install --no-audit --no-fund
+          npm ci --no-audit --no-fund
       - name: Build
         run: |
           npm run build
@@ -103,7 +115,7 @@ jobs:
         with:
           node-version: '20'
       - name: Install
-        run: npm install --no-audit --no-fund
+        run: npm ci --no-audit --no-fund
       - name: Build
         run: npm run build
       - name: Engine dry-run (validate rules)

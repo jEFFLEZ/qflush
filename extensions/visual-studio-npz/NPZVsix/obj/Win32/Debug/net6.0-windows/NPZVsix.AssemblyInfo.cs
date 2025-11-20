@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("NPZVsix")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+de9b710f36f5d05a308458f0aa29298049f51d98")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+2295b2acde55e2e7cb2befa99cda95492f6e784f")]
 [assembly: System.Reflection.AssemblyProductAttribute("NPZVsix")]
 [assembly: System.Reflection.AssemblyTitleAttribute("NPZVsix")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

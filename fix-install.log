@@ -1,0 +1,434 @@
+Removing old global packages and shims (if any)...
+
+removed 1 package in 445ms
+Repo found at D:\qflush — building...
+npm warn deprecated @types/uuid@11.0.0: This is a stub types definition. uuid provides its own type definitions, so you do not need this installed.
+npm warn deprecated node-domexception@1.0.0: Use your platform's native DOMException instead
+
+added 339 packages, and audited 340 packages in 4s
+
+74 packages are looking for funding
+  run `npm fund` for details
+
+found 0 vulnerabilities
+
+> @funeste38/qflush@3.1.2 prebuild
+> node ./tools/generate-pourparler-css.js
+
+wrote D:\qflush\extensions\vscode-npz\pourparler-checksum.css 47c87731f2713ad3579342c129e80aa43a93b1ef8b0a0b5b7645dd81a2be3e59
+
+> @funeste38/qflush@3.1.2 build
+> tsc -p .
+
+npm notice
+npm notice package: @funeste38/qflush@3.1.2
+npm notice Tarball Contents
+npm notice 2.6kB LICENSE
+npm notice 939B LICENSE-COMMERCIAL.md
+npm notice 2.1kB LICENSE-FUNESTERIE.txt
+npm notice 457B LICENSE-NON-COMMERCIAL.md
+npm notice 2.0kB PUBLISH.md
+npm notice 1.3kB README-FCL.md
+npm notice 3.1kB README.md
+npm notice 530B TRADEMARK.md
+npm notice 700B dist/chain/smartChain.d.ts
+npm notice 5.5kB dist/chain/smartChain.js
+npm notice 42B dist/cli/help.d.ts
+npm notice 1.2kB dist/cli/help.js
+npm notice 256B dist/commands/a11.js
+npm notice 74B dist/commands/checksum.d.ts
+npm notice 2.8kB dist/commands/checksum.js
+npm notice 67B dist/commands/compose.d.ts
+npm notice 3.1kB dist/commands/compose.js
+npm notice 125B dist/commands/config.d.ts
+npm notice 1.1kB dist/commands/config.js
+npm notice 98B dist/commands/copilot-bridge.d.ts
+npm notice 2.5kB dist/commands/copilot-bridge.js
+npm notice 89B dist/commands/copilot.d.ts
+npm notice 2.8kB dist/commands/copilot.js
+npm notice 175B dist/commands/detect.d.ts
+npm notice 600B dist/commands/detect.js
+npm notice 67B dist/commands/doctor.d.ts
+npm notice 2.0kB dist/commands/doctor.js
+npm notice 88B dist/commands/engine.d.ts
+npm notice 1.1kB dist/commands/engine.js
+npm notice 126B dist/commands/exodia.d.ts
+npm notice 264B dist/commands/exodia.js
+npm notice 126B dist/commands/inspect.d.ts
+npm notice 1.0kB dist/commands/inspect.js
+npm notice 124B dist/commands/kill.d.ts
+npm notice 503B dist/commands/kill.js
+npm notice 84B dist/commands/license-activate.d.ts
+npm notice 959B dist/commands/license-activate.js
+npm notice 61B dist/commands/license-status.d.ts
+npm notice 567B dist/commands/license-status.js
+npm notice 73B dist/commands/license.d.ts
+npm notice 2.6kB dist/commands/license.js
+npm notice 87B dist/commands/logic.d.ts
+npm notice 745B dist/commands/logic.js
+npm notice 97B dist/commands/npz-inspect.d.ts
+npm notice 632B dist/commands/npz-inspect.js
+npm notice 101B dist/commands/npz-scores.d.ts
+npm notice 1.3kB dist/commands/npz-scores.js
+npm notice 124B dist/commands/purge.d.ts
+npm notice 1.1kB dist/commands/purge.js
+npm notice 598B dist/commands/rome-links.js
+npm notice 401B dist/commands/spyder.js
+npm notice 124B dist/commands/start.d.ts
+npm notice 8.8kB dist/commands/start.js
+npm notice 53B dist/compose/fclParser.d.ts
+npm notice 2.1kB dist/compose/fclParser.js
+npm notice 264B dist/compose/parser.d.ts
+npm notice 1.3kB dist/compose/parser.js
+npm notice 157B dist/daemon/auth-middleware.d.ts
+npm notice 554B dist/daemon/auth-middleware.js
+npm notice 381B dist/daemon/daemon-control.js
+npm notice 24B dist/daemon/qflashd.d.ts
+npm notice 7.4kB dist/daemon/qflashd.js
+npm notice 125B dist/daemon/qflushd.d.ts
+npm notice 17.7kB dist/daemon/qflushd.js
+npm notice 15.0kB dist/extensions/vscode-npz/out/extension.js
+npm notice 15.0kB dist/extensions/vscode-npz/out/extensions/vscode-npz/src/extension.js
+npm notice 5.5kB dist/extensions/vscode-npz/out/src/chain/smartChain.js
+npm notice 1.2kB dist/extensions/vscode-npz/out/src/cli/help.js
+npm notice 2.8kB dist/extensions/vscode-npz/out/src/commands/checksum.js
+npm notice 3.1kB dist/extensions/vscode-npz/out/src/commands/compose.js
+npm notice 1.1kB dist/extensions/vscode-npz/out/src/commands/config.js
+npm notice 2.4kB dist/extensions/vscode-npz/out/src/commands/copilot-bridge.js
+npm notice 2.9kB dist/extensions/vscode-npz/out/src/commands/copilot.js
+npm notice 600B dist/extensions/vscode-npz/out/src/commands/detect.js
+npm notice 2.0kB dist/extensions/vscode-npz/out/src/commands/doctor.js
+npm notice 1.1kB dist/extensions/vscode-npz/out/src/commands/engine.js
+npm notice 264B dist/extensions/vscode-npz/out/src/commands/exodia.js
+npm notice 1.0kB dist/extensions/vscode-npz/out/src/commands/inspect.js
+npm notice 503B dist/extensions/vscode-npz/out/src/commands/kill.js
+npm notice 959B dist/extensions/vscode-npz/out/src/commands/license-activate.js
+npm notice 567B dist/extensions/vscode-npz/out/src/commands/license-status.js
+npm notice 2.6kB dist/extensions/vscode-npz/out/src/commands/license.js
+npm notice 738B dist/extensions/vscode-npz/out/src/commands/logic.js
+npm notice 632B dist/extensions/vscode-npz/out/src/commands/npz-inspect.js
+npm notice 1.3kB dist/extensions/vscode-npz/out/src/commands/npz-scores.js
+npm notice 1.1kB dist/extensions/vscode-npz/out/src/commands/purge.js
+npm notice 8.8kB dist/extensions/vscode-npz/out/src/commands/start.js
+npm notice 2.1kB dist/extensions/vscode-npz/out/src/compose/fclParser.js
+npm notice 1.3kB dist/extensions/vscode-npz/out/src/compose/parser.js
+npm notice 532B dist/extensions/vscode-npz/out/src/daemon/auth-middleware.js
+npm notice 359B dist/extensions/vscode-npz/out/src/daemon/daemon-control.js
+npm notice 16.0kB dist/extensions/vscode-npz/out/src/daemon/qflushd.js
+npm notice 4.7kB dist/extensions/vscode-npz/out/src/index.js
+npm notice 2.1kB dist/extensions/vscode-npz/out/src/lib/index.js
+npm notice 860B dist/extensions/vscode-npz/out/src/lib/npz-engine/index.js
+npm notice 6.4kB dist/extensions/vscode-npz/out/src/rome/copilot-bridge.js
+npm notice 77B dist/extensions/vscode-npz/out/src/rome/copilot-types.js
+npm notice 414B dist/extensions/vscode-npz/out/src/rome/daemon-control.js
+npm notice 1.9kB dist/extensions/vscode-npz/out/src/rome/engine.js
+npm notice 3.7kB dist/extensions/vscode-npz/out/src/rome/events.js
+npm notice 9.5kB dist/extensions/vscode-npz/out/src/rome/executor.js
+npm notice 3.3kB dist/extensions/vscode-npz/out/src/rome/index-loader.js
+npm notice 4.2kB dist/extensions/vscode-npz/out/src/rome/logic-loader.js
+npm notice 6.8kB dist/extensions/vscode-npz/out/src/rome/logic-parser.js
+npm notice 4.3kB dist/extensions/vscode-npz/out/src/rome/rome-tag.js
+npm notice 5.6kB dist/extensions/vscode-npz/out/src/rome/storage.js
+npm notice 1.6kB dist/extensions/vscode-npz/out/src/supervisor.js
+npm notice 6.9kB dist/extensions/vscode-npz/out/src/supervisor/index.js
+npm notice 3.5kB dist/extensions/vscode-npz/out/src/tests/checksum.test.js
+npm notice 722B dist/extensions/vscode-npz/out/src/tests/copilot-hmac.test.js
+npm notice 673B dist/extensions/vscode-npz/out/src/tests/daemon-control.test.js
+npm notice 1.0kB dist/extensions/vscode-npz/out/src/tests/engine.test.js
+npm notice 3.4kB dist/extensions/vscode-npz/out/src/tests/executor.test.js
+npm notice 1.4kB dist/extensions/vscode-npz/out/src/tests/gumroad-license.test.js
+npm notice 640B dist/extensions/vscode-npz/out/src/tests/logic-action.test.js
+npm notice 1.1kB dist/extensions/vscode-npz/out/src/tests/logic-parser.unit.test.js
+npm notice 346B dist/extensions/vscode-npz/out/src/tests/logic.test.js
+npm notice 2.5kB dist/extensions/vscode-npz/out/src/tests/rome-index.test.js
+npm notice 995B dist/extensions/vscode-npz/out/src/tests/smartchain.test.js
+npm notice 1.5kB dist/extensions/vscode-npz/out/src/utils/auth.js
+npm notice 4.6kB dist/extensions/vscode-npz/out/src/utils/colors.js
+npm notice 2.3kB dist/extensions/vscode-npz/out/src/utils/detect.js
+npm notice 2.3kB dist/extensions/vscode-npz/out/src/utils/exec.js
+npm notice 5.0kB dist/extensions/vscode-npz/out/src/utils/gumroad-license.js
+npm notice 2.0kB dist/extensions/vscode-npz/out/src/utils/health.js
+npm notice 3.8kB dist/extensions/vscode-npz/out/src/utils/license.js
+npm notice 909B dist/extensions/vscode-npz/out/src/utils/logger.js
+npm notice 2.7kB dist/extensions/vscode-npz/out/src/utils/npz-admin.js
+npm notice 1.5kB dist/extensions/vscode-npz/out/src/utils/npz-config.js
+npm notice 4.8kB dist/extensions/vscode-npz/out/src/utils/npz-customs.js
+npm notice 3.9kB dist/extensions/vscode-npz/out/src/utils/npz-engine.js
+npm notice 762B dist/extensions/vscode-npz/out/src/utils/npz-metrics.js
+npm notice 3.5kB dist/extensions/vscode-npz/out/src/utils/npz-middleware.js
+npm notice 3.0kB dist/extensions/vscode-npz/out/src/utils/npz-pourparler.js
+npm notice 10.5kB dist/extensions/vscode-npz/out/src/utils/npz-router.js
+npm notice 1.5kB dist/extensions/vscode-npz/out/src/utils/npz-store-redis.js
+npm notice 2.7kB dist/extensions/vscode-npz/out/src/utils/npz-store.js
+npm notice 4.7kB dist/extensions/vscode-npz/out/src/utils/npz.js
+npm notice 1.2kB dist/extensions/vscode-npz/out/src/utils/package.js
+npm notice 1.3kB dist/extensions/vscode-npz/out/src/utils/paths.js
+npm notice 526B dist/extensions/vscode-npz/out/src/utils/tokens.js
+npm notice 14.8kB dist/extensions/vscode-npz/src/extension.js
+npm notice 1.6kB dist/extensions/vscode-npz/src/polyfill-file.js
+npm notice 11B dist/index.d.ts
+npm notice 8.9kB dist/index.js
+npm notice 279B dist/lib/index.d.ts
+npm notice 2.0kB dist/lib/index.js
+npm notice 500B dist/lib/npz-engine/index.d.ts
+npm notice 860B dist/lib/npz-engine/index.js
+npm notice 1.3kB dist/netlify/functions/gumroad-webhook.js
+npm notice 1.3kB dist/netlify/functions/token-exchange.js
+npm notice 5.5kB dist/qflush/src/chain/smartChain.js
+npm notice 1.2kB dist/qflush/src/cli/help.js
+npm notice 3.1kB dist/qflush/src/commands/compose.js
+npm notice 1.0kB dist/qflush/src/commands/config.js
+npm notice 578B dist/qflush/src/commands/detect.js
+npm notice 2.0kB dist/qflush/src/commands/doctor.js
+npm notice 242B dist/qflush/src/commands/exodia.js
+npm notice 1.0kB dist/qflush/src/commands/inspect.js
+npm notice 481B dist/qflush/src/commands/kill.js
+npm notice 1.1kB dist/qflush/src/commands/purge.js
+npm notice 6.4kB dist/qflush/src/commands/start.js
+npm notice 2.1kB dist/qflush/src/compose/fclParser.js
+npm notice 1.3kB dist/qflush/src/compose/parser.js
+npm notice 1.3kB dist/qflush/src/daemon/qflashd.js
+npm notice 1.1kB dist/qflush/src/index.js
+npm notice 1.8kB dist/qflush/src/lib/index.js
+npm notice 4.3kB dist/qflush/src/npz-customs.js
+npm notice 1.3kB dist/qflush/src/npz.js
+npm notice 6.3kB dist/qflush/src/supervisor/index.js
+npm notice 973B dist/qflush/src/tests/smartchain.test.js
+npm notice 2.3kB dist/qflush/src/utils/detect.js
+npm notice 2.3kB dist/qflush/src/utils/exec.js
+npm notice 1.9kB dist/qflush/src/utils/health.js
+npm notice 394B dist/qflush/src/utils/logger.js
+npm notice 1.2kB dist/qflush/src/utils/package.js
+npm notice 1.3kB dist/qflush/src/utils/paths.js
+npm notice 504B dist/qflush/src/utils/tokens.js
+npm notice 647B dist/rome/copilot-bridge.d.ts
+npm notice 6.3kB dist/rome/copilot-bridge.js
+npm notice 1.0kB dist/rome/copilot-types.d.ts
+npm notice 99B dist/rome/copilot-types.js
+npm notice 136B dist/rome/daemon-control.d.ts
+npm notice 436B dist/rome/daemon-control.js
+npm notice 507B dist/rome/engine.d.ts
+npm notice 2.6kB dist/rome/engine.js
+npm notice 252B dist/rome/events.d.ts
+npm notice 3.6kB dist/rome/events.js
+npm notice 80B dist/rome/executor.d.ts
+npm notice 10.5kB dist/rome/executor.js
+npm notice 313B dist/rome/index-loader.d.ts
+npm notice 3.2kB dist/rome/index-loader.js
+npm notice 6.0kB dist/rome/linker.js
+npm notice 513B dist/rome/logic-loader.d.ts
+npm notice 4.2kB dist/rome/logic-loader.js
+npm notice 866B dist/rome/logic-parser.d.ts
+npm notice 6.7kB dist/rome/logic-parser.js
+npm notice 1.1kB dist/rome/rome-tag.d.ts
+npm notice 4.2kB dist/rome/rome-tag.js
+npm notice 369B dist/rome/storage.d.ts
+npm notice 5.5kB dist/rome/storage.js
+npm notice 5.5kB dist/src/chain/smartChain.js
+npm notice 1.2kB dist/src/cli/help.js
+npm notice 256B dist/src/commands/a11.js
+npm notice 2.8kB dist/src/commands/checksum.js
+npm notice 3.1kB dist/src/commands/compose.js
+npm notice 1.1kB dist/src/commands/config.js
+npm notice 2.5kB dist/src/commands/copilot-bridge.js
+npm notice 2.8kB dist/src/commands/copilot.js
+npm notice 600B dist/src/commands/detect.js
+npm notice 2.0kB dist/src/commands/doctor.js
+npm notice 1.1kB dist/src/commands/engine.js
+npm notice 264B dist/src/commands/exodia.js
+npm notice 1.0kB dist/src/commands/inspect.js
+npm notice 503B dist/src/commands/kill.js
+npm notice 959B dist/src/commands/license-activate.js
+npm notice 567B dist/src/commands/license-status.js
+npm notice 2.6kB dist/src/commands/license.js
+npm notice 745B dist/src/commands/logic.js
+npm notice 632B dist/src/commands/npz-inspect.js
+npm notice 1.3kB dist/src/commands/npz-scores.js
+npm notice 1.1kB dist/src/commands/purge.js
+npm notice 598B dist/src/commands/rome-links.js
+npm notice 401B dist/src/commands/spyder.js
+npm notice 8.8kB dist/src/commands/start.js
+npm notice 2.1kB dist/src/compose/fclParser.js
+npm notice 1.3kB dist/src/compose/parser.js
+npm notice 554B dist/src/daemon/auth-middleware.js
+npm notice 381B dist/src/daemon/daemon-control.js
+npm notice 17.7kB dist/src/daemon/qflushd.js
+npm notice 8.9kB dist/src/index.js
+npm notice 2.0kB dist/src/lib/index.js
+npm notice 860B dist/src/lib/npz-engine/index.js
+npm notice 6.3kB dist/src/rome/copilot-bridge.js
+npm notice 99B dist/src/rome/copilot-types.js
+npm notice 436B dist/src/rome/daemon-control.js
+npm notice 2.6kB dist/src/rome/engine.js
+npm notice 3.6kB dist/src/rome/events.js
+npm notice 10.5kB dist/src/rome/executor.js
+npm notice 3.2kB dist/src/rome/index-loader.js
+npm notice 6.0kB dist/src/rome/linker.js
+npm notice 4.2kB dist/src/rome/logic-loader.js
+npm notice 6.7kB dist/src/rome/logic-parser.js
+npm notice 4.2kB dist/src/rome/rome-tag.js
+npm notice 5.5kB dist/src/rome/storage.js
+npm notice 1.6kB dist/src/supervisor.js
+npm notice 6.9kB dist/src/supervisor/index.js
+npm notice 3.4kB dist/src/tests/checksum.test.js
+npm notice 833B dist/src/tests/copilot-hmac.test.js
+npm notice 561B dist/src/tests/daemon-control.test.js
+npm notice 1.1kB dist/src/tests/engine.test.js
+npm notice 3.4kB dist/src/tests/executor.test.js
+npm notice 979B dist/src/tests/gumroad-license.test.js
+npm notice 1.1kB dist/src/tests/legacy-runner.spec.js
+npm notice 736B dist/src/tests/logic-action.test.js
+npm notice 931B dist/src/tests/logic-parser.unit.test.js
+npm notice 426B dist/src/tests/logic.test.js
+npm notice 2.5kB dist/src/tests/rome-index.test.js
+npm notice 1.4kB dist/src/tests/rome-links.test.js
+npm notice 1.0kB dist/src/tests/smartchain.test.js
+npm notice 1.5kB dist/src/utils/auth.js
+npm notice 4.6kB dist/src/utils/colors.js
+npm notice 2.3kB dist/src/utils/detect.js
+npm notice 2.3kB dist/src/utils/exec.js
+npm notice 3.4kB dist/src/utils/fetch.js
+npm notice 4.9kB dist/src/utils/gumroad-license.js
+npm notice 2.0kB dist/src/utils/health.js
+npm notice 3.7kB dist/src/utils/license.js
+npm notice 909B dist/src/utils/logger.js
+npm notice 2.7kB dist/src/utils/npz-admin.js
+npm notice 1.5kB dist/src/utils/npz-config.js
+npm notice 4.7kB dist/src/utils/npz-customs.js
+npm notice 950B dist/src/utils/npz-encoder.js
+npm notice 3.9kB dist/src/utils/npz-engine.js
+npm notice 1.1kB dist/src/utils/npz-helpers.js
+npm notice 762B dist/src/utils/npz-metrics.js
+npm notice 3.5kB dist/src/utils/npz-middleware.js
+npm notice 3.0kB dist/src/utils/npz-pourparler.js
+npm notice 10.5kB dist/src/utils/npz-router.js
+npm notice 2.5kB dist/src/utils/npz-store-redis.js
+npm notice 2.8kB dist/src/utils/npz-store.js
+npm notice 4.6kB dist/src/utils/npz.js
+npm notice 1.2kB dist/src/utils/package.js
+npm notice 1.5kB dist/src/utils/paths.js
+npm notice 526B dist/src/utils/tokens.js
+npm notice 1.6kB dist/supervisor.js
+npm notice 836B dist/supervisor/index.d.ts
+npm notice 6.9kB dist/supervisor/index.js
+npm notice 3.4kB dist/tests/checksum.test.js
+npm notice 833B dist/tests/copilot-hmac.test.js
+npm notice 561B dist/tests/daemon-control.test.js
+npm notice 1.1kB dist/tests/engine.test.js
+npm notice 3.4kB dist/tests/executor.test.js
+npm notice 979B dist/tests/gumroad-license.test.js
+npm notice 1.1kB dist/tests/legacy-runner.spec.js
+npm notice 736B dist/tests/logic-action.test.js
+npm notice 931B dist/tests/logic-parser.unit.test.js
+npm notice 426B dist/tests/logic.test.js
+npm notice 11B dist/tests/npz-customs.test.d.ts
+npm notice 706B dist/tests/npz-customs.test.js
+npm notice 2.6kB dist/tests/rome-index.test.js
+npm notice 1.4kB dist/tests/rome-links.test.js
+npm notice 12B dist/tests/smartchain.test.d.ts
+npm notice 1.0kB dist/tests/smartchain.test.js
+npm notice 2.7kB dist/tools/check-circular.js
+npm notice 916B dist/tools/check-cli.js
+npm notice 925B dist/tools/generate-badge.js
+npm notice 1.1kB dist/tools/generate-pourparler-css.js
+npm notice 2.5kB dist/tools/installer.js
+npm notice 3.3kB dist/tools/rome-lint.js
+npm notice 1.6kB dist/tools/rome-report.js
+npm notice 204B dist/utils/auth.d.ts
+npm notice 1.5kB dist/utils/auth.js
+npm notice 1.6kB dist/utils/colors.d.ts
+npm notice 4.6kB dist/utils/colors.js
+npm notice 129B dist/utils/detect.d.ts
+npm notice 2.3kB dist/utils/detect.js
+npm notice 473B dist/utils/exec.d.ts
+npm notice 2.3kB dist/utils/exec.js
+npm notice 3.4kB dist/utils/fetch.js
+npm notice 1.3kB dist/utils/gumroad-license.d.ts
+npm notice 4.9kB dist/utils/gumroad-license.js
+npm notice 292B dist/utils/health.d.ts
+npm notice 2.0kB dist/utils/health.js
+npm notice 708B dist/utils/license.d.ts
+npm notice 3.7kB dist/utils/license.js
+npm notice 340B dist/utils/logger.d.ts
+npm notice 909B dist/utils/logger.js
+npm notice 50B dist/utils/npz-admin.d.ts
+npm notice 2.7kB dist/utils/npz-admin.js
+npm notice 150B dist/utils/npz-config.d.ts
+npm notice 1.5kB dist/utils/npz-config.js
+npm notice 994B dist/utils/npz-customs.d.ts
+npm notice 4.7kB dist/utils/npz-customs.js
+npm notice 950B dist/utils/npz-encoder.js
+npm notice 923B dist/utils/npz-engine.d.ts
+npm notice 3.9kB dist/utils/npz-engine.js
+npm notice 1.1kB dist/utils/npz-helpers.js
+npm notice 206B dist/utils/npz-metrics.d.ts
+npm notice 762B dist/utils/npz-metrics.js
+npm notice 336B dist/utils/npz-middleware.d.ts
+npm notice 3.5kB dist/utils/npz-middleware.js
+npm notice 951B dist/utils/npz-pourparler.d.ts
+npm notice 3.0kB dist/utils/npz-pourparler.js
+npm notice 1.6kB dist/utils/npz-router.d.ts
+npm notice 10.5kB dist/utils/npz-router.js
+npm notice 549B dist/utils/npz-store-redis.d.ts
+npm notice 2.5kB dist/utils/npz-store-redis.js
+npm notice 652B dist/utils/npz-store.d.ts
+npm notice 2.8kB dist/utils/npz-store.js
+npm notice 463B dist/utils/npz.d.ts
+npm notice 4.6kB dist/utils/npz.js
+npm notice 144B dist/utils/package.d.ts
+npm notice 1.2kB dist/utils/package.js
+npm notice 188B dist/utils/paths.d.ts
+npm notice 1.5kB dist/utils/paths.js
+npm notice 156B dist/utils/tokens.d.ts
+npm notice 526B dist/utils/tokens.js
+npm notice 569B dist/vitest.config.js
+npm notice 1.8kB dist/vitest.setup.js
+npm notice 2.7MB installers/FCL_Commercial_License.pdf
+npm notice 3.5MB installers/funesterie_logo.png
+npm notice 1.0kB installers/install-all.ps1
+npm notice 2.5kB installers/install-qflash.ps1
+npm notice 559B installers/install-qflashd.ps1
+npm notice 179B installers/ONE-LINER.txt
+npm notice 217B installers/qflashd.service
+npm notice 890B installers/README-install.md
+npm notice 2.2kB package.json
+npm notice Tarball Details
+npm notice name: @funeste38/qflush
+npm notice version: 3.1.2
+npm notice filename: funeste38-qflush-3.1.2.tgz
+npm notice package size: 3.9 MB
+npm notice unpacked size: 7.1 MB
+npm notice shasum: 53cd2080ef83e6e785b1bb12a0caa2d2450cecf6
+npm notice integrity: sha512-5qJe6IyFQ++BX[...]utToxjJ4xOwTw==
+npm notice total files: 369
+npm notice
+Packed TGZ: D:\qflush\funeste38-qflush-3.1.2.tgz
+Installing from local tgz...
+npm warn deprecated node-domexception@1.0.0: Use your platform's native DOMException instead
+
+added 101 packages in 5s
+
+22 packages are looking for funding
+  run `npm fund` for details
+Using global package dist: C:\Users\cella\AppData\Roaming\npm\node_modules\@funeste38\qflush\dist\index.js
+Added C:\Users\cella\AppData\Roaming\npm to PATH for this session.
+Shims written:
+ - C:\Users\cella\AppData\Roaming\npm\qflush.cmd
+ - C:\Users\cella\AppData\Roaming\npm\qflush.ps1
+ - C:\Users\cella\AppData\Roaming\npm\qflush-cli.js
+
+Contents of C:\Users\cella\AppData\Roaming\npm (qflush*):
+
+Name          FullName                                        
+----          --------                                        
+qflush        C:\Users\cella\AppData\Roaming\npm\qflush       
+qflush-cli.js C:\Users\cella\AppData\Roaming\npm\qflush-cli.js
+qflush.cmd    C:\Users\cella\AppData\Roaming\npm\qflush.cmd   
+qflush.ps1    C:\Users\cella\AppData\Roaming\npm\qflush.ps1   
+
+
+
+Attempting to run: qflush --version (same session)
+3.1.2
+
+If qflush n'est toujours pas trouvé: fermez puis rouvrez PowerShell (Developer PowerShell) et exécutez qflush --version.
