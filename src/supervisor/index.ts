@@ -73,14 +73,80 @@ function safeCloseStream(s?: WriteStream | null) {
   } catch {}
 }
 
-function isAlive(mp?: ManagedProc): boolean {
-  if (!mp || !mp.child || !mp.child.pid) return false;
-  try {
-    process.kill(mp.child.pid as number, 0);
-    return true;
-  } catch {
-    return false;
+// Helper: suspend/resume utilities and health-polling for auto-resume
+function suspendProcessPid(pid: number): boolean {
+  if (process.platform === 'win32') {
+    try {
+      const { spawn } = require('child_process');
+      const pssuspendPath = process.env.QFLUSH_PSSUSPEND_PATH || 'pssuspend';
+      const p = spawn(pssuspendPath, [String(pid)], { stdio: 'ignore', windowsHide: true });
+      p.on('error', () => {});
+      return true;
+    } catch (e) {
+      try { require('child_process').spawn('taskkill', ['/PID', String(pid), '/T', '/F'], { stdio: 'ignore', windowsHide: true }); } catch (ee) {}
+      return false;
+    }
+  } else {
+    try {
+      process.kill(pid, 'SIGSTOP');
+      return true;
+    } catch (e) {
+      try { process.kill(pid, 'SIGTERM'); } catch (ee) {}
+      return false;
+    }
   }
+}
+
+function resumeProcessPid(pid: number): boolean {
+  if (process.platform === 'win32') {
+    try {
+      const { spawn } = require('child_process');
+      const pssuspendPath = process.env.QFLUSH_PSSUSPEND_PATH || 'pssuspend';
+      // pssuspend -r <pid> resumes
+      const p = spawn(pssuspendPath, ['-r', String(pid)], { stdio: 'ignore', windowsHide: true });
+      p.on('error', () => {});
+      return true;
+    } catch (e) {
+      try { require('child_process').spawn('taskkill', ['/PID', String(pid), '/T', '/F'], { stdio: 'ignore', windowsHide: true }); } catch (ee) {}
+      return false;
+    }
+  } else {
+    try {
+      process.kill(pid, 'SIGCONT');
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+}
+
+function pollUrlUntilHealthy(url: string, intervalMs = 3000, timeoutMs = 300000): Promise<boolean> {
+  return new Promise((resolve) => {
+    const start = Date.now();
+    const check = () => {
+      try {
+        const u = new URL(url);
+        const mod = (u.protocol === 'https:' ? require('https') : require('http'));
+        const req = mod.request(url, { method: 'GET', timeout: 5000 }, (res: any) => {
+          const ok = res.statusCode && res.statusCode >= 200 && res.statusCode < 300;
+          res.resume();
+          if (ok) return resolve(true);
+          if (Date.now() - start > timeoutMs) return resolve(false);
+          setTimeout(check, intervalMs);
+        });
+        req.on('error', () => {
+          if (Date.now() - start > timeoutMs) return resolve(false);
+          setTimeout(check, intervalMs);
+        });
+        req.on('timeout', () => { req.abort(); });
+        req.end();
+      } catch (e) {
+        if (Date.now() - start > timeoutMs) return resolve(false);
+        setTimeout(check, intervalMs);
+      }
+    };
+    check();
+  });
 }
 
 export function startProcess(name: string, cmd: string, args: string[] = [], opts: any = {}) {
@@ -176,36 +242,32 @@ export function clearState() {
   try { if (existsSync(STATE_FILE)) unlinkSync(STATE_FILE); } catch {}
 }
 
-export function freezeAll(reason?: string) {
+export function freezeAll(reason?: string, opts?: { autoResume?: boolean; resumeCheck?: { url?: string; intervalMs?: number; timeoutMs?: number } }) {
   logger.warn(`supervisor: initiating emergency freeze${reason ? ` - ${reason}` : ''}`);
+  const suspendedPids: number[] = [];
   for (const [name, m] of managed) {
     if (!m) continue;
     try {
       if (m.child && m.child.pid) {
         const pid = m.child.pid as number;
+        let suspended = false;
         if (process.platform === 'win32') {
-          // Prefer explicit env var QFLUSH_PSSUSPEND_PATH or rely on 'pssuspend' in PATH.
-          try {
-            const { spawn } = require('child_process');
-            const pssuspendPath = process.env.QFLUSH_PSSUSPEND_PATH || 'pssuspend';
-            const p = spawn(pssuspendPath, [String(pid)], { stdio: 'ignore', windowsHide: true });
-            p.on('error', (e: any) => {
-              logger.warn(`supervisor: pssuspend not available or failed for ${name} (pid=${pid}) - falling back to taskkill: ${e && e.message}`);
-              try { spawn('taskkill', ['/PID', String(pid), '/T', '/F'], { stdio: 'ignore', windowsHide: true }); } catch (ee) {}
-            });
-            logger.warn(`supervisor: ${name} attempted suspend via ${pssuspendPath} (pid=${pid})`);
-          } catch (e) {
-            try { require('child_process').spawn('taskkill', ['/PID', String(pid), '/T', '/F'], { stdio: 'ignore', windowsHide: true }); } catch (ee) {}
+          // try suspend
+          suspended = suspendProcessPid(pid);
+          if (!suspended) {
+            logger.warn(`supervisor: failed to suspend ${name} (pid=${pid}), attempted kill fallback`);
           }
         } else {
-          // POSIX: try SIGSTOP then fallback to SIGTERM
+          // POSIX
           try {
             process.kill(pid as number, 'SIGSTOP');
+            suspended = true;
             logger.warn(`supervisor: ${name} signalled SIGSTOP`);
           } catch (e) {
             try { process.kill(pid as number, 'SIGTERM'); logger.warn(`supervisor: ${name} signalled SIGTERM (fallback)`); } catch (ee) {}
           }
         }
+        if (suspended) suspendedPids.push(pid);
       }
     } catch (err) {
       logger.warn(`supervisor: failed to freeze ${name} (${err})`);
@@ -217,6 +279,30 @@ export function freezeAll(reason?: string) {
     if (procs[name]) procs[name].pid = m.child && m.child.pid ? m.child.pid : null;
   }
   persist();
+
+  // auto-resume logic
+  if (opts && opts.autoResume && opts.resumeCheck && opts.resumeCheck.url) {
+    const intervalMs = opts.resumeCheck.intervalMs || 3000;
+    const timeoutMs = opts.resumeCheck.timeoutMs || 5 * 60 * 1000;
+    logger.info(`supervisor: auto-resume enabled, polling ${opts.resumeCheck.url} every ${intervalMs}ms up to ${timeoutMs}ms`);
+    (async () => {
+      const ok = await pollUrlUntilHealthy(opts.resumeCheck.url!, intervalMs, timeoutMs);
+      if (ok) {
+        logger.info('supervisor: resume-check OK, resuming suspended processes');
+        for (const pid of suspendedPids) {
+          try {
+            const res = resumeProcessPid(pid);
+            logger.info(`supervisor: resume pid=${pid} result=${res}`);
+          } catch (e) {
+            logger.warn(`supervisor: failed to resume pid=${pid} (${e})`);
+          }
+        }
+      } else {
+        logger.warn('supervisor: auto-resume timeout reached, leaving processes suspended');
+      }
+    })();
+  }
+
   logger.warn('supervisor: emergency freeze complete');
 }
 
