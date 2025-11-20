@@ -1,0 +1,12 @@
+Running cleanup-qflash.ps1
+Repo root: D:\qflush
+Scanning files...
+Patched: D:\qflush\.env
+Patched: D:\qflush\.env.example
+Set-Content : Le processus ne peut pas accéder au fichier 'D:\qflush\cleanup.log', car il est en cours d'utilisation par un autre processus.
+Au caractère D:\qflush\scripts\cleanup-qflash.ps1:28 : 9
++         Set-Content -LiteralPath $f.FullName -Value $new -Encoding UT ...
++         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:) [Set-Content], IOException
+    + FullyQualifiedErrorId : System.IO.IOException,Microsoft.PowerShell.Commands.SetContentCommand
+ 

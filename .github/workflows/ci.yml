@@ -1,0 +1,124 @@
+name: CI
+
+on:
+  push:
+    branches: [ master, main, 'fix/*' ]
+  pull_request:
+    branches: [ master, main ]
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+      - name: Configure git
+        run: |
+          git config --global user.email "actions@github.com"
+          git config --global user.name "github-actions"
+          git config --global --add safe.directory "${{ github.workspace }}"
+      - name: Use Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install dependencies
+        run: |
+          npm ci --no-audit --no-fund
+      - name: Show versions
+        run: |
+          node -v
+          npm -v
+          npx -v
+          npx tsc --version || true
+      - name: Build (tsc) and capture logs
+        run: |
+          npx tsc -p . --pretty false > tsc-output.log 2>&1 || (echo "tsc failed, printing log:" && sed -n '1,200p' tsc-output.log && exit 1)
+          echo "tsc succeeded"
+      - name: Show dist contents (diagnostic)
+        run: |
+          echo "dist tree:" && ls -la dist || echo "dist directory not present"
+          echo "dist/daemon tree:" && ls -la dist/daemon || echo "dist/daemon not present"
+          echo "tsc head log:" && sed -n '1,200p' tsc-output.log || true
+      - name: Verify compiled daemon exists
+        run: |
+          if [ ! -f ./dist/daemon/qflushd.js ]; then echo "ERROR: dist/daemon/qflushd.js missing"; sed -n '1,200p' tsc-output.log || true; exit 1; fi
+      - name: Start qflush daemon (background) and wait for readiness
+        env:
+          QFLUSHD_PORT: 43421
+          QFLUSH_ENABLE_REDIS: 0
+        run: |
+          nohup node ./dist/daemon/qflushd.js > qflushd.log 2>&1 & echo $! > qflushd.pid
+          npx wait-on -t 30000 http://localhost:${QFLUSHD_PORT}/npz/rome-index
+      - name: Run tests
+        env:
+          VITEST: "1"
+          QFLUSHD_PORT: 43421
+          QFLUSH_ENABLE_REDIS: 0
+        run: |
+          npm test
+      - name: Teardown qflush daemon
+        if: always()
+        run: |
+          if [ -f qflushd.pid ]; then kill $(cat qflushd.pid) || true; fi
+          tail -n 200 qflushd.log || true
+
+  integration-dry-run:
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      REDIS_URL: ''
+      QFLUSH_DISABLE_SUPERVISOR: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+      - name: Configure git
+        run: |
+          git config --global user.email "actions@github.com"
+          git config --global user.name "github-actions"
+          git config --global --add safe.directory "${{ github.workspace }}"
+      - name: Use Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install dependencies
+        run: |
+          npm ci --no-audit --no-fund
+      - name: Build
+        run: |
+          npm run build
+      - name: Integration dry-run
+        run: |
+          node dist/index.js start --verbose --dry-run
+
+  engine-dry-run:
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      REDIS_URL: ''
+      QFLUSH_DISABLE_SUPERVISOR: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install
+        run: npm ci --no-audit --no-fund
+      - name: Build
+        run: npm run build
+      - name: Engine dry-run (validate rules)
+        run: |
+          node dist/index.js engine --dry-run
+        timeout-minutes: 10

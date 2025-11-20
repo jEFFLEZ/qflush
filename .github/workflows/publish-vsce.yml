@@ -1,0 +1,35 @@
+name: Publish VS Code Marketplace
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  publish-vsce:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Validate tokens
+        run: |
+          if [ -z "${{ secrets.VSCE_TOKEN }}" ]; then echo "VSCE_TOKEN is missing"; exit 1; fi
+
+      - name: Install and build extension
+        run: |
+          cd extensions/vscode-npz
+          npm ci --no-audit --no-fund
+          npm run build
+
+      - name: Publish to Marketplace (VSCE)
+        env:
+          VSCE_TOKEN: ${{ secrets.VSCE_TOKEN }}
+        run: |
+          cd extensions/vscode-npz
+          npx vsce publish --pat "$VSCE_TOKEN" || npx vsce package

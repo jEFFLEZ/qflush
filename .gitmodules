@@ -1,0 +1,3 @@
+[submodule "qflush"]
+	path = qflush
+	url = https://github.com/jEFFLEZ/qflush.git

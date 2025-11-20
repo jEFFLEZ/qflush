@@ -1,0 +1,42 @@
+name: Publish to Open VSX
+
+on:
+  workflow_dispatch: {}
+  release:
+    types: [published]
+
+jobs:
+  publish-open-vsx:
+    runs-on: ubuntu-latest
+    env:
+      OPEN_VSX_TOKEN: ${{ secrets.OPEN_VSX_TOKEN }}
+      NODE_OPTIONS: "-r ${{ github.workspace }}/extensions/vscode-npz/src/polyfill-file.js"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: false
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Validate token (warning only)
+        run: |
+          if [ -z "${OPEN_VSX_TOKEN}" ]; then echo "OPEN_VSX_TOKEN is not set - Open VSX publish will be skipped"; else echo "OPEN_VSX_TOKEN is set"; fi
+      - name: Install dependencies
+        run: |
+          cd extensions/vscode-npz
+          if [ -f package-lock.json ]; then npm ci; else npm install --no-audit --no-fund; fi
+      - name: Package .vsix
+        run: |
+          cd extensions/vscode-npz
+          npx @vscode/vsce package
+      - name: Upload VSIX artifact for debugging
+        uses: actions/upload-artifact@v3
+        with:
+          name: qflush-vsix
+          path: extensions/vscode-npz/*.vsix
+      - name: Publish to Open VSX (runtime)
+        run: |
+          cd extensions/vscode-npz
+          if [ -z "${OPEN_VSX_TOKEN}" ]; then echo "OPEN_VSX_TOKEN missing - skip"; exit 0; fi
+          npx ovsx publish *.vsix --pat $OPEN_VSX_TOKEN || echo 'Open VSX publish failed'

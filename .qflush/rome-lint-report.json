@@ -1,0 +1,1386 @@
+{
+  "files": [
+    {
+      "path": "src/chain/smartChain.ts",
+      "ok": false,
+      "note": "",
+      "mismatchedTag": false,
+      "forbiddenImports": [
+        "../utils/logger",
+        "../commands/detect",
+        "../commands/config",
+        "../commands/purge",
+        "../commands/kill",
+        "../commands/start",
+        "../commands/exodia"
+      ]
+    },
+    {
+      "path": "src/cli/help.ts",
+      "ok": false,
+      "note": "",
+      "mismatchedTag": false,
+      "forbiddenImports": [
+        "../utils/logger"
+      ]
+    },
+    {
+      "path": "src/commands/checksum.ts",
+      "ok": false,
+      "note": "",
+      "mismatchedTag": false,
+      "forbiddenImports": [
+        "../utils/fetch",
+        "../utils/logger"
+      ]
+    },
+    {
+      "path": "src/commands/compose.ts",
+      "ok": false,
+      "note": "",
+      "mismatchedTag": false,
+      "forbiddenImports": [
+        "../compose/parser",
+        "../utils/logger",
+        "../supervisor"
+      ]
+    },
+    {
+      "path": "src/commands/config.ts",
+      "ok": false,
+      "note": "",
+      "mismatchedTag": false,
+      "forbiddenImports": [
+        "../utils/logger",
+        "../utils/paths",
+        "../chain/smartChain"
+      ]
+    },
+    {
+      "path": "src/commands/copilot-bridge.ts",
+      "ok": false,
+      "note": "",
+      "mismatchedTag": false,
+      "forbiddenImports": [
+        "../utils/fetch"
+      ]
+    },
+    {
+      "path": "src/commands/copilot.ts",
+      "ok": false,
+      "note": "",
+      "mismatchedTag": false,
+      "forbiddenImports": [
+        "../utils/fetch"
+      ]
+    },
+    {
+      "path": "src/commands/detect.ts",
+      "ok": false,
+      "note": "",
+      "mismatchedTag": false,
+      "forbiddenImports": [
+        "../utils/detect",
+        "../utils/logger",
+        "../chain/smartChain"
+      ]
+    },
+    {
+      "path": "src/commands/doctor.ts",
+      "ok": false,
+      "note": "",
+      "mismatchedTag": false,
+      "forbiddenImports": [
+        "../utils/logger",
+        "../utils/detect",
+        "../utils/health",
+        "../utils/paths",
+        "../utils/exec"
+      ]
+    },
+    {
+      "path": "src/commands/engine.ts",
+      "ok": false,
+      "note": "",
+      "mismatchedTag": false,
+      "forbiddenImports": [
+        "../rome/index-loader",
+        "../rome/engine",
+        "../rome/executor"
+      ]
+    },
+    {
+      "path": "src/commands/exodia.ts",
+      "ok": false,
+      "note": "",
+      "mismatchedTag": false,
+      "forbiddenImports": [
+        "../utils/logger",
+        "../chain/smartChain"
+      ]
+    },
+    {
+      "path": "src/commands/inspect.ts",
+      "ok": false,
+      "note": "",
+      "mismatchedTag": false,
+      "forbiddenImports": [
+        "../utils/logger",
+        "../utils/detect",
+        "../supervisor",
+        "../chain/smartChain"
+      ]
+    },
+    {
+      "path": "src/commands/kill.ts",
+      "ok": false,
+      "note": "",
+      "mismatchedTag": false,
+      "forbiddenImports": [
+        "../utils/logger",
+        "../utils/detect",
+        "../supervisor",
+        "../chain/smartChain"
+      ]
+    },
+    {
+      "path": "src/commands/license-activate.ts",
+      "ok": false,
+      "note": "",
+      "mismatchedTag": false,
+      "forbiddenImports": [
+        "../utils/license"
+      ]
+    },
+    {
+      "path": "src/commands/license-status.ts",
+      "ok": false,
+      "note": "",
+      "mismatchedTag": false,
+      "forbiddenImports": [
+        "../utils/license"
+      ]
+    },
+    {
+      "path": "src/commands/license.ts",
+      "ok": false,
+      "note": "",
+      "mismatchedTag": false,
+      "forbiddenImports": [
+        "../utils/gumroad-license",
+        "../utils/logger"
+      ]
+    },
+    {
+      "path": "src/commands/logic.ts",
+      "ok": false,
+      "note": "",
+      "mismatchedTag": false,
+      "forbiddenImports": [
+        "../rome/logic-loader",
+        "../rome/index-loader",
+        "../rome/logic-loader"
+      ]
+    },
+    {
+      "path": "src/commands/npz-inspect.ts",
+      "ok": false,
+      "note": "",
+      "mismatchedTag": false,
+      "forbiddenImports": [
+        "../utils/npz-store"
+      ]
+    },
+    {
+      "path": "src/commands/npz-scores.ts",
+      "ok": false,
+      "note": "",
+      "mismatchedTag": false,
+      "forbiddenImports": [
+        "../utils/npz-engine"
+      ]
+    },
+    {
+      "path": "src/commands/purge.ts",
+      "ok": false,
+      "note": "",
+      "mismatchedTag": false,
+      "forbiddenImports": [
+        "../utils/logger",
+        "../utils/paths",
+        "../utils/exec",
+        "../supervisor",
+        "../chain/smartChain"
+      ]
+    },
+    {
+      "path": "src/commands/start.ts",
+      "ok": false,
+      "note": "",
+      "mismatchedTag": false,
+      "forbiddenImports": [
+        "../utils/detect",
+        "../utils/logger",
+        "../utils/exec",
+        "../utils/paths",
+        "../chain/smartChain",
+        "../utils/package",
+        "../supervisor",
+        "../utils/health",
+        "../utils/npz-customs",
+        "../utils/npz"
+      ]
+    },
+    {
+      "path": "src/compose/fclParser.ts",
+      "ok": true,
+      "note": "",
+      "mismatchedTag": false,
+      "forbiddenImports": []
+    },
+    {
+      "path": "src/compose/parser.ts",
+      "ok": true,
+      "note": "",
+      "mismatchedTag": false,
+      "forbiddenImports": []
+    },
+    {
+      "path": "src/daemon/auth-middleware.ts",
+      "ok": true,
+      "note": "",
+      "mismatchedTag": false,
+      "forbiddenImports": []
+    },
+    {
+      "path": "src/daemon/daemon-control.ts",
+      "ok": true,
+      "note": "",
+      "mismatchedTag": false,
+      "forbiddenImports": []
+    },
+    {
+      "path": "src/daemon/qflushd.ts",
+      "ok": false,
+      "note": "",
+      "mismatchedTag": false,
+      "forbiddenImports": [
+        "../rome/index-loader",
+        "../rome/engine",
+        "../rome/logic-loader",
+        "../rome/executor",
+        "../rome/events",
+        "../rome/copilot-bridge"
+      ]
+    },
+    {
+      "path": "src/index.ts",
+      "ok": true,
+      "note": "",
+      "mismatchedTag": false,
+      "forbiddenImports": []
+    },
+    {
+      "path": "src/lib/index.ts",
+      "ok": true,
+      "note": "",
+      "mismatchedTag": false,
+      "forbiddenImports": []
+    },
+    {
+      "path": "src/lib/npz-engine/index.ts",
+      "ok": false,
+      "note": "",
+      "mismatchedTag": false,
+      "forbiddenImports": [
+        "../../utils/npz-engine"
+      ]
+    },
+    {
+      "path": "src/rome/copilot-bridge.ts",
+      "ok": true,
+      "note": "",
+      "mismatchedTag": false,
+      "forbiddenImports": []
+    },
+    {
+      "path": "src/rome/copilot-types.d.ts",
+      "ok": true,
+      "note": "",
+      "mismatchedTag": false,
+      "forbiddenImports": []
+    },
+    {
+      "path": "src/rome/copilot-types.ts",
+      "ok": true,
+      "note": "",
+      "mismatchedTag": false,
+      "forbiddenImports": []
+    },
+    {
+      "path": "src/rome/daemon-control.ts",
+      "ok": true,
+      "note": "",
+      "mismatchedTag": false,
+      "forbiddenImports": []
+    },
+    {
+      "path": "src/rome/engine.ts",
+      "ok": true,
+      "note": "",
+      "mismatchedTag": false,
+      "forbiddenImports": []
+    },
+    {
+      "path": "src/rome/events.ts",
+      "ok": true,
+      "note": "",
+      "mismatchedTag": false,
+      "forbiddenImports": []
+    },
+    {
+      "path": "src/rome/executor.ts",
+      "ok": false,
+      "note": "",
+      "mismatchedTag": false,
+      "forbiddenImports": [
+        "../utils/fetch"
+      ]
+    },
+    {
+      "path": "src/rome/index-loader.ts",
+      "ok": true,
+      "note": "",
+      "mismatchedTag": false,
+      "forbiddenImports": []
+    },
+    {
+      "path": "src/rome/logic-loader.ts",
+      "ok": true,
+      "note": "",
+      "mismatchedTag": false,
+      "forbiddenImports": []
+    },
+    {
+      "path": "src/rome/logic-parser.ts",
+      "ok": true,
+      "note": "",
+      "mismatchedTag": false,
+      "forbiddenImports": []
+    },
+    {
+      "path": "src/rome/rome-tag.js",
+      "ok": true,
+      "note": "",
+      "mismatchedTag": false,
+      "forbiddenImports": []
+    },
+    {
+      "path": "src/rome/rome-tag.ts",
+      "ok": true,
+      "note": "",
+      "mismatchedTag": false,
+      "forbiddenImports": []
+    },
+    {
+      "path": "src/rome/storage.ts",
+      "ok": true,
+      "note": "",
+      "mismatchedTag": false,
+      "forbiddenImports": []
+    },
+    {
+      "path": "src/supervisor/index.ts",
+      "ok": false,
+      "note": "",
+      "mismatchedTag": false,
+      "forbiddenImports": [
+        "../utils/logger"
+      ]
+    },
+    {
+      "path": "src/supervisor.ts",
+      "ok": true,
+      "note": "",
+      "mismatchedTag": false,
+      "forbiddenImports": []
+    },
+    {
+      "path": "src/tests/checksum.test.ts",
+      "ok": true,
+      "note": "",
+      "mismatchedTag": false,
+      "forbiddenImports": []
+    },
+    {
+      "path": "src/tests/copilot-hmac.test.ts",
+      "ok": true,
+      "note": "",
+      "mismatchedTag": false,
+      "forbiddenImports": []
+    },
+    {
+      "path": "src/tests/daemon-control.test.ts",
+      "ok": true,
+      "note": "",
+      "mismatchedTag": false,
+      "forbiddenImports": []
+    },
+    {
+      "path": "src/tests/engine.test.ts",
+      "ok": true,
+      "note": "",
+      "mismatchedTag": false,
+      "forbiddenImports": []
+    },
+    {
+      "path": "src/tests/executor.test.ts",
+      "ok": true,
+      "note": "",
+      "mismatchedTag": false,
+      "forbiddenImports": []
+    },
+    {
+      "path": "src/tests/gumroad-license.test.ts",
+      "ok": true,
+      "note": "",
+      "mismatchedTag": false,
+      "forbiddenImports": []
+    },
+    {
+      "path": "src/tests/legacy-runner.spec.ts",
+      "ok": false,
+      "note": "",
+      "mismatchedTag": true,
+      "forbiddenImports": [],
+      "expected": "0x1EC911",
+      "found": null
+    },
+    {
+      "path": "src/tests/logic-action.test.ts",
+      "ok": true,
+      "note": "",
+      "mismatchedTag": false,
+      "forbiddenImports": []
+    },
+    {
+      "path": "src/tests/logic-parser.unit.test.ts",
+      "ok": true,
+      "note": "",
+      "mismatchedTag": false,
+      "forbiddenImports": []
+    },
+    {
+      "path": "src/tests/logic.test.ts",
+      "ok": true,
+      "note": "",
+      "mismatchedTag": false,
+      "forbiddenImports": []
+    },
+    {
+      "path": "src/tests/rome-index.test.ts",
+      "ok": true,
+      "note": "",
+      "mismatchedTag": false,
+      "forbiddenImports": []
+    },
+    {
+      "path": "src/tests/smartchain.test.ts",
+      "ok": true,
+      "note": "",
+      "mismatchedTag": false,
+      "forbiddenImports": []
+    },
+    {
+      "path": "src/types/copilot-bridge.d.ts",
+      "ok": true,
+      "note": "",
+      "mismatchedTag": false,
+      "forbiddenImports": []
+    },
+    {
+      "path": "src/types/js-yaml.d.ts",
+      "ok": true,
+      "note": "",
+      "mismatchedTag": false,
+      "forbiddenImports": []
+    },
+    {
+      "path": "src/types/rome-tag.d.ts",
+      "ok": true,
+      "note": "",
+      "mismatchedTag": false,
+      "forbiddenImports": []
+    },
+    {
+      "path": "src/types/shims.d.ts",
+      "ok": true,
+      "note": "",
+      "mismatchedTag": false,
+      "forbiddenImports": []
+    },
+    {
+      "path": "src/types/tail.d.ts",
+      "ok": true,
+      "note": "",
+      "mismatchedTag": false,
+      "forbiddenImports": []
+    },
+    {
+      "path": "src/types/third-party.d.ts",
+      "ok": true,
+      "note": "",
+      "mismatchedTag": false,
+      "forbiddenImports": []
+    },
+    {
+      "path": "src/utils/auth.ts",
+      "ok": true,
+      "note": "",
+      "mismatchedTag": false,
+      "forbiddenImports": []
+    },
+    {
+      "path": "src/utils/colors.ts",
+      "ok": true,
+      "note": "",
+      "mismatchedTag": false,
+      "forbiddenImports": []
+    },
+    {
+      "path": "src/utils/detect.ts",
+      "ok": true,
+      "note": "",
+      "mismatchedTag": false,
+      "forbiddenImports": []
+    },
+    {
+      "path": "src/utils/exec.ts",
+      "ok": true,
+      "note": "",
+      "mismatchedTag": false,
+      "forbiddenImports": []
+    },
+    {
+      "path": "src/utils/fetch.ts",
+      "ok": true,
+      "note": "",
+      "mismatchedTag": false,
+      "forbiddenImports": []
+    },
+    {
+      "path": "src/utils/gumroad-license.ts",
+      "ok": true,
+      "note": "",
+      "mismatchedTag": false,
+      "forbiddenImports": []
+    },
+    {
+      "path": "src/utils/health.ts",
+      "ok": true,
+      "note": "",
+      "mismatchedTag": false,
+      "forbiddenImports": []
+    },
+    {
+      "path": "src/utils/license.ts",
+      "ok": true,
+      "note": "",
+      "mismatchedTag": false,
+      "forbiddenImports": []
+    },
+    {
+      "path": "src/utils/logger.ts",
+      "ok": true,
+      "note": "",
+      "mismatchedTag": false,
+      "forbiddenImports": []
+    },
+    {
+      "path": "src/utils/npz-admin.ts",
+      "ok": true,
+      "note": "",
+      "mismatchedTag": false,
+      "forbiddenImports": []
+    },
+    {
+      "path": "src/utils/npz-config.ts",
+      "ok": true,
+      "note": "",
+      "mismatchedTag": false,
+      "forbiddenImports": []
+    },
+    {
+      "path": "src/utils/npz-customs.ts",
+      "ok": true,
+      "note": "",
+      "mismatchedTag": false,
+      "forbiddenImports": []
+    },
+    {
+      "path": "src/utils/npz-engine.ts",
+      "ok": true,
+      "note": "",
+      "mismatchedTag": false,
+      "forbiddenImports": []
+    },
+    {
+      "path": "src/utils/npz-metrics.ts",
+      "ok": true,
+      "note": "",
+      "mismatchedTag": false,
+      "forbiddenImports": []
+    },
+    {
+      "path": "src/utils/npz-middleware.ts",
+      "ok": true,
+      "note": "",
+      "mismatchedTag": false,
+      "forbiddenImports": []
+    },
+    {
+      "path": "src/utils/npz-pourparler.ts",
+      "ok": true,
+      "note": "",
+      "mismatchedTag": false,
+      "forbiddenImports": []
+    },
+    {
+      "path": "src/utils/npz-router.ts",
+      "ok": true,
+      "note": "",
+      "mismatchedTag": false,
+      "forbiddenImports": []
+    },
+    {
+      "path": "src/utils/npz-store-redis.ts",
+      "ok": true,
+      "note": "",
+      "mismatchedTag": false,
+      "forbiddenImports": []
+    },
+    {
+      "path": "src/utils/npz-store.ts",
+      "ok": true,
+      "note": "",
+      "mismatchedTag": false,
+      "forbiddenImports": []
+    },
+    {
+      "path": "src/utils/npz.ts",
+      "ok": true,
+      "note": "",
+      "mismatchedTag": false,
+      "forbiddenImports": []
+    },
+    {
+      "path": "src/utils/package.ts",
+      "ok": true,
+      "note": "",
+      "mismatchedTag": false,
+      "forbiddenImports": []
+    },
+    {
+      "path": "src/utils/paths.ts",
+      "ok": true,
+      "note": "",
+      "mismatchedTag": false,
+      "forbiddenImports": []
+    },
+    {
+      "path": "src/utils/tokens.ts",
+      "ok": true,
+      "note": "",
+      "mismatchedTag": false,
+      "forbiddenImports": []
+    }
+  ],
+  "warnings": [
+    {
+      "type": "tag_mismatch",
+      "file": "src/tests/legacy-runner.spec.ts",
+      "expected": "0x1EC911",
+      "found": null
+    }
+  ],
+  "errors": [
+    {
+      "error": "missing_cli_handlers",
+      "missing": [
+        "start",
+        "kill",
+        "detect",
+        "bridge"
+      ]
+    },
+    {
+      "file": "src/chain/smartChain.ts",
+      "error": "forbidden_import",
+      "import": "../utils/logger"
+    },
+    {
+      "file": "src/chain/smartChain.ts",
+      "error": "forbidden_import",
+      "import": "../commands/detect"
+    },
+    {
+      "file": "src/chain/smartChain.ts",
+      "error": "forbidden_import",
+      "import": "../commands/config"
+    },
+    {
+      "file": "src/chain/smartChain.ts",
+      "error": "forbidden_import",
+      "import": "../commands/purge"
+    },
+    {
+      "file": "src/chain/smartChain.ts",
+      "error": "forbidden_import",
+      "import": "../commands/kill"
+    },
+    {
+      "file": "src/chain/smartChain.ts",
+      "error": "forbidden_import",
+      "import": "../commands/start"
+    },
+    {
+      "file": "src/chain/smartChain.ts",
+      "error": "forbidden_import",
+      "import": "../commands/exodia"
+    },
+    {
+      "file": "src/cli/help.ts",
+      "error": "forbidden_import",
+      "import": "../utils/logger"
+    },
+    {
+      "file": "src/commands/checksum.ts",
+      "error": "forbidden_import",
+      "import": "../utils/fetch"
+    },
+    {
+      "file": "src/commands/checksum.ts",
+      "error": "forbidden_import",
+      "import": "../utils/logger"
+    },
+    {
+      "file": "src/commands/compose.ts",
+      "error": "forbidden_import",
+      "import": "../compose/parser"
+    },
+    {
+      "file": "src/commands/compose.ts",
+      "error": "forbidden_import",
+      "import": "../utils/logger"
+    },
+    {
+      "file": "src/commands/compose.ts",
+      "error": "forbidden_import",
+      "import": "../supervisor"
+    },
+    {
+      "file": "src/commands/config.ts",
+      "error": "forbidden_import",
+      "import": "../utils/logger"
+    },
+    {
+      "file": "src/commands/config.ts",
+      "error": "forbidden_import",
+      "import": "../utils/paths"
+    },
+    {
+      "file": "src/commands/config.ts",
+      "error": "forbidden_import",
+      "import": "../chain/smartChain"
+    },
+    {
+      "file": "src/commands/copilot-bridge.ts",
+      "error": "forbidden_import",
+      "import": "../utils/fetch"
+    },
+    {
+      "file": "src/commands/copilot.ts",
+      "error": "forbidden_import",
+      "import": "../utils/fetch"
+    },
+    {
+      "file": "src/commands/detect.ts",
+      "error": "forbidden_import",
+      "import": "../utils/detect"
+    },
+    {
+      "file": "src/commands/detect.ts",
+      "error": "forbidden_import",
+      "import": "../utils/logger"
+    },
+    {
+      "file": "src/commands/detect.ts",
+      "error": "forbidden_import",
+      "import": "../chain/smartChain"
+    },
+    {
+      "file": "src/commands/doctor.ts",
+      "error": "forbidden_import",
+      "import": "../utils/logger"
+    },
+    {
+      "file": "src/commands/doctor.ts",
+      "error": "forbidden_import",
+      "import": "../utils/detect"
+    },
+    {
+      "file": "src/commands/doctor.ts",
+      "error": "forbidden_import",
+      "import": "../utils/health"
+    },
+    {
+      "file": "src/commands/doctor.ts",
+      "error": "forbidden_import",
+      "import": "../utils/paths"
+    },
+    {
+      "file": "src/commands/doctor.ts",
+      "error": "forbidden_import",
+      "import": "../utils/exec"
+    },
+    {
+      "file": "src/commands/engine.ts",
+      "error": "forbidden_import",
+      "import": "../rome/index-loader"
+    },
+    {
+      "file": "src/commands/engine.ts",
+      "error": "forbidden_import",
+      "import": "../rome/engine"
+    },
+    {
+      "file": "src/commands/engine.ts",
+      "error": "forbidden_import",
+      "import": "../rome/executor"
+    },
+    {
+      "file": "src/commands/exodia.ts",
+      "error": "forbidden_import",
+      "import": "../utils/logger"
+    },
+    {
+      "file": "src/commands/exodia.ts",
+      "error": "forbidden_import",
+      "import": "../chain/smartChain"
+    },
+    {
+      "file": "src/commands/inspect.ts",
+      "error": "forbidden_import",
+      "import": "../utils/logger"
+    },
+    {
+      "file": "src/commands/inspect.ts",
+      "error": "forbidden_import",
+      "import": "../utils/detect"
+    },
+    {
+      "file": "src/commands/inspect.ts",
+      "error": "forbidden_import",
+      "import": "../supervisor"
+    },
+    {
+      "file": "src/commands/inspect.ts",
+      "error": "forbidden_import",
+      "import": "../chain/smartChain"
+    },
+    {
+      "file": "src/commands/kill.ts",
+      "error": "forbidden_import",
+      "import": "../utils/logger"
+    },
+    {
+      "file": "src/commands/kill.ts",
+      "error": "forbidden_import",
+      "import": "../utils/detect"
+    },
+    {
+      "file": "src/commands/kill.ts",
+      "error": "forbidden_import",
+      "import": "../supervisor"
+    },
+    {
+      "file": "src/commands/kill.ts",
+      "error": "forbidden_import",
+      "import": "../chain/smartChain"
+    },
+    {
+      "file": "src/commands/license-activate.ts",
+      "error": "forbidden_import",
+      "import": "../utils/license"
+    },
+    {
+      "file": "src/commands/license-status.ts",
+      "error": "forbidden_import",
+      "import": "../utils/license"
+    },
+    {
+      "file": "src/commands/license.ts",
+      "error": "forbidden_import",
+      "import": "../utils/gumroad-license"
+    },
+    {
+      "file": "src/commands/license.ts",
+      "error": "forbidden_import",
+      "import": "../utils/logger"
+    },
+    {
+      "file": "src/commands/logic.ts",
+      "error": "forbidden_import",
+      "import": "../rome/logic-loader"
+    },
+    {
+      "file": "src/commands/logic.ts",
+      "error": "forbidden_import",
+      "import": "../rome/index-loader"
+    },
+    {
+      "file": "src/commands/logic.ts",
+      "error": "forbidden_import",
+      "import": "../rome/logic-loader"
+    },
+    {
+      "file": "src/commands/npz-inspect.ts",
+      "error": "forbidden_import",
+      "import": "../utils/npz-store"
+    },
+    {
+      "file": "src/commands/npz-scores.ts",
+      "error": "forbidden_import",
+      "import": "../utils/npz-engine"
+    },
+    {
+      "file": "src/commands/purge.ts",
+      "error": "forbidden_import",
+      "import": "../utils/logger"
+    },
+    {
+      "file": "src/commands/purge.ts",
+      "error": "forbidden_import",
+      "import": "../utils/paths"
+    },
+    {
+      "file": "src/commands/purge.ts",
+      "error": "forbidden_import",
+      "import": "../utils/exec"
+    },
+    {
+      "file": "src/commands/purge.ts",
+      "error": "forbidden_import",
+      "import": "../supervisor"
+    },
+    {
+      "file": "src/commands/purge.ts",
+      "error": "forbidden_import",
+      "import": "../chain/smartChain"
+    },
+    {
+      "file": "src/commands/start.ts",
+      "error": "forbidden_import",
+      "import": "../utils/detect"
+    },
+    {
+      "file": "src/commands/start.ts",
+      "error": "forbidden_import",
+      "import": "../utils/logger"
+    },
+    {
+      "file": "src/commands/start.ts",
+      "error": "forbidden_import",
+      "import": "../utils/exec"
+    },
+    {
+      "file": "src/commands/start.ts",
+      "error": "forbidden_import",
+      "import": "../utils/paths"
+    },
+    {
+      "file": "src/commands/start.ts",
+      "error": "forbidden_import",
+      "import": "../chain/smartChain"
+    },
+    {
+      "file": "src/commands/start.ts",
+      "error": "forbidden_import",
+      "import": "../utils/package"
+    },
+    {
+      "file": "src/commands/start.ts",
+      "error": "forbidden_import",
+      "import": "../supervisor"
+    },
+    {
+      "file": "src/commands/start.ts",
+      "error": "forbidden_import",
+      "import": "../utils/health"
+    },
+    {
+      "file": "src/commands/start.ts",
+      "error": "forbidden_import",
+      "import": "../utils/npz-customs"
+    },
+    {
+      "file": "src/commands/start.ts",
+      "error": "forbidden_import",
+      "import": "../utils/npz"
+    },
+    {
+      "file": "src/daemon/qflushd.ts",
+      "error": "forbidden_import",
+      "import": "../rome/index-loader"
+    },
+    {
+      "file": "src/daemon/qflushd.ts",
+      "error": "forbidden_import",
+      "import": "../rome/engine"
+    },
+    {
+      "file": "src/daemon/qflushd.ts",
+      "error": "forbidden_import",
+      "import": "../rome/logic-loader"
+    },
+    {
+      "file": "src/daemon/qflushd.ts",
+      "error": "forbidden_import",
+      "import": "../rome/executor"
+    },
+    {
+      "file": "src/daemon/qflushd.ts",
+      "error": "forbidden_import",
+      "import": "../rome/events"
+    },
+    {
+      "file": "src/daemon/qflushd.ts",
+      "error": "forbidden_import",
+      "import": "../rome/copilot-bridge"
+    },
+    {
+      "file": "src/lib/npz-engine/index.ts",
+      "error": "forbidden_import",
+      "import": "../../utils/npz-engine"
+    },
+    {
+      "file": "src/rome/executor.ts",
+      "error": "forbidden_import",
+      "import": "../utils/fetch"
+    },
+    {
+      "file": "src/supervisor/index.ts",
+      "error": "forbidden_import",
+      "import": "../utils/logger"
+    },
+    {
+      "file": "src/tests/legacy-runner.spec.ts",
+      "error": "tag_mismatch"
+    }
+  ],
+  "todos": [],
+  "forbiddenImports": [
+    {
+      "file": "src/chain/smartChain.ts",
+      "import": "../utils/logger"
+    },
+    {
+      "file": "src/chain/smartChain.ts",
+      "import": "../commands/detect"
+    },
+    {
+      "file": "src/chain/smartChain.ts",
+      "import": "../commands/config"
+    },
+    {
+      "file": "src/chain/smartChain.ts",
+      "import": "../commands/purge"
+    },
+    {
+      "file": "src/chain/smartChain.ts",
+      "import": "../commands/kill"
+    },
+    {
+      "file": "src/chain/smartChain.ts",
+      "import": "../commands/start"
+    },
+    {
+      "file": "src/chain/smartChain.ts",
+      "import": "../commands/exodia"
+    },
+    {
+      "file": "src/cli/help.ts",
+      "import": "../utils/logger"
+    },
+    {
+      "file": "src/commands/checksum.ts",
+      "import": "../utils/fetch"
+    },
+    {
+      "file": "src/commands/checksum.ts",
+      "import": "../utils/logger"
+    },
+    {
+      "file": "src/commands/compose.ts",
+      "import": "../compose/parser"
+    },
+    {
+      "file": "src/commands/compose.ts",
+      "import": "../utils/logger"
+    },
+    {
+      "file": "src/commands/compose.ts",
+      "import": "../supervisor"
+    },
+    {
+      "file": "src/commands/config.ts",
+      "import": "../utils/logger"
+    },
+    {
+      "file": "src/commands/config.ts",
+      "import": "../utils/paths"
+    },
+    {
+      "file": "src/commands/config.ts",
+      "import": "../chain/smartChain"
+    },
+    {
+      "file": "src/commands/copilot-bridge.ts",
+      "import": "../utils/fetch"
+    },
+    {
+      "file": "src/commands/copilot.ts",
+      "import": "../utils/fetch"
+    },
+    {
+      "file": "src/commands/detect.ts",
+      "import": "../utils/detect"
+    },
+    {
+      "file": "src/commands/detect.ts",
+      "import": "../utils/logger"
+    },
+    {
+      "file": "src/commands/detect.ts",
+      "import": "../chain/smartChain"
+    },
+    {
+      "file": "src/commands/doctor.ts",
+      "import": "../utils/logger"
+    },
+    {
+      "file": "src/commands/doctor.ts",
+      "import": "../utils/detect"
+    },
+    {
+      "file": "src/commands/doctor.ts",
+      "import": "../utils/health"
+    },
+    {
+      "file": "src/commands/doctor.ts",
+      "import": "../utils/paths"
+    },
+    {
+      "file": "src/commands/doctor.ts",
+      "import": "../utils/exec"
+    },
+    {
+      "file": "src/commands/engine.ts",
+      "import": "../rome/index-loader"
+    },
+    {
+      "file": "src/commands/engine.ts",
+      "import": "../rome/engine"
+    },
+    {
+      "file": "src/commands/engine.ts",
+      "import": "../rome/executor"
+    },
+    {
+      "file": "src/commands/exodia.ts",
+      "import": "../utils/logger"
+    },
+    {
+      "file": "src/commands/exodia.ts",
+      "import": "../chain/smartChain"
+    },
+    {
+      "file": "src/commands/inspect.ts",
+      "import": "../utils/logger"
+    },
+    {
+      "file": "src/commands/inspect.ts",
+      "import": "../utils/detect"
+    },
+    {
+      "file": "src/commands/inspect.ts",
+      "import": "../supervisor"
+    },
+    {
+      "file": "src/commands/inspect.ts",
+      "import": "../chain/smartChain"
+    },
+    {
+      "file": "src/commands/kill.ts",
+      "import": "../utils/logger"
+    },
+    {
+      "file": "src/commands/kill.ts",
+      "import": "../utils/detect"
+    },
+    {
+      "file": "src/commands/kill.ts",
+      "import": "../supervisor"
+    },
+    {
+      "file": "src/commands/kill.ts",
+      "import": "../chain/smartChain"
+    },
+    {
+      "file": "src/commands/license-activate.ts",
+      "import": "../utils/license"
+    },
+    {
+      "file": "src/commands/license-status.ts",
+      "import": "../utils/license"
+    },
+    {
+      "file": "src/commands/license.ts",
+      "import": "../utils/gumroad-license"
+    },
+    {
+      "file": "src/commands/license.ts",
+      "import": "../utils/logger"
+    },
+    {
+      "file": "src/commands/logic.ts",
+      "import": "../rome/logic-loader"
+    },
+    {
+      "file": "src/commands/logic.ts",
+      "import": "../rome/index-loader"
+    },
+    {
+      "file": "src/commands/logic.ts",
+      "import": "../rome/logic-loader"
+    },
+    {
+      "file": "src/commands/npz-inspect.ts",
+      "import": "../utils/npz-store"
+    },
+    {
+      "file": "src/commands/npz-scores.ts",
+      "import": "../utils/npz-engine"
+    },
+    {
+      "file": "src/commands/purge.ts",
+      "import": "../utils/logger"
+    },
+    {
+      "file": "src/commands/purge.ts",
+      "import": "../utils/paths"
+    },
+    {
+      "file": "src/commands/purge.ts",
+      "import": "../utils/exec"
+    },
+    {
+      "file": "src/commands/purge.ts",
+      "import": "../supervisor"
+    },
+    {
+      "file": "src/commands/purge.ts",
+      "import": "../chain/smartChain"
+    },
+    {
+      "file": "src/commands/start.ts",
+      "import": "../utils/detect"
+    },
+    {
+      "file": "src/commands/start.ts",
+      "import": "../utils/logger"
+    },
+    {
+      "file": "src/commands/start.ts",
+      "import": "../utils/exec"
+    },
+    {
+      "file": "src/commands/start.ts",
+      "import": "../utils/paths"
+    },
+    {
+      "file": "src/commands/start.ts",
+      "import": "../chain/smartChain"
+    },
+    {
+      "file": "src/commands/start.ts",
+      "import": "../utils/package"
+    },
+    {
+      "file": "src/commands/start.ts",
+      "import": "../supervisor"
+    },
+    {
+      "file": "src/commands/start.ts",
+      "import": "../utils/health"
+    },
+    {
+      "file": "src/commands/start.ts",
+      "import": "../utils/npz-customs"
+    },
+    {
+      "file": "src/commands/start.ts",
+      "import": "../utils/npz"
+    },
+    {
+      "file": "src/daemon/qflushd.ts",
+      "import": "../rome/index-loader"
+    },
+    {
+      "file": "src/daemon/qflushd.ts",
+      "import": "../rome/engine"
+    },
+    {
+      "file": "src/daemon/qflushd.ts",
+      "import": "../rome/logic-loader"
+    },
+    {
+      "file": "src/daemon/qflushd.ts",
+      "import": "../rome/executor"
+    },
+    {
+      "file": "src/daemon/qflushd.ts",
+      "import": "../rome/events"
+    },
+    {
+      "file": "src/daemon/qflushd.ts",
+      "import": "../rome/copilot-bridge"
+    },
+    {
+      "file": "src/lib/npz-engine/index.ts",
+      "import": "../../utils/npz-engine"
+    },
+    {
+      "file": "src/rome/executor.ts",
+      "import": "../utils/fetch"
+    },
+    {
+      "file": "src/supervisor/index.ts",
+      "import": "../utils/logger"
+    }
+  ],
+  "missingCommands": [
+    "start",
+    "kill",
+    "detect",
+    "bridge"
+  ],
+  "summary": {
+    "files": 85,
+    "warnings": 1,
+    "errors": 74,
+    "todos": 0,
+    "forbiddenImports": 72,
+    "missingCommands": 4
+  }
+}
