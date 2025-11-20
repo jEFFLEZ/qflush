@@ -330,9 +330,28 @@ function startAuxServer() {
       res.writeHead(404, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify({ success: false, error: 'not_found', path: req.url }));
     });
-    auxServer.listen(4500, () => {
-      console.log('[QFLUSH] auxiliary test server on :4500 ready');
+    auxServer.on('error', (err: any) => {
+      try {
+        if (err && err.code === 'EADDRINUSE') {
+          console.log('[QFLUSH] auxiliary server port 4500 already in use, skipping auxiliary server');
+          try { auxServer.close(); } catch (e) {}
+          auxServer = null;
+          return;
+        }
+      } catch (e) {
+        // ignore
+      }
+      console.warn('auxiliary server error', String(err));
     });
+    try {
+      auxServer.listen(4500, () => {
+        console.log('[QFLUSH] auxiliary test server on :4500 ready');
+      });
+    } catch (e) {
+      console.warn('failed to bind auxiliary server on :4500', String(e));
+      try { auxServer.close(); } catch (e) {}
+      auxServer = null;
+    }
   } catch (e) {
     console.warn('failed to start auxiliary server on :4500', String(e));
   }
