@@ -837,6 +837,35 @@
           "path": "D:\\qflush\\.qflush\\npz\\npz-69846oq9.bin"
         }
       }
+    },
+    {
+      "id": "exec-1763762557744",
+      "ts": 1763762557744,
+      "path": "",
+      "action": "echo hello",
+      "result": {
+        "success": true,
+        "stdout": "hello\r\n",
+        "stderr": "",
+        "code": 0
+      }
+    },
+    {
+      "id": "npz-1763762557747",
+      "ts": 1763762557747,
+      "path": "assets/banner.png",
+      "action": "npz.encode",
+      "result": {
+        "success": true,
+        "id": "npz-e3jje46v",
+        "path": "D:\\qflush\\.qflush\\npz\\npz-e3jje46v.bin",
+        "metadata": {
+          "id": "npz-e3jje46v",
+          "source": "assets/banner.png",
+          "createdAt": "2025-11-21T22:02:37.745Z",
+          "path": "D:\\qflush\\.qflush\\npz\\npz-e3jje46v.bin"
+        }
+      }
     }
   ]
 }
