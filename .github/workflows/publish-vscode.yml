@@ -35,7 +35,7 @@ jobs:
         run: |
           cd extensions/vscode-npz
           if [ -z "${OPEN_VSX_TOKEN}" ]; then echo "OPEN_VSX_TOKEN not set - skipping Open VSX publish"; exit 0; fi
-          npx ovsx publish --pat "$OPEN_VSX_TOKEN" || echo 'Open VSX publish failed'
+          npx --yes ovsx publish --pat "$OPEN_VSX_TOKEN" --package *.vsix || echo 'Open VSX publish failed'
       - name: Publish to VS Marketplace (runtime check)
         run: |
           cd extensions/vscode-npz
