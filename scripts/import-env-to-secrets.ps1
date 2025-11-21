@@ -15,9 +15,47 @@ function Log([string]$msg) {
   if ($Quiet) { Write-Verbose $msg } else { Write-Host $msg }
 }
 
+# Normalize path and try common fallbacks when file not found
+$EnvPath = [Environment]::ExpandEnvironmentVariables($EnvPath)
 if (-not (Test-Path $EnvPath)) {
-  Write-Error "Env file not found: $EnvPath"
-  exit 2
+  Log "Env file not found at '$EnvPath' — attempting common fallbacks..."
+  $candidates = @()
+  # If user passed a directory, try <dir>\.env
+  if (Test-Path (Split-Path $EnvPath -Parent)) {
+    $candidates += Join-Path (Split-Path $EnvPath -Parent) '.env'
+  }
+  # If leaf looks like 'Desktop.env' they may have omitted the backslash -> convert to Desktop\.env
+  $leaf = Split-Path $EnvPath -Leaf
+  if ($leaf -ieq 'Desktop.env') {
+    $parent = Split-Path $EnvPath -Parent
+    $candidates += Join-Path $parent 'Desktop\.env'
+    $candidates += Join-Path $parent 'Desktop' | ForEach-Object { Join-Path $_ '.env' }
+  }
+  # Try adding a backslash before the last component if missing
+  $parent = Split-Path $EnvPath -Parent
+  $addSlash = Join-Path $parent $leaf
+  $candidates += $addSlash
+  # Try interpreting EnvPath as a directory and append .env
+  $candidates += Join-Path $EnvPath '.env'
+
+  $found = $null
+  foreach ($c in $candidates | Select-Object -Unique) {
+    if (Test-Path $c) { $found = $c; break }
+  }
+  if ($found) {
+    Log "Using fallback env file: $found"
+    $EnvPath = $found
+  } else {
+    Write-Error "Env file not found: $EnvPath"
+    exit 2
+  }
+}
+
+# read and process file
+try {
+  $all = Get-Content -Path $EnvPath -ErrorAction Stop
+} catch {
+  Write-Error "Failed to read env file: $EnvPath"; exit 2
 }
 
 # canonical secret keys we care about
@@ -30,6 +68,8 @@ $canonical = @{
   'COPILOT_WEBHOOK_URL' = 'WEBHOOK_URL'
   'COPILOT_BRIDGE_URL' = 'COPILOT_BRIDGE_URL'
   'GUMROAD_TOKEN_FILE' = 'GUMROAD_TOKEN_FILE'
+  'AZURE_PAT' = 'AZURE_PAT'
+  'VS_PUBLISHER' = 'VS_PUBLISHER'
 }
 
 function NormalizeKey([string]$k) {
@@ -49,8 +89,11 @@ function NormalizeKey([string]$k) {
 }
 
 # read lines robustly
-$all = Get-Content -Path $EnvPath -ErrorAction Stop
 $map = @{}
+
+# multiline value support: join continuation lines with backtick-space
+$currentKey = $null
+$currentVal = $null
 
 foreach ($line in $all) {
   $trim = $line.Trim()
@@ -68,22 +111,53 @@ foreach ($line in $all) {
     if (-not $canon) { continue } # skip non-secret vars
     # skip boolean flags and numeric ports
     if ($val -match '^(?:0|1|true|false)$' -or $val -match '^[0-9]+$') { continue }
-    try {
-      $secure = ConvertTo-SecureString $val -AsPlainText -Force
-      $enc = $secure | ConvertFrom-SecureString
-      $map[$canon] = $enc
-      Log "Queued secret: $canon"
-    } catch {
-      $err = ($_ | Out-String).Trim()
-      if ($Quiet) { Write-Verbose ("Failed to encrypt {0}: {1}" -f $key, $err) } else { Write-Warning ("Failed to encrypt {0}: {1}" -f $key, $err) }
+    # if we were accumulating a value, this is a new key -> save the old one first
+    if ($currentKey) {
+      try {
+        $secure = ConvertTo-SecureString $currentVal -AsPlainText -Force
+        $enc = $secure | ConvertFrom-SecureString
+        $map[$currentKey] = $enc
+        Log "Queued secret: $currentKey"
+      } catch {
+        $err = ($_ | Out-String).Trim()
+        if ($Quiet) { Write-Verbose ("Failed to encrypt {0}: {1}" -f $currentKey, $err) } else { Write-Warning ("Failed to encrypt {0}: {1}" -f $currentKey, $err) }
+      }
     }
+    # start new key
+    $currentKey = $canon
+    $currentVal = $val
+  } elseif ($currentKey -and $trim -match '^[\s`]{1,}(.+)$') {
+    # handle continuation line (indented or starting with ` )
+    $cont = $matches[1]
+    # strip optional surrounding quotes
+    if ($cont.Length -ge 2 -and (($cont.StartsWith('"') -and $cont.EndsWith('"')) -or ($cont.StartsWith("'") -and $cont.EndsWith("'")))) {
+      $cont = $cont.Substring(1, $cont.Length-2)
+    }
+    $currentVal += "`n$cont"
   }
 }
 
+# take care to add the final value
+if ($currentKey) {
+  try {
+    $secure = ConvertTo-SecureString $currentVal -AsPlainText -Force
+    $enc = $secure | ConvertFrom-SecureString
+    $map[$currentKey] = $enc
+    Log "Queued secret: $currentKey"
+  } catch {
+    $err = ($_ | Out-String).Trim()
+    if ($Quiet) { Write-Verbose ("Failed to encrypt {0}: {1}" -f $currentKey, $err) } else { Write-Warning ("Failed to encrypt {0}: {1}" -f $currentKey, $err) }
+  }
+}
+
+# After building $map, ensure no artificial limit and report count
 if ($map.Count -eq 0) {
   Log 'No secrets detected in the .env file.'
   exit 0
 }
+
+# report what will be saved
+Log "Preparing to save $($map.Count) secret(s): $((($map.Keys) -join ', '))"
 
 $dir = Join-Path $env:USERPROFILE '.qflush'
 if (-not (Test-Path $dir)) { New-Item -ItemType Directory -Path $dir | Out-Null }
@@ -98,29 +172,31 @@ try {
         foreach ($p in $parsed.PSObject.Properties) { $existing[$p.Name] = $p.Value }
       }
     } catch {
-      $existing = @{}
+      $existing = @{
+      }
     }
   }
 
   foreach ($k in $map.Keys) { $existing[$k] = $map[$k] }
 
-  $outObj = [ordered]@{}
+  $outObj = [ordered]@{
+  }
   foreach ($name in $existing.Keys) { $outObj[$name] = $existing[$name] }
 
-  $outObj | ConvertTo-Json -Depth 5 | Set-Content -Path $file -Encoding UTF8
-  Log "Saved encrypted secrets to $file"
+  # use sufficient depth and do not shorten output
+  $json = $outObj | ConvertTo-Json -Depth 20 -Compress:$false
+  Set-Content -Path $file -Value $json -Encoding UTF8
+  Log "Saved encrypted secrets to $file (total $(($outObj.Keys).Count) entries)"
   if ($RestrictFileAcl) {
     try {
       icacls $file /inheritance:r /grant:r "$env:USERNAME:(R,W)" | Out-Null
       Log "Restricted ACL on $file to user $env:USERNAME"
     } catch {
-      $err2 = ($_ | Out-String).Trim()
-      if ($Quiet) { Write-Verbose ("Failed to set ACL: {0}" -f $err2) } else { Write-Warning ("Failed to set ACL: {0}" -f $err2) }
+      if ($Quiet) { Write-Verbose ("Failed to set ACL: {0}" -f $_) } else { Write-Warning ("Failed to set ACL: {0}" -f $_) }
     }
   }
 } catch {
-  $err3 = ($_ | Out-String).Trim()
-  if ($Quiet) { Write-Verbose ("Failed to write secrets file: {0}" -f $err3) } else { Write-Error ("Failed to write secrets file: {0}" -f $err3) }
+  if ($Quiet) { Write-Verbose ("Failed to write secrets file: {0}" -f $_) } else { Write-Error ("Failed to write secrets file: {0}" -f $_) }
   exit 3
 }
 
