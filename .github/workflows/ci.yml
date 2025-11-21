@@ -47,6 +47,11 @@ jobs:
       - name: Verify compiled daemon exists
         run: |
           if [ ! -f ./dist/daemon/qflushd.js ]; then echo "ERROR: dist/daemon/qflushd.js missing"; sed -n '1,200p' tsc-output.log || true; exit 1; fi
+      - name: Ensure .qflush config exists
+        run: |
+          mkdir -p .qflush
+          if [ ! -f .qflush/logic-config.json ]; then echo '{}' > .qflush/logic-config.json; fi
+          if [ ! -f .qflush/logic-vars.json ]; then echo '{}' > .qflush/logic-vars.json; fi
       - name: Start qflush daemon (background) and wait for readiness
         env:
           QFLUSHD_PORT: 43421
@@ -54,6 +59,13 @@ jobs:
         run: |
           nohup node ./dist/daemon/qflushd.js > qflushd.log 2>&1 & echo $! > qflushd.pid
           npx wait-on -t 30000 http://localhost:${QFLUSHD_PORT}/npz/rome-index
+      - name: Ensure qflush daemon reachable before tests
+        env:
+          QFLUSHD_PORT: 43421
+          QFLUSH_ENABLE_REDIS: 0
+        run: |
+          echo "Checking qflushd at http://localhost:${QFLUSHD_PORT}/npz/rome-index"
+          npx wait-on -t 30000 http://localhost:${QFLUSHD_PORT}/npz/rome-index || (echo "ERROR: qflushd did not become reachable" && tail -n 200 qflushd.log || true; exit 1)
       - name: Run tests
         env:
           VITEST: "1"

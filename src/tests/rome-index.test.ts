@@ -1,7 +1,7 @@
 // ROME-TAG: 0x2F0688
 
 import * as http from 'http';
-import { spawn } from 'child_process';
+import { spawn, ChildProcess } from 'child_process';
 import fetch from '../utils/fetch';
 
 const PORT = process.env.QFLUSHD_PORT ? Number(process.env.QFLUSHD_PORT) : 4500;
@@ -22,18 +22,64 @@ async function waitForJson(path: string, attempts = 20, delayMs = 250) {
   throw new Error(`failed to fetch JSON ${path} after ${attempts} attempts`);
 }
 
+async function isReachable(attempts = 5, delayMs = 200) {
+  for (let i = 0; i < attempts; i++) {
+    try {
+      const res = await fetch(`${BASE}/npz/rome-index`);
+      if (res.ok) return true;
+    } catch (e) {}
+    await new Promise((r) => setTimeout(r, delayMs));
+  }
+  return false;
+}
+
 export async function runTests() {
   let serverMod: any = null;
+  let spawned: ChildProcess | null = null;
   try {
-    serverMod = await import('../daemon/qflushd.js');
-    // start server programmatically on test port
-    if (typeof serverMod.startServer === 'function') {
-      serverMod.startServer(PORT);
-    }
-    // give it a moment to start
-    await new Promise((r) => setTimeout(r, 400));
+    // If service already reachable, skip starting
+    if (!(await isReachable(3, 200))) {
+      try {
+        serverMod = await import('../daemon/qflushd.js');
+        // start server programmatically on test port
+        if (serverMod && typeof serverMod.startServer === 'function') {
+          serverMod.startServer(PORT);
+        } else {
+          // fallback: spawn daemon process from dist (if present)
+          try {
+            spawned = spawn('node', ['./dist/daemon/qflushd.js'], {
+              env: { ...process.env, QFLUSHD_PORT: String(PORT), QFLUSH_ENABLE_REDIS: '0' },
+              stdio: ['ignore', 'pipe', 'pipe'],
+            });
+            // pipe output to console to help debugging
+            if (spawned.stdout) spawned.stdout.on('data', (d) => console.log('[qflushd]', d.toString()));
+            if (spawned.stderr) spawned.stderr.on('data', (d) => console.error('[qflushd]', d.toString()));
+          } catch (e) {
+            // ignore spawn failure, will fail on subsequent fetch attempts
+          }
+        }
+      } catch (e) {
+        // import failed; try spawning the dist daemon as a last resort
+        try {
+          spawned = spawn('node', ['./dist/daemon/qflushd.js'], {
+            env: { ...process.env, QFLUSHD_PORT: String(PORT), QFLUSH_ENABLE_REDIS: '0' },
+            stdio: ['ignore', 'pipe', 'pipe'],
+          });
+          if (spawned.stdout) spawned.stdout.on('data', (d) => console.log('[qflushd]', d.toString()));
+          if (spawned.stderr) spawned.stderr.on('data', (d) => console.error('[qflushd]', d.toString()));
+        } catch (ee) {}
+      }
 
-    const res = await fetch('http://localhost:4500/npz/rome-index');
+      // give it a moment to start
+      await new Promise((r) => setTimeout(r, 400));
+
+      // ensure it's reachable before proceeding
+      if (!(await isReachable(40, 200))) {
+        throw new Error(`qflushd not reachable at ${BASE}`);
+      }
+    }
+
+    const res = await fetch(`${BASE}/npz/rome-index`);
     const j: any = await res.json();
     console.log('rome-index test response:', j && j.count);
 
@@ -53,5 +99,6 @@ export async function runTests() {
     console.log('rome-index daemon count=', byDaemon.count);
   } finally {
     try { if (serverMod && typeof serverMod.stopServer === 'function') serverMod.stopServer(); } catch (e) {}
+    try { if (spawned && typeof spawned.kill === 'function') spawned.kill(); } catch (e) {}
   }
 }
