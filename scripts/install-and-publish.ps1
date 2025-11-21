@@ -40,22 +40,13 @@ if ($LASTEXITCODE -ne 0) { Write-Error "Extension build failed"; Pop-Location; e
 
 # ensure tfx is installed
 Write-Host "Ensuring tfx-cli is installed..." -ForegroundColor Cyan
-try {
-  npm install -g tfx-cli
-} catch {
-  Write-Warning "Global install of tfx-cli failed; will use npx tfx-cli for publish steps instead."
-}
+npm install -g tfx-cli@0.7.0
+if ($LASTEXITCODE -ne 0) { Write-Error "Failed to install tfx-cli"; Pop-Location; exit 1 }
 
 # create vsix
 Write-Host "Packaging VSIX..." -ForegroundColor Cyan
 try {
-  # prefer tfx if globally available, otherwise use npx
-  $tfx = Get-Command tfx -ErrorAction SilentlyContinue
-  if ($tfx) {
-    tfx extension create --manifest-globs vss-extension.json --output-path .. | Write-Host
-  } else {
-    npx --yes tfx-cli extension create --manifest-globs vss-extension.json --output-path .. | Write-Host
-  }
+  tfx extension create --manifest-globs vss-extension.json --output-path .. | Write-Host
 } catch {
   Write-Warning "tfx extension create returned non-zero but will continue if vsix exists"
 }

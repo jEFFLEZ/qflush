@@ -1,85 +1,12 @@
-name: Publish VSIX on tag
+name: Publish VSIX (placeholder)
 
 on:
   push:
-    tags:
-      - 'v*'
+    branches:
+      - vsix-on-main
 
 jobs:
-  publish-vsix:
-    runs-on: windows-latest
-    permissions:
-      contents: write
-
+  placeholder:
+    runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: '7.0.x'
-
-      - name: Restore & Build
-        run: |
-          dotnet restore
-          dotnet build --configuration Release -v minimal
-
-      - name: Find VSIX artifact
-        id: find_vsix
-        run: |
-          setlocal enabledelayedexpansion
-          for /r %%f in (*.vsix) do (
-            echo Found: %%f
-            echo "vsix=%%f" >> %GITHUB_OUTPUT
-            exit /b 0
-          )
-          echo "No VSIX found" >&2
-          exit 1
-
-      - name: Create GitHub release
-        id: create_release
-        uses: actions/create-release@v1
-        with:
-          tag_name: ${{ github.ref_name }}
-          release_name: ${{ github.ref_name }}
-          body: "Automated VSIX release for ${{ github.ref_name }}"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Upload VSIX to release
-        uses: actions/upload-release-asset@v1
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ${{ steps.find_vsix.outputs.vsix }}
-          asset_name: ${{ steps.find_vsix.outputs.vsix }}
-          asset_content_type: application/octet-stream
-
-      - name: Publish to Visual Studio Marketplace (runtime)
-        if: ${{ secrets.VS_PUBLISHER && secrets.VSIX_EXTENSION_ID && secrets.AZURE_PAT }}
-        shell: pwsh
-        env:
-          VS_PUBLISHER: ${{ secrets.VS_PUBLISHER }}
-          VSIX_EXTENSION_ID: ${{ secrets.VSIX_EXTENSION_ID }}
-          AZURE_PAT: ${{ secrets.AZURE_PAT }}
-        run: |
-          $vsix = "${{ steps.find_vsix.outputs.vsix }}"
-          Write-Host "VSIX to publish: $vsix"
-          $candidates = @( 
-            'C:\Program Files (x86)\Microsoft Visual Studio\2022\Enterprise\Common7\IDE\VSIXPublisher.exe',
-            'C:\Program Files (x86)\Microsoft Visual Studio\2022\Professional\Common7\IDE\VSIXPublisher.exe',
-            'C:\Program Files (x86)\Microsoft Visual Studio\2022\Community\Common7\IDE\VSIXPublisher.exe',
-            'C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\Common7\IDE\VSIXPublisher.exe',
-            'C:\Program Files (x86)\Microsoft Visual Studio\2019\Professional\Common7\IDE\VSIXPublisher.exe',
-            'C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\VSIXPublisher.exe'
-          )
-          $vp = $candidates | Where-Object { Test-Path $_ } | Select-Object -First 1
-          if (-not $vp) {
-            Write-Warning "VSIXPublisher.exe not found on runner. Skipping Marketplace publish. The release artifact has been uploaded to GitHub releases."
-            exit 0
-          }
-          Write-Host "Found VSIXPublisher.exe at: $vp"
-          & $vp publish -payload $vsix -publisher $env:VS_PUBLISHER -extensionid $env:VSIX_EXTENSION_ID -personalaccesstoken $env:AZURE_PAT
-
-      - name: Done
-        run: Write-Host "VSIX release created and published (if credentials were provided)."
+      - run: echo "This is a placeholder workflow for the VSIX; implement publishing steps later."

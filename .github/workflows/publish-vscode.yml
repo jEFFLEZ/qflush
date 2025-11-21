@@ -12,7 +12,6 @@ jobs:
     env:
       OPEN_VSX_TOKEN: ${{ secrets.OPEN_VSX_TOKEN }}
       VSCE_TOKEN: ${{ secrets.VSCE_TOKEN }}
-      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
       NODE_OPTIONS: "-r ${{ github.workspace }}/extensions/vscode-npz/src/polyfill-file.js"
     steps:
       - uses: actions/checkout@v4
@@ -20,9 +19,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-      - name: Configure npm auth
-        run: |
-          if [ -n "${NPM_TOKEN}" ]; then echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc; fi
       - name: Install dependencies
         run: |
           cd extensions/vscode-npz
@@ -39,13 +35,9 @@ jobs:
         run: |
           cd extensions/vscode-npz
           if [ -z "${OPEN_VSX_TOKEN}" ]; then echo "OPEN_VSX_TOKEN not set - skipping Open VSX publish"; exit 0; fi
-          npx --yes ovsx publish --pat "$OPEN_VSX_TOKEN" --package *.vsix || echo 'Open VSX publish failed'
+          npx ovsx publish --pat "$OPEN_VSX_TOKEN" || echo 'Open VSX publish failed'
       - name: Publish to VS Marketplace (runtime check)
         run: |
           cd extensions/vscode-npz
           if [ -z "${VSCE_TOKEN}" ]; then echo "VSCE_TOKEN not set - skipping VS Marketplace publish"; exit 0; fi
           npx @vscode/vsce publish --pat "$VSCE_TOKEN" || echo 'VSCE publish failed'
-      - name: Cleanup npm auth
-        if: always()
-        run: |
-          rm -f ~/.npmrc || true

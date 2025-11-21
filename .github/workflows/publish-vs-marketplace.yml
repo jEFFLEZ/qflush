@@ -10,7 +10,6 @@ jobs:
     runs-on: ubuntu-latest
     env:
       AZURE_PAT: ${{ secrets.AZURE_PAT }}
-      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
       NODE_OPTIONS: "-r ${{ github.workspace }}/extensions/vscode-npz/src/polyfill-file.js"
     steps:
       - uses: actions/checkout@v4
@@ -20,9 +19,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-      - name: Configure npm auth
-        run: |
-          if [ -n "${NPM_TOKEN}" ]; then echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc; fi
       - name: Validate AZURE_PAT (warning)
         run: |
           if [ -z "${AZURE_PAT}" ]; then echo "AZURE_PAT is missing - Marketplace publish will be skipped"; else echo "AZURE_PAT is set"; fi
@@ -36,7 +32,7 @@ jobs:
           cd extensions/vscode-npz
           npx @vscode/vsce package
       - name: Upload VSIX artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v3
         with:
           name: qflush-vsix
           path: extensions/vscode-npz/*.vsix
@@ -45,7 +41,3 @@ jobs:
           cd extensions/vscode-npz
           if [ -z "${AZURE_PAT}" ]; then echo "AZURE_PAT missing - skip"; exit 0; fi
           npx @vscode/vsce publish --pat $AZURE_PAT || echo 'VSCE publish failed'
-      - name: Cleanup npm auth
-        if: always()
-        run: |
-          rm -f ~/.npmrc || true

@@ -1,2 +1,5 @@
-remote: Permission to jEFFLEZ/qflush.git denied to jEFFLEZ.
-fatal: unable to access 'https://github.com/jEFFLEZ/qflush.git/': The requested URL returned error: 403
+fatal: 'origin' does not appear to be a git repository
+fatal: Could not read from remote repository.
+
+Please make sure you have the correct access rights
+and the repository exists.

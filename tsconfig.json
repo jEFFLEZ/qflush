@@ -3,7 +3,7 @@
     "target": "ES2022",
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
-    "rootDir": "./",
+    "rootDir": "src",
     "outDir": "dist",
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
@@ -22,5 +22,6 @@
       "@supervisor/*": ["src/supervisor/*"]
     }
   },
-  "exclude": ["node_modules", "dist", "qflush", "extensions/**/out/**"]
+  "exclude": ["node_modules", "dist", "qflush", "extensions/**/out/**"],
+  "include": ["src/**/*"]
 }
