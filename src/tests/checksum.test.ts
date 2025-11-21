@@ -24,6 +24,20 @@ function getFreePort(): Promise<number> {
   });
 }
 
+async function waitForServerReady(timeoutMs = 5000) {
+  const start = Date.now();
+  while (Date.now() - start < timeoutMs) {
+    try {
+      const res = await fetch(`${DAEMON_URL()}/npz/rome-index`);
+      if (res && (res.status === 200 || res.status === 404 || res.status === 204)) return true;
+    } catch (e) {
+      // ignore and retry
+    }
+    await wait(200);
+  }
+  return false;
+}
+
 async function startDaemon() {
   // build first
   await new Promise<void>((resolve, reject) => {
@@ -34,7 +48,13 @@ async function startDaemon() {
   DAEMON_PORT = await getFreePort();
 
   daemonProc = spawn(process.execPath, [path.join(process.cwd(), 'dist', 'daemon', 'qflushd.js')], { env: { ...process.env, QFLUSHD_PORT: String(DAEMON_PORT) }, stdio: 'inherit' });
-  await wait(400);
+  // wait for server to be ready (with timeout)
+  const ready = await waitForServerReady(8000);
+  if (!ready) {
+    // give one last short delay then throw so caller can report proper error
+    await wait(200);
+    throw new Error('daemon did not start in time');
+  }
 }
 
 async function stopDaemon() {
