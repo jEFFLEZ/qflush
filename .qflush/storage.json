@@ -779,6 +779,64 @@
           "path": "D:\\qflush\\.qflush\\npz\\npz-uydltjqw.bin"
         }
       }
+    },
+    {
+      "id": "exec-1763651407937",
+      "ts": 1763651407937,
+      "path": "",
+      "action": "echo hello",
+      "result": {
+        "success": true,
+        "stdout": "hello\r\n",
+        "stderr": "",
+        "code": 0
+      }
+    },
+    {
+      "id": "npz-1763651407941",
+      "ts": 1763651407941,
+      "path": "assets/banner.png",
+      "action": "npz.encode",
+      "result": {
+        "success": true,
+        "id": "npz-zup5oeig",
+        "path": "D:\\qflush\\.qflush\\npz\\npz-zup5oeig.bin",
+        "metadata": {
+          "id": "npz-zup5oeig",
+          "source": "assets/banner.png",
+          "createdAt": "2025-11-20T15:10:07.938Z",
+          "path": "D:\\qflush\\.qflush\\npz\\npz-zup5oeig.bin"
+        }
+      }
+    },
+    {
+      "id": "exec-1763652117214",
+      "ts": 1763652117214,
+      "path": "",
+      "action": "echo hello",
+      "result": {
+        "success": true,
+        "stdout": "hello\r\n",
+        "stderr": "",
+        "code": 0
+      }
+    },
+    {
+      "id": "npz-1763652117218",
+      "ts": 1763652117218,
+      "path": "assets/banner.png",
+      "action": "npz.encode",
+      "result": {
+        "success": true,
+        "id": "npz-69846oq9",
+        "path": "D:\\qflush\\.qflush\\npz\\npz-69846oq9.bin",
+        "metadata": {
+          "id": "npz-69846oq9",
+          "source": "assets/banner.png",
+          "createdAt": "2025-11-20T15:21:57.216Z",
+          "path": "D:\\qflush\\.qflush\\npz\\npz-69846oq9.bin"
+        }
+      }
     }
   ]
 }
