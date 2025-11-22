@@ -4,7 +4,15 @@
 //   node tools/get-installation-token.js
 // Requires: npm install @octokit/auth-app
 
-const { createAppAuth } = require('@octokit/auth-app');
+async function loadCreateAppAuth() {
+  try {
+    const mod = await import('@octokit/auth-app');
+    return mod.createAppAuth || mod.default && mod.default.createAppAuth;
+  } catch (e) {
+    // rethrow to be handled by caller
+    throw e;
+  }
+}
 
 const appId = process.env.GITHUB_APP_ID;
 const installationId = process.env.GITHUB_INSTALLATION_ID;
@@ -17,6 +25,9 @@ if (!appId || !installationId || !privateKey) {
 
 async function main() {
   try {
+    const createAppAuth = await loadCreateAppAuth();
+    if (!createAppAuth) throw new Error('@octokit/auth-app did not export createAppAuth');
+
     const auth = createAppAuth({
       appId: Number(appId),
       privateKey,
