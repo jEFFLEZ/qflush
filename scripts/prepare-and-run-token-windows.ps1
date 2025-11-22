@@ -107,16 +107,37 @@ if ($conclusion -ne 'success') { Write-ErrAndExit "Run completed but not success
 $destDir = 'D:\keys'
 if (-not (Test-Path $destDir)) { New-Item -ItemType Directory -Path $destDir | Out-Null }
 Write-Host "Downloading artifact installation-token to $destDir"
+# remove existing extracted folder to avoid zip extraction conflicts
+$extractedDir = Join-Path $destDir 'installation-token'
+if (Test-Path $extractedDir) {
+  Write-Host "Removing existing artifact extraction folder $extractedDir"
+  Remove-Item -Recurse -Force $extractedDir
+}
 gh run download $runId --repo $Repo --name installation-token --dir $destDir
 if ($LASTEXITCODE -ne 0) { Write-ErrAndExit "Failed to download artifact" }
 
-# artifact downloaded into $destDir\installation-token\token.txt
-$artifactTokenPath = Join-Path $destDir 'installation-token\token.txt'
-if (-not (Test-Path $artifactTokenPath)) {
-  Write-ErrAndExit "Token file not found at $artifactTokenPath"
+# artifact may be extracted into $destDir\installation-token\token.txt or token may already exist at $destDir\token.txt
+$artifactTokenPath = Join-Path $extractedDir 'token.txt'
+$rootTokenPath = Join-Path $destDir 'token.txt'
+if (Test-Path $artifactTokenPath) {
+  Copy-Item -Path $artifactTokenPath -Destination $rootTokenPath -Force
+  Write-Host "Token saved to $rootTokenPath"
+} elseif (Test-Path $rootTokenPath) {
+  Write-Host "Token already present at $rootTokenPath"
+} else {
+  Write-ErrAndExit "Token file not found at $artifactTokenPath or $rootTokenPath"
 }
-# copy token to D:\keys\token.txt for convenience
-Copy-Item -Path $artifactTokenPath -Destination (Join-Path $destDir 'token.txt') -Force
-Write-Host "Token saved to $destDir\token.txt"
+
+# also copy installation-repos.json to D:\keys if present (either in extractedDir or root)
+$artifactReposPath = Join-Path $extractedDir 'installation-repos.json'
+$rootReposPath = Join-Path $destDir 'installation-repos.json'
+if (Test-Path $artifactReposPath) {
+  Copy-Item -Path $artifactReposPath -Destination $rootReposPath -Force
+  Write-Host "API result saved to $rootReposPath"
+} elseif (Test-Path $rootReposPath) {
+  Write-Host "API result already present at $rootReposPath"
+} else {
+  Write-Host "installation-repos.json not found in artifact."
+}
 
 Write-Host "Done."
