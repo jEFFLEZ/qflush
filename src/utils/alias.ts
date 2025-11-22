@@ -1,6 +1,17 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { resolvePaths } from './paths';
+
+// avoid static import of './paths' to prevent TypeScript module resolution issues in some environments
+let resolvePaths: any = undefined;
+try {
+  // require at runtime; if not available, leave undefined
+  // use dynamic path to avoid TypeScript module resolution of literal './paths'
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const p = require(path.join(__dirname, 'paths'));
+  resolvePaths = p && p.resolvePaths;
+} catch (e) {
+  resolvePaths = undefined;
+}
 
 function tryRequire(filePath: string) {
   try {
@@ -29,27 +40,29 @@ export function importUtil(name: string): any {
 
   // prefer spyder local workspace copy when present
   try {
-    const paths = resolvePaths();
-    const spy = paths['spyder'];
-    if (spy) {
-      // common locations inside spyder package layout
-      const candidates = [
-        path.join(spy, 'apps', 'spyder-core', 'src', 'utils', localName),
-        path.join(spy, 'apps', 'spyder-core', 'src', localName),
-        path.join(spy, 'src', 'utils', localName),
-        path.join(spy, 'src', localName),
-        path.join(spy, 'utils', localName),
-      ];
-      for (const c of candidates) {
-        const m = tryRequireVariants(c);
-        if (m) return m;
+    if (typeof resolvePaths === 'function') {
+      const paths = resolvePaths();
+      const spy = paths && paths['spyder'];
+      if (spy) {
+        // common locations inside spyder package layout
+        const candidates = [
+          path.join(spy, 'apps', 'spyder-core', 'src', 'utils', localName),
+          path.join(spy, 'apps', 'spyder-core', 'src', localName),
+          path.join(spy, 'src', 'utils', localName),
+          path.join(spy, 'src', localName),
+          path.join(spy, 'utils', localName),
+        ];
+        for (const c of candidates) {
+          const m = tryRequireVariants(c);
+          if (m) return m;
+        }
+        // try requiring from spyder root via Node resolution (works if spyder is a package)
+        try {
+          const resolved = require.resolve(localName, { paths: [spy] });
+          const m = require(resolved);
+          if (m) return (m && m.default) || m;
+        } catch (e) {}
       }
-      // try requiring from spyder root via Node resolution (works if spyder is a package)
-      try {
-        const resolved = require.resolve(localName, { paths: [spy] });
-        const m = require(resolved);
-        if (m) return (m && m.default) || m;
-      } catch (e) {}
     }
   } catch (e) {
     // ignore
