@@ -1,0 +1,48 @@
+name: CI (no supervisor)
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    env:
+      # Pas de superviseur (ou bien il est ignoré)
+      QFLUSH_DISABLE_SUPERVISOR: '1'
+      QFLUSH_ENABLE_REDIS: '0'
+      QFLUSH_DISABLE_COPILOT: '1'
+      QFLUSH_TELEMETRY: '0'
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Build dist
+        run: npm run build
+
+      - name: Start qflush daemon
+        run: |
+          node dist/daemon/qflushd.js &
+          echo "Daemon started on port ${QFLUSHD_PORT:-4500}"
+
+      # Optional: wait for daemon readiness (uncomment if you want polling)
+      # - name: Wait for daemon
+      #   run: |
+      #     for i in {1..30}; do
+      #       if curl -fsS "http://127.0.0.1:${QFLUSHD_PORT:-4500}/npz/rome-index" > /dev/null 2>&1; then
+      #         echo "Daemon is ready"
+      #         exit 0
+      #       fi
+      #       echo "Waiting daemon..."
+      #       sleep 2
+      #     done
+      #     echo "Daemon did not become ready in time"
+      #     exit 1
+
+      - name: Run tests
+        run: npm test

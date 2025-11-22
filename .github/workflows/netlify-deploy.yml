@@ -33,7 +33,7 @@ jobs:
       - name: Deploy to Netlify
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
-          NETLIFY_SITE_NAME: "qflash-funesterie"  # suggested site name, will be adjusted
+          NETLIFY_SITE_NAME: '"qflash-funesterie"  # suggested site name, will be adjusted'
           NETLIFY_DEPLOY_DIR: "dist"
         run: |
           set -e
