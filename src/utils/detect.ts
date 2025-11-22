@@ -1,7 +1,8 @@
 // ROME-TAG: 0x29A73C
 
 import { exec } from "child_process";
-import { logger } from "./logger";
+import alias from './alias';
+const logger = alias.importUtil('@utils/logger') || alias.importUtil('./logger') || console;
 import { SERVICE_MAP } from "./paths";
 import { resolvePackagePath } from "./package";
 

@@ -4,19 +4,12 @@ import { spawn, execFile } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
 
-let fetchModule: any;
-try { fetchModule = require('../utils/fetch'); } catch (e) { fetchModule = undefined; }
-if (!fetchModule) {
-  try { fetchModule = require('node-fetch'); } catch (e) { fetchModule = undefined; }
-}
-if (!fetchModule && typeof (globalThis as any).fetch === 'function') {
-  fetchModule = (globalThis as any).fetch.bind(globalThis);
-}
-// normalize to callable function (handle both `module.exports = fn` and `{ default: fn }`)
+import { importUtil } from '../utils/alias';
+
 let fetchFn: any = undefined;
-if (fetchModule) {
-  fetchFn = fetchModule.default || fetchModule;
-}
+const fetchMod = importUtil('../utils/fetch') || importUtil('node-fetch');
+if (fetchMod) fetchFn = fetchMod.default || fetchMod;
+if (!fetchFn && typeof (globalThis as any).fetch === 'function') fetchFn = (globalThis as any).fetch.bind(globalThis);
 
 let saveEngineHistory: any;
 try { saveEngineHistory = require('./storage').saveEngineHistory; } catch (e) { saveEngineHistory = undefined; }

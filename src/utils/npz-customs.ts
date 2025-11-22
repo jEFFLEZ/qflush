@@ -3,7 +3,8 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as net from 'net';
-import { logger } from './logger';
+import alias from './alias';
+const logger = alias.importUtil('@utils/logger') || alias.importUtil('./logger') || console;
 
 export type ModuleDescriptor = {
   name: string;
