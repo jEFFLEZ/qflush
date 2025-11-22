@@ -263,9 +263,11 @@ export async function runStart(opts?: qflushOptions) {
       // 4) fallback to NPZ resolver if still not found
       if (!runCmd && pkg) {
         const resolved = npz.npzResolve(pkg, { cwd: pkgPath });
-        if (resolved && resolved.gate !== 'fail') {
-          runCmd = { cmd: resolved.cmd as string, args: resolved.args || [], cwd: resolved.cwd };
+        if (!resolved || resolved.gate === 'fail') {
+          logger.warn(`${mod} has no runnable entry, skipping`);
+          return;
         }
+        runCmd = { cmd: resolved.cmd as string, args: resolved.args || [], cwd: resolved.cwd };
       }
 
       if (!runCmd) {
