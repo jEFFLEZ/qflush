@@ -10,6 +10,7 @@ import { startProcess } from "../supervisor";
 import { waitForService } from "../utils/health";
 import { runCustomsCheck, hasBlockingIssues, ModuleDescriptor } from "../utils/npz-customs";
 import npz from "../utils/npz";
+import { resolveMerged } from "../supervisor/merged-resolver";
 import * as fs from 'fs';
 import { spawnSync } from 'child_process';
 
@@ -161,11 +162,11 @@ export async function runStart(opts?: qflushOptions) {
       }
     }
 
-    // otherwise, use NPZ resolver as primary
+    // otherwise, use merged resolver (supervisor + NPZ) as primary
     if (pkg) {
-      const resolved = npz.npzResolve(pkg, { cwd: p || process.cwd() });
+      const resolved = await resolveMerged(pkg, { cwd: p || process.cwd() });
       if (!resolved) {
-        logger.warn(`${modName} path and package not found or NPZ failed to resolve, skipping`);
+        logger.warn(`${modName} path and package not found or merged resolver failed to resolve, skipping`);
         return;
       }
 
@@ -206,14 +207,14 @@ export async function runStart(opts?: qflushOptions) {
       }
 
       if (!pkgPath) {
-        // fallback to customs+npz flow
+        // fallback to customs+merged-resolver flow
         await startWithCustoms(mod);
         return;
       }
 
       const pkgJson = readPackageJson(pkgPath);
 
-      // choose how to run: package bin if present, else npz resolver
+      // choose how to run: package bin if present, else merged resolver
       let runCmd: { cmd: string; args: string[]; cwd?: string } | null = null;
 
       // 1) package bin entry
@@ -260,9 +261,9 @@ export async function runStart(opts?: qflushOptions) {
         }
       }
 
-      // 4) fallback to NPZ resolver if still not found
+      // 4) fallback to merged resolver if still not found
       if (!runCmd && pkg) {
-        const resolved = npz.npzResolve(pkg, { cwd: pkgPath });
+        const resolved = await resolveMerged(pkg, { cwd: pkgPath });
         if (!resolved || resolved.gate === 'fail') {
           logger.warn(`${mod} has no runnable entry, skipping`);
           return;
