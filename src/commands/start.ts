@@ -11,6 +11,7 @@ import { waitForService } from "../utils/health";
 import { runCustomsCheck, hasBlockingIssues, ModuleDescriptor } from "../utils/npz-customs";
 import npz from "../utils/npz";
 import * as fs from 'fs';
+import { spawnSync } from 'child_process';
 
 export async function runStart(opts?: qflushOptions) {
   logger.info("qflush: starting modules...");
@@ -33,6 +34,24 @@ export async function runStart(opts?: qflushOptions) {
   const maxRestarts = typeof flags["restartCount"] === "number" ? (flags["restartCount"] as number) : 3;
 
   const procs: Promise<void>[] = [];
+
+  async function ensureBuiltIfNeeded(prefixPath: string) {
+    try {
+      const distEntry = require('path').join(prefixPath, 'dist', 'index.js');
+      if (!fs.existsSync(distEntry)) {
+        logger.info(`Local package at ${prefixPath} missing dist; running build...`);
+        const r = spawnSync('npm', ['--prefix', prefixPath, 'run', 'build'], { stdio: 'inherit' });
+        if (r.status !== 0) {
+          logger.warn(`Build failed for ${prefixPath}, skipping start`);
+          return false;
+        }
+      }
+      return true;
+    } catch (e) {
+      logger.warn(`ensureBuiltIfNeeded failed: ${e}`);
+      return false;
+    }
+  }
 
   async function startWithCustoms(modName: string) {
     const p = (opts?.modulePaths && opts.modulePaths[modName]) || paths[modName];
@@ -83,6 +102,12 @@ export async function runStart(opts?: qflushOptions) {
           }
 
           if (runCmd) {
+            // if runCmd is npm start with prefix, ensure build exists
+            if (runCmd.cmd === 'npm' && runCmd.args.includes('run') && runCmd.args.includes('start')) {
+              const ok = await ensureBuiltIfNeeded(p);
+              if (!ok) return;
+            }
+
             logger.info(`Launching ${modName} -> ${runCmd.cmd} ${runCmd.args.join(" ")}`);
             startProcess(modName, runCmd.cmd, runCmd.args, { cwd: runCmd.cwd });
             return;
@@ -185,6 +210,14 @@ export async function runStart(opts?: qflushOptions) {
       if (!runCmd) {
         logger.warn(`${mod} has no runnable entry, skipping`);
         return;
+      }
+
+      // if runCmd is npm start with prefix, ensure built
+      if (runCmd.cmd === 'npm' && runCmd.args.includes('run') && runCmd.args.includes('start')) {
+        const prefixIdx = runCmd.args.indexOf('--prefix');
+        const prefixPath = prefixIdx !== -1 ? runCmd.args[prefixIdx + 1] : runCmd.cwd || pkgPath;
+        const ok = await ensureBuiltIfNeeded(prefixPath as string);
+        if (!ok) return;
       }
 
       const restarts = 0;
