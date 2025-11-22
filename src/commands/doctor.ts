@@ -1,6 +1,7 @@
 // ROME-TAG: 0xED1E50
 
-import { logger } from '../utils/logger';
+import alias from '../utils/alias';
+const logger = alias.importUtil('@utils/logger') || alias.importUtil('../utils/logger') || console;
 import { detectModules } from '../utils/detect';
 import { httpProbe } from '../utils/health';
 import { SERVICE_MAP } from '../utils/paths';
