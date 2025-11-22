@@ -8,6 +8,9 @@ const fs = require('fs');
 const path = require('path');
 const { join } = path;
 
+// embedded service manager functions for NPZ endpoints
+import { enterSleepMode, exitSleepMode, jokerWipe } from '../services';
+
 // Optional Redis — create client via helper (returns null when disabled or no URL)
 import { createRedisClient } from '../utils/redis';
 const redisClient = createRedisClient();
@@ -410,3 +413,32 @@ __setReloadHandler(async () => {
 if (require.main === module) {
   startServer();
 }
+
+// NPZ control endpoints for BAT modes (protected)
+app.post('/npz/sleep', requireQflushToken, async (_req: any, res: any) => {
+  try {
+    enterSleepMode();
+    return res.json({ success: true, mode: 'sleep' });
+  } catch (e) {
+    return res.status(500).json({ success: false, error: String(e) });
+  }
+});
+
+app.post('/npz/wake', requireQflushToken, async (_req: any, res: any) => {
+  try {
+    exitSleepMode();
+    return res.json({ success: true, mode: 'normal' });
+  } catch (e) {
+    return res.status(500).json({ success: false, error: String(e) });
+  }
+});
+
+app.post('/npz/joker-wipe', requireQflushToken, async (_req: any, res: any) => {
+  try {
+    // jokerWipe will attempt cleanup and then exit the process
+    jokerWipe();
+    return res.json({ success: true, mode: 'joker' });
+  } catch (e) {
+    return res.status(500).json({ success: false, error: String(e) });
+  }
+});

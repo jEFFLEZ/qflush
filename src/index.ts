@@ -50,6 +50,7 @@ import runRomeLinks from "./commands/rome-links";
 import runA11 from "./commands/a11";
 import runSpyder from "./commands/spyder";
 import { spawn } from 'child_process';
+import { enterSleepMode, exitSleepMode, jokerWipe } from './services';
 
 // Only run the CLI dispatch when this module is the entrypoint
 declare const require: any;
@@ -61,6 +62,39 @@ if (typeof require !== 'undefined' && require.main === module) {
   }
 
   const first = argv[0];
+  // CLI aliases for embedded BAT modes
+  if (first === 'bat:sleep') {
+    try {
+      enterSleepMode();
+      console.log('BAT: sleep mode engaged');
+      process.exit(0);
+    } catch (e) {
+      console.error('failed to enter sleep mode', e);
+      process.exit(1);
+    }
+  }
+  if (first === 'bat:wake') {
+    try {
+      exitSleepMode();
+      console.log('BAT: exited sleep mode');
+      process.exit(0);
+    } catch (e) {
+      console.error('failed to exit sleep mode', e);
+      process.exit(1);
+    }
+  }
+  if (first === 'bat:joker') {
+    try {
+      // call and return; jokerWipe may exit process
+      jokerWipe();
+      // give it a moment
+      setTimeout(() => process.exit(0), 1000);
+    } catch (e) {
+      console.error('failed to perform joker wipe', e);
+      process.exit(1);
+    }
+  }
+
   if (first === "compose") {
     void runCompose(argv.slice(1));
     process.exit(0);
