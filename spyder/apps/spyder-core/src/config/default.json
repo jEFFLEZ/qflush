@@ -12,5 +12,5 @@
   "plugins": ["@funeste38/bat"],
   "allowInternet": true,
   "httpProxy": "",
-  "languages": ["en","fr","es","zh","ru"]
+  "languages": ["en","fr","es","zh","ru","it","pt"]
 }
