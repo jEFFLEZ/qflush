@@ -1,0 +1,7 @@
+{
+  "enabled": false,
+  "path": "./a11",
+  "startCommand": "npm run dev",
+  "healthUrl": "http://127.0.0.1:3000/health",
+  "pidFile": ".qflush/a11.pid"
+}
