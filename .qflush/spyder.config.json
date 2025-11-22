@@ -1,0 +1,7 @@
+{
+  "enabled": true,
+  "path": "spyder",
+  "startCommand": "npm --prefix spyder run start",
+  "healthUrl": "http://127.0.0.1:4000/health",
+  "pidFile": ".qflush/spyder.pid"
+}
