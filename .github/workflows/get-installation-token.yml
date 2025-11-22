@@ -1,0 +1,43 @@
+name: Get GitHub App Installation Token
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  get-token:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Use Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install deps
+        run: |
+          npm ci --no-audit --no-fund || npm i @octokit/auth-app
+      - name: Obtain installation token
+        id: get_token
+        env:
+          APP_ID: ${{ secrets.APP_ID }}
+          INSTALLATION_ID: ${{ secrets.INSTALLATION_ID }}
+          PRIVATE_KEY_PEM: ${{ secrets.PRIVATE_KEY_PEM }}
+        run: |
+          # export expected env var names for helper
+          export GITHUB_APP_ID="$APP_ID"
+          export GITHUB_INSTALLATION_ID="$INSTALLATION_ID"
+          export GITHUB_PRIVATE_KEY="$PRIVATE_KEY_PEM"
+          # run helper to obtain short-lived installation token
+          node tools/get-installation-token.js > token.txt
+          # mask token in logs
+          echo "::add-mask::$(cat token.txt)"
+          # set as step output
+          echo "token=$(cat token.txt)" >> $GITHUB_OUTPUT
+
+      - name: Show success
+        run: |
+          echo "Installation token obtained and stored as step output (masked)."
