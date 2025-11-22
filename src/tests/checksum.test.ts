@@ -2,9 +2,9 @@
 
 import fetch from '../utils/fetch';
 import { spawn } from 'child_process';
-import path from 'path';
-import fs from 'fs';
-import net from 'net';
+import * as path from 'path';
+import * as fs from 'fs';
+import * as net from 'net';
 
 let DAEMON_PORT = 0;
 const DAEMON_URL = () => `http://localhost:${DAEMON_PORT}`;

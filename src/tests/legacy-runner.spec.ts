@@ -1,6 +1,6 @@
+/// <reference types="vitest" />
 // ROME-TAG: 0x1EC911
 
-// @ts-nocheck
 import fs from 'fs';
 import path from 'path';
 

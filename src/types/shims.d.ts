@@ -4,3 +4,35 @@ declare module "@funeste38/nezlephant";
 declare module "@funeste38/freeland";
 declare module "@funeste38/bat";
 declare module "@funeste38/envaptex";
+
+// Generic shims
+declare module '../utils/*' {
+  const m: any;
+  export default m;
+}
+
+declare module '../daemon/*' {
+  const m: any;
+  export default m;
+}
+
+// CommonJS/require style for specific modules used by tests
+declare module '../utils/fetch' {
+  const fetch: any;
+  export = fetch;
+}
+
+declare module '../utils/fetch.js' {
+  const fetch: any;
+  export = fetch;
+}
+
+declare module '../daemon/qflushd' {
+  const qflushd: any;
+  export = qflushd;
+}
+
+declare module '../daemon/qflushd.js' {
+  const qflushd: any;
+  export = qflushd;
+}

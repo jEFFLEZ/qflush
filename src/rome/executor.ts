@@ -99,7 +99,8 @@ export async function executeAction(action: string, ctx: any = {}): Promise<any>
         return { success: false, error: 'command not in allowedCommands' };
       }
       // fallback substring check
-      const ok = cfg.allowedCommandSubstrings.some((s: string) => cmd.includes(s));
+      const substrings = Array.isArray(cfg.allowedCommandSubstrings) ? cfg.allowedCommandSubstrings : [];
+      const ok = substrings.some((s: string) => cmd.includes(s));
       if (!ok) return { success: false, error: 'command not allowed by policy' };
 
       if (ctx.dryRun) {
