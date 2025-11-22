@@ -1,7 +1,8 @@
 // ROME-TAG: 0xD0CF40
 
+import alias from '../utils/alias';
+const logger = alias.importUtil('@utils/logger') || alias.importUtil('../utils/logger') || console;
 import { readCompose } from '../compose/parser';
-import { logger } from '../utils/logger';
 import { runStart } from './start';
 import { startProcess, listRunning, stopProcess } from '../supervisor';
 import { runPurge } from './purge';
