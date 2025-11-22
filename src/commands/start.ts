@@ -215,15 +215,14 @@ export async function runStart(opts?: qflushOptions) {
 
       // choose how to run: package bin if present, else npz resolver
       let runCmd: { cmd: string; args: string[]; cwd?: string } | null = null;
+
+      // 1) package bin entry
       if (pkgJson && pkgJson.bin) {
         const binEntry = typeof pkgJson.bin === "string" ? pkgJson.bin : Object.values(pkgJson.bin)[0];
         const binPath = require("path").join(pkgPath, binEntry);
-
-        // prefer running via node when bin is a JS file inside package
         if (binPath.endsWith(".js") && pathExists(binPath)) {
           runCmd = { cmd: process.execPath, args: [binPath], cwd: pkgPath };
         } else if (pathExists(binPath)) {
-          // if not executable on POSIX, fallback to running with node
           let isExec = true;
           try {
             if (process.platform !== 'win32') {
@@ -235,13 +234,16 @@ export async function runStart(opts?: qflushOptions) {
           else runCmd = { cmd: process.execPath, args: [binPath], cwd: pkgPath };
         } else {
           logger.warn(`${mod} bin entry not found at ${binPath}. ${rebuildInstructionsFor(pkgPath)}`);
-          return;
         }
-      } else if (pkgJson && pkgJson.scripts && pkgJson.scripts.start) {
-        // no bin but has start script in local package
+      }
+
+      // 2) package start script
+      if (!runCmd && pkgJson && pkgJson.scripts && pkgJson.scripts.start) {
         runCmd = { cmd: 'npm', args: ['--prefix', pkgPath, 'run', 'start'], cwd: pkgPath };
-      } else {
-        // try common subpackage locations under pkgPath
+      }
+
+      // 3) try common subpackage locations
+      if (!runCmd) {
         const subCandidates = ['spyder', 'apps/spyder-core'];
         for (const sub of subCandidates) {
           try {
@@ -257,14 +259,13 @@ export async function runStart(opts?: qflushOptions) {
           } catch (_) {}
         }
       }
-      if (pkg) {
-        // fallback to npz resolver
+
+      // 4) fallback to NPZ resolver if still not found
+      if (!runCmd && pkg) {
         const resolved = npz.npzResolve(pkg, { cwd: pkgPath });
-        if (!resolved || resolved.gate === 'fail') {
-          logger.warn(`${mod} has no runnable entry, skipping`);
-          return;
+        if (resolved && resolved.gate !== 'fail') {
+          runCmd = { cmd: resolved.cmd as string, args: resolved.args || [], cwd: resolved.cwd };
         }
-        runCmd = { cmd: resolved.cmd as string, args: resolved.args || [], cwd: resolved.cwd };
       }
 
       if (!runCmd) {
