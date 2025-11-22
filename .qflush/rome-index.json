@@ -1,0 +1,47 @@
+{
+  "src/index.ts": {
+    "type": "module",
+    "path": "src/index.ts",
+    "ext": "ts",
+    "tag": 14014600,
+    "tagHex": "0xD92808",
+    "savedAt": "2025-11-18T00:00:00.000Z",
+    "version": 1
+  },
+  "src/daemon/qflushd.ts": {
+    "type": "daemon",
+    "path": "src/daemon/qflushd.ts",
+    "ext": "ts",
+    "tag": 10527376,
+    "tagHex": "0xA1EC50",
+    "savedAt": "2025-11-18T00:00:00.000Z",
+    "version": 1
+  },
+  "src/commands/checksum.ts": {
+    "type": "command",
+    "path": "src/commands/checksum.ts",
+    "ext": "ts",
+    "tag": 10501588,
+    "tagHex": "0xA0F9B4",
+    "savedAt": "2025-11-18T00:00:00.000Z",
+    "version": 1
+  },
+  "src/utils/npz.ts": {
+    "type": "util",
+    "path": "src/utils/npz.ts",
+    "ext": "ts",
+    "tag": 1403312,
+    "tagHex": "0x1553F0",
+    "savedAt": "2025-11-18T00:00:00.000Z",
+    "version": 1
+  },
+  "extensions/vscode-npz/src/pourparler-web.html": {
+    "type": "ui",
+    "path": "extensions/vscode-npz/src/pourparler-web.html",
+    "ext": "html",
+    "tag": 11910144,
+    "tagHex": "0xB60F00",
+    "savedAt": "2025-11-18T00:00:00.000Z",
+    "version": 1
+  }
+}
