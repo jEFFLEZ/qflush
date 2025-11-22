@@ -94,14 +94,41 @@ export async function executeAction(action: string, ctx: any = {}): Promise<any>
 
       if (suspicious(cmd)) return { success: false, error: 'command contains suspicious characters' };
 
-      // exact allowlist first
-      if (cfg.allowedCommands && cfg.allowedCommands.length && !cfg.allowedCommands.includes(cmd)) {
-        return { success: false, error: 'command not in allowedCommands' };
+      // normalize command for comparison
+      const normalizedCmd = String(cmd).trim().replace(/\s+/g, ' ');
+
+      // Explicitly allow simple echo commands (shell builtin) as safe
+      const isEcho = /^echo(\s|$)/i.test(normalizedCmd);
+      let allowedByPolicy = false;
+      if (isEcho) {
+        allowedByPolicy = true;
       }
-      // fallback substring check
-      const substrings = Array.isArray(cfg.allowedCommandSubstrings) ? cfg.allowedCommandSubstrings : [];
-      const ok = substrings.some((s: string) => cmd.includes(s));
-      if (!ok) return { success: false, error: 'command not allowed by policy' };
+
+      // prepare allowedCommands list
+      const allowedCommands = Array.isArray(cfg.allowedCommands) ? cfg.allowedCommands.map((c: any) => String(c).trim().replace(/\s+/g, ' ')) : [];
+
+      // if explicit allowedCommands provided, allow when exact, prefix, or contains match OR when substrings allow it
+      if (!allowedByPolicy) {
+        if (allowedCommands.length) {
+          const exact = allowedCommands.includes(normalizedCmd);
+          const prefix = allowedCommands.some((ac: string) => normalizedCmd.startsWith(ac));
+          const contains = allowedCommands.some((ac: string) => normalizedCmd.includes(ac));
+          if (exact || prefix || contains) {
+            allowedByPolicy = true;
+          } else {
+            const substrings = Array.isArray(cfg.allowedCommandSubstrings) ? cfg.allowedCommandSubstrings : [];
+            const okSub = substrings.some((s: string) => normalizedCmd.includes(String(s)));
+            if (okSub) allowedByPolicy = true;
+          }
+        } else {
+          // fallback substring check when no explicit allowedCommands
+          const substrings = Array.isArray(cfg.allowedCommandSubstrings) ? cfg.allowedCommandSubstrings : [];
+          const ok = substrings.some((s: string) => normalizedCmd.includes(String(s)));
+          if (ok) allowedByPolicy = true;
+        }
+      }
+
+      if (!allowedByPolicy) return { success: false, error: 'command not allowed by policy' };
 
       if (ctx.dryRun) {
         return { success: true, dryRun: true, cmd };
