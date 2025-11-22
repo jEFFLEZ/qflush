@@ -32,6 +32,14 @@ jobs:
       - name: Install dependencies
         run: |
           npm ci --no-audit --no-fund
+      - name: Install spyder deps (optional)
+        run: |
+          if [ -f spyder/package.json ]; then
+            echo "Spyder detected - installing its deps"
+            npm --prefix spyder ci --no-audit --no-fund || echo "spyder install failed, continuing (optional)"
+          else
+            echo "Spyder not present, skipping"
+          fi
       - name: Show versions
         run: |
           node -v
@@ -42,6 +50,14 @@ jobs:
         run: |
           npx tsc -p . --pretty false > tsc-output.log 2>&1 || (echo "tsc failed, printing log:" && sed -n '1,200p' tsc-output.log && exit 1)
           echo "tsc succeeded"
+      - name: Build optional spyder
+        run: |
+          if [ -f spyder/package.json ]; then
+            echo "Building spyder (optional)..."
+            npm --prefix spyder run build || echo "spyder build failed or not present, continuing"
+          else
+            echo "No spyder package, skipping build"
+          fi
       - name: Show dist contents (diagnostic)
         run: |
           echo "dist tree:" && ls -la dist || echo "dist directory not present"
