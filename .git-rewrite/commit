@@ -1,0 +1,6 @@
+tree 56bb53d7e27667bbb33a7aae915697c230407f4a
+parent e72419bf6b9d4fd46a33b0b69ba3373fd38eca06
+author jEFFLEZ <cellaurojeffrey@gmail.com> 1763643415 +0100
+committer jEFFLEZ <cellaurojeffrey@gmail.com> 1763643415 +0100
+
+feat(supervisor): add auto-resume polling and suspend/resume helpers for freezeAll
