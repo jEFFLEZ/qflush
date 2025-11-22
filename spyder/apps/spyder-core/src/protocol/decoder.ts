@@ -1,5 +1,4 @@
 import { detectLanguage } from '../lang/detect';
-import { loadLanguageDecoders } from '../lang/loader';
 
 type DecoderFn = (input: Uint8Array) => Promise<any>;
 
@@ -15,27 +14,11 @@ export function listDecoders() {
 
 // Décodeur texte brut par défaut
 async function defaultDecoder(input: Uint8Array): Promise<string> {
-  return new TextDecoder('utf-8').decode(input);
-}
-
-async function ensureDecodersLoaded() {
-  if (registry.size === 0) {
-    try {
-      await loadLanguageDecoders();
-    } catch (e) {
-      // ignore loader errors
-    }
-  }
+  return new TextDecoder().decode(input);
 }
 
 export async function decodePayload(input: Uint8Array): Promise<any> {
-  // decode as UTF-8 and normalize
-  let text = new TextDecoder('utf-8').decode(input || new Uint8Array());
-  try {
-    text = (text || '').normalize('NFC').trim();
-  } catch (e) {
-    text = (text || '').trim();
-  }
+  const text = new TextDecoder().decode(input);
 
   const idx = text.indexOf(':');
   if (idx > 0) {
@@ -57,19 +40,8 @@ export async function decodePayload(input: Uint8Array): Promise<any> {
   }
 
   // no prefix -> detect language and dispatch
-  // require a minimum length for reliable detection
-  const MIN_DETECT_LENGTH = 8;
-  const sample = text.slice(0, 1024);
-  if (!sample || sample.length < MIN_DETECT_LENGTH) {
-    console.debug('[decoder] input too short for language detection, using default decoder');
-    return defaultDecoder(input);
-  }
-
-  // ensure decoders loaded
-  await ensureDecodersLoaded();
-
-  const lang = detectLanguage(sample);
-  console.debug('[decoder] detected language', lang, 'from text:', sample.slice(0, 64));
+  const lang = detectLanguage(text);
+  console.debug('[decoder] detected language', lang, 'from text:', text.slice(0, 64));
   const fn = registry.get(lang);
   if (fn) {
     try {
