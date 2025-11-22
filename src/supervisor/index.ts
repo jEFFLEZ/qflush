@@ -3,7 +3,8 @@
 import { spawn, ChildProcess } from 'child_process';
 import { writeFileSync, existsSync, mkdirSync, readFileSync, unlinkSync, createWriteStream, WriteStream } from 'fs';
 import { join } from 'path';
-import { logger } from '../utils/logger';
+import alias from '../utils/alias';
+const logger = alias.importUtil('@utils/logger') || alias.importUtil('../utils/logger') || console;
 
 type ProcRecord = {
   name: string;

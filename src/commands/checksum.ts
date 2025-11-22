@@ -1,7 +1,8 @@
 // ROME-TAG: 0xA0F9B4
 
-import fetch from '../utils/fetch';
-import logger from '../utils/logger';
+import alias from '../utils/alias';
+const fetch = alias.importUtil('../utils/fetch') || alias.importUtil('@utils/fetch') || (globalThis as any).fetch;
+const logger = alias.importUtil('@utils/logger') || alias.importUtil('../utils/logger') || console;
 
 const DAEMON = process.env.QFLUSH_DAEMON || 'http://localhost:4500';
 
