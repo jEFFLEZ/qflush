@@ -97,8 +97,10 @@ export async function executeAction(action: string, ctx: any = {}): Promise<any>
       // normalize command for comparison
       const normalizedCmd = String(cmd).trim().replace(/\s+/g, ' ');
 
-      // Explicitly allow simple echo commands (shell builtin) as safe
-      const isEcho = /^echo(\s|$)/i.test(normalizedCmd);
+      // Robust detection of command name (handles path separators)
+      const cmdName = String(normalizedCmd).split(' ')[0].toLowerCase();
+      const baseName = cmdName.split(/[\\/]/).pop() || cmdName;
+      const isEcho = baseName === 'echo';
       let allowedByPolicy = false;
       if (isEcho) {
         allowedByPolicy = true;
