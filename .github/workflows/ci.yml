@@ -1,6 +1,11 @@
 name: CI
 
 on:
+  workflow_dispatch:
+    inputs:
+      enable_supervisor:
+        description: "Set to '0' to enable supervisor in CI run, '1' to disable. Default disables supervisor."
+        default: '1'
   push:
     branches: [ master, main, 'fix/*' ]
   pull_request:
@@ -14,7 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       QFLUSH_SKIP_GLOBAL_INSTALLS: '1'
-      QFLUSH_DISABLE_SUPERVISOR: '1'
+      QFLUSH_DISABLE_SUPERVISOR: "${{ github.event.inputs.enable_supervisor || '1' }}"
     steps:
       - uses: actions/checkout@v4
         with:
@@ -95,7 +100,7 @@ jobs:
           QFLUSHD_PORT: 43421
           QFLUSH_ENABLE_REDIS: 0
           QFLUSH_SKIP_GLOBAL_INSTALLS: '1'
-          QFLUSH_DISABLE_SUPERVISOR: '1'
+          QFLUSH_DISABLE_SUPERVISOR: "${{ github.event.inputs.enable_supervisor || '1' }}"
         run: |
           npm test
       - name: Teardown qflush daemon
@@ -110,7 +115,7 @@ jobs:
     timeout-minutes: 60
     env:
       REDIS_URL: ''
-      QFLUSH_DISABLE_SUPERVISOR: '1'
+      QFLUSH_DISABLE_SUPERVISOR: "${{ github.event.inputs.enable_supervisor || '1' }}"
     steps:
       - uses: actions/checkout@v4
         with:
@@ -141,7 +146,7 @@ jobs:
     timeout-minutes: 20
     env:
       REDIS_URL: ''
-      QFLUSH_DISABLE_SUPERVISOR: '1'
+      QFLUSH_DISABLE_SUPERVISOR: "${{ github.event.inputs.enable_supervisor || '1' }}"
     steps:
       - uses: actions/checkout@v4
         with:
