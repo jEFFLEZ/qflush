@@ -18,7 +18,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '20.18.1'
       - name: Validate token (warning only)
         run: |
           if [ -z "${OPEN_VSX_TOKEN}" ]; then echo "OPEN_VSX_TOKEN is not set - Open VSX publish will be skipped"; else echo "OPEN_VSX_TOKEN is set"; fi
