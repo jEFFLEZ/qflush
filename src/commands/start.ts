@@ -37,16 +37,41 @@ export async function runStart(opts?: qflushOptions) {
 
   async function ensureBuiltIfNeeded(prefixPath: string) {
     try {
-      const distEntry = require('path').join(prefixPath, 'dist', 'index.js');
-      if (!fs.existsSync(distEntry)) {
-        logger.info(`Local package at ${prefixPath} missing dist; running build...`);
-        const r = spawnSync('npm', ['--prefix', prefixPath, 'run', 'build'], { stdio: 'inherit' });
-        if (r.status !== 0) {
-          logger.warn(`Build failed for ${prefixPath}, skipping start`);
-          return false;
+      const pathJoin = require('path').join;
+      const candidates = [
+        prefixPath,
+        pathJoin(prefixPath, 'spyder'),
+        pathJoin(prefixPath, 'apps', 'spyder-core')
+      ];
+
+      for (const cand of candidates) {
+        const distEntry = require('path').join(cand, 'dist', 'index.js');
+        if (fs.existsSync(distEntry)) {
+          return true;
         }
       }
-      return true;
+
+      // Try to build candidates that have a build script
+      for (const cand of candidates) {
+        try {
+          const pkgJsonPath = require('path').join(cand, 'package.json');
+          if (!fs.existsSync(pkgJsonPath)) continue;
+          const pj = readPackageJson(cand);
+          if (!pj || !pj.scripts || !pj.scripts.build) continue;
+
+          logger.info(`Local package at ${cand} missing dist; running build...`);
+          const r = spawnSync('npm', ['--prefix', cand, 'run', 'build'], { stdio: 'inherit' });
+          if (r.status === 0) {
+            const distEntry = require('path').join(cand, 'dist', 'index.js');
+            if (fs.existsSync(distEntry)) return true;
+          }
+        } catch (e) {
+          // continue trying other candidates
+        }
+      }
+
+      logger.warn(`No build artifact found under ${prefixPath} or subpackages`);
+      return false;
     } catch (e) {
       logger.warn(`ensureBuiltIfNeeded failed: ${e}`);
       return false;
