@@ -120,3 +120,57 @@ curl "http://localhost:4500/npz/rome-index"
 Notes:
 - En local, la variable `QFLUSHD_PORT` peut être utilisée pour changer le port (ex: `QFLUSHD_PORT=43421`).
 - Les tests d'intégration supposent que le daemon compilé expose ces endpoints (via `dist/daemon/qflushd.js`).
+
+## Optional integration: A-11 (local AI service)
+
+FR
+-----
+qflush peut piloter un serveur IA local nommé "A-11" (ex: backend Node + Ollama). Cette intégration est entièrement optionnelle : si A-11 n'est pas installé ou activé, qflush l'ignore et continue d'orchestrer les autres services.
+
+Exemple de configuration (dans `.qflush/a11.config.json`):
+
+```json
+{
+  "enabled": true,
+  "path": "D:/projects/a11",
+  "startCommand": "pwsh -File start-a11-system.ps1",
+  "healthUrl": "http://127.0.0.1:3000/health",
+  "pidFile": ".qflush/a11.pid"
+}
+```
+
+Commandes utiles:
+- `qflush start a11` — démarre A-11 si `enabled` et si `startCommand` est défini.
+- `qflush stop a11` — arrête A-11 si un `pidFile` a été créé lors du démarrage.
+- `qflush a11:status` — vérifie le endpoint `healthUrl` ou la présence du processus.
+
+Comportement:
+- Si `enabled` = false ou le fichier de config manque, qflush n'essaie pas d'installer ni de lancer A-11.
+- En cas d'échec de démarrage, qflush loggue une erreur et continue les autres modules.
+
+EN
+-----
+qflush can orchestrate an optional local AI service named "A-11" (for example a Node + Ollama backend). This integration is optional: if A-11 is not installed or enabled, qflush will ignore it and continue orchestrating other services.
+
+Example configuration (put into `.qflush/a11.config.json`):
+
+```json
+{
+  "enabled": true,
+  "path": "D:/projects/a11",
+  "startCommand": "pwsh -File start-a11-system.ps1",
+  "healthUrl": "http://127.0.0.1:3000/health",
+  "pidFile": ".qflush/a11.pid"
+}
+```
+
+Useful commands:
+- `qflush start a11` — starts A-11 when `enabled` and `startCommand` provided.
+- `qflush stop a11` — stops A-11 if a `pidFile` was recorded on start.
+- `qflush a11:status` — checks `healthUrl` or process presence.
+
+Behavior notes:
+- If `enabled` is false or config file is absent, qflush will not try to install or start A-11.
+- On start failure qflush logs a clear message and continues with other services.
+
+---
