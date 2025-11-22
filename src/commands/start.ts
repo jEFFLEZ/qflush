@@ -256,7 +256,8 @@ export async function runStart(opts?: qflushOptions) {
             }
           } catch (_) {}
         }
-      } else if (pkg) {
+      }
+      if (pkg) {
         // fallback to npz resolver
         const resolved = npz.npzResolve(pkg, { cwd: pkgPath });
         if (!resolved || resolved.gate === 'fail') {
