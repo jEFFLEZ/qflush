@@ -11,7 +11,22 @@ function tryRequire(filePath: string) {
   return undefined;
 }
 
+function tryRequireVariants(basePath: string) {
+  const variants = [".js", ".ts", "/index.js", "/index.ts"];
+  for (const v of variants) {
+    const p = basePath.endsWith(v) ? basePath : basePath + v;
+    const m = tryRequire(p);
+    if (m) return (m && m.default) || m;
+  }
+  return undefined;
+}
+
 export function importUtil(name: string): any {
+  // normalize alias forms such as '@utils/foo' or '#utils/foo' to a simple local name
+  let localName = name;
+  const aliasMatch = name && (name.startsWith('@utils/') || name.startsWith('#utils/'));
+  if (aliasMatch) localName = name.replace(/^(@|#)?utils\//, '');
+
   // prefer spyder local workspace copy when present
   try {
     const paths = resolvePaths();
@@ -19,20 +34,19 @@ export function importUtil(name: string): any {
     if (spy) {
       // common locations inside spyder package layout
       const candidates = [
-        path.join(spy, 'apps', 'spyder-core', 'src', 'utils', `${name}.js`),
-        path.join(spy, 'apps', 'spyder-core', 'src', 'utils', `${name}.ts`),
-        path.join(spy, 'src', 'utils', `${name}.js`),
-        path.join(spy, 'src', 'utils', `${name}.ts`),
-        path.join(spy, 'utils', `${name}.js`),
-        path.join(spy, 'utils', `${name}.ts`),
+        path.join(spy, 'apps', 'spyder-core', 'src', 'utils', localName),
+        path.join(spy, 'apps', 'spyder-core', 'src', localName),
+        path.join(spy, 'src', 'utils', localName),
+        path.join(spy, 'src', localName),
+        path.join(spy, 'utils', localName),
       ];
       for (const c of candidates) {
-        const m = tryRequire(c);
-        if (m) return (m && m.default) || m;
+        const m = tryRequireVariants(c);
+        if (m) return m;
       }
-      // try requiring from spyder root via Node resolution
+      // try requiring from spyder root via Node resolution (works if spyder is a package)
       try {
-        const resolved = require.resolve(name, { paths: [spy] });
+        const resolved = require.resolve(localName, { paths: [spy] });
         const m = require(resolved);
         if (m) return (m && m.default) || m;
       } catch (e) {}
@@ -41,10 +55,19 @@ export function importUtil(name: string): any {
     // ignore
   }
 
-  // fallback to local utils folder next to this file
+  // If name was an alias like @utils/foo, try local src/utils/<foo>
+  if (aliasMatch) {
+    try {
+      const local = tryRequireVariants(path.join(__dirname, localName));
+      if (local) return local;
+    } catch (e) {}
+  }
+
+  // fallback: if a relative path or module name was passed, try requiring directly
   try {
-    const local = tryRequire(path.join(__dirname, name));
-    if (local) return (local && local.default) || local;
+    // try direct file/module
+    const m1 = tryRequire(name);
+    if (m1) return (m1 && m1.default) || m1;
   } catch (e) {}
 
   // last resort: require by name (could be from node_modules)
