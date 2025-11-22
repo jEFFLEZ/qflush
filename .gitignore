@@ -1,4 +1,4 @@
-# Node and build
+# Node / build
 node_modules/
 dist/
 out/
@@ -11,6 +11,9 @@ spyder/node_modules/
 spyder/dist/
 spyder/out/
 spyder/*.log
+
+# Local QFlush runtime state (should not be committed)
+.qflush/
 
 # Visual Studio / VSIX build outputs
 extensions/visual-studio-npz/NPZVsix/obj/
