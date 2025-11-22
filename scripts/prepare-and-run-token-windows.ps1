@@ -113,6 +113,13 @@ if (Test-Path $extractedDir) {
   Write-Host "Removing existing artifact extraction folder $extractedDir"
   Remove-Item -Recurse -Force $extractedDir
 }
+# remove existing root token file to avoid gh extraction error
+$rootTokenPath = Join-Path $destDir 'token.txt'
+if (Test-Path $rootTokenPath) {
+  Write-Host "Removing existing token file $rootTokenPath to allow artifact extraction"
+  Remove-Item -Force $rootTokenPath
+}
+
 gh run download $runId --repo $Repo --name installation-token --dir $destDir
 if ($LASTEXITCODE -ne 0) { Write-ErrAndExit "Failed to download artifact" }
 
