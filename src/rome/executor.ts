@@ -3,9 +3,15 @@
 import { spawn, execFile } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
-import fetch from 'node-fetch';
-import { saveEngineHistory } from './storage';
-import { callReload } from './daemon-control';
+
+let fetch: any;
+try { fetch = require('node-fetch'); } catch (e) { fetch = undefined; }
+
+let saveEngineHistory: any;
+try { saveEngineHistory = require('./storage').saveEngineHistory; } catch (e) { saveEngineHistory = undefined; }
+
+let callReload: any;
+try { callReload = require('./daemon-control').callReload; } catch (e) { callReload = undefined; }
 
 const DEFAULT_CFG = { allowedCommandSubstrings: ['npm','node','echo'], allowedCommands: ['echo hello','npm run build'], commandTimeoutMs: 15000, webhookUrl: '' };
 
@@ -140,12 +146,12 @@ export async function executeAction(action: string, ctx: any = {}): Promise<any>
       const res = { success: result.code === 0, stdout: result.stdout, stderr: result.stderr, code: result.code };
 
       // webhook notify
-      if (cfg.webhookUrl) {
+      if (cfg.webhookUrl && fetch) {
         try { await fetch(cfg.webhookUrl, { method: 'POST', body: JSON.stringify({ action: cmd, path: ctx.path || null, result: res }), headers: { 'Content-Type': 'application/json' } }); } catch (e) {}
       }
 
       // persist execution history
-      try { saveEngineHistory('exec-'+Date.now(), Date.now(), ctx.path || '', cmd, res); } catch (e) {}
+      try { if (saveEngineHistory) saveEngineHistory('exec-'+Date.now(), Date.now(), ctx.path || '', cmd, res); } catch (e) {}
 
       return res;
     }
@@ -166,16 +172,16 @@ export async function executeAction(action: string, ctx: any = {}): Promise<any>
       writeNpzMetadata(metadata);
 
       const res = { success: true, id, path: outFile, metadata };
-      if (cfg.webhookUrl) { try { await fetch(cfg.webhookUrl, { method: 'POST', body: JSON.stringify({ action: 'npz.encode', path: filePath, result: res }), headers: { 'Content-Type': 'application/json' } }); } catch (e) {} }
-      try { saveEngineHistory('npz-'+Date.now(), Date.now(), filePath, 'npz.encode', res); } catch (e) {}
+      if (cfg.webhookUrl && fetch) { try { await fetch(cfg.webhookUrl, { method: 'POST', body: JSON.stringify({ action: 'npz.encode', path: filePath, result: res }), headers: { 'Content-Type': 'application/json' } }); } catch (e) {} }
+      try { if (saveEngineHistory) saveEngineHistory('npz-'+Date.now(), Date.now(), filePath, 'npz.encode', res); } catch (e) {}
       return res;
     }
 
     if (action.startsWith('daemon.reload')) {
       // trigger reload via daemon-control
-      const ok = await callReload();
+      const ok = callReload ? await callReload() : false;
       const res = { success: ok };
-      try { saveEngineHistory('reload-'+Date.now(), Date.now(), ctx.path || '', 'daemon.reload', res); } catch (e) {}
+      try { if (saveEngineHistory) saveEngineHistory('reload-'+Date.now(), Date.now(), ctx.path || '', 'daemon.reload', res); } catch (e) {}
       return res;
     }
 
