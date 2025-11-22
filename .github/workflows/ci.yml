@@ -40,6 +40,10 @@ jobs:
           else
             echo "Spyder not present, skipping"
           fi
+      - name: Fix alias imports (convert @utils/* → relative)
+        run: |
+          # run the project import fixer to convert @utils imports to relative paths for CI
+          node tools/fix-utils-imports.js src/utils src/commands || true
       - name: Show versions
         run: |
           node -v
