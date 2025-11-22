@@ -6,5 +6,7 @@ on:
 jobs:
   publish-azure:
     runs-on: ubuntu-latest
+
     steps:
-      - run: echo "Placeholder: implement Azure publish steps here if needed."
+      - name: Placeholder
+        run: echo "Placeholder : implémenter Azure publish steps ici si besoin."
