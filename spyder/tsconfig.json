@@ -1,0 +1,6 @@
+{
+  "files": [],
+  "references": [
+    { "path": "./apps/spyder-core/tsconfig.json" }
+  ]
+}
