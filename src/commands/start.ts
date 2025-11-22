@@ -101,6 +101,24 @@ export async function runStart(opts?: qflushOptions) {
             runCmd = { cmd: 'npm', args: ['--prefix', p, 'run', 'start'], cwd: p };
           }
 
+          // If runCmd still not set or dist missing, try common subpackage locations
+          if (!runCmd) {
+            const subCandidates = ['spyder', 'apps/spyder-core'];
+            for (const sub of subCandidates) {
+              try {
+                const subPkg = require('path').join(p, sub);
+                const subPkgJsonPath = require('path').join(subPkg, 'package.json');
+                if (fs.existsSync(subPkgJsonPath)) {
+                  const subPkgJson = readPackageJson(subPkg);
+                  if (subPkgJson && subPkgJson.scripts && subPkgJson.scripts.start) {
+                    runCmd = { cmd: 'npm', args: ['--prefix', subPkg, 'run', 'start'], cwd: subPkg };
+                    break;
+                  }
+                }
+              } catch (_) {}
+            }
+          }
+
           if (runCmd) {
             // if runCmd is npm start with prefix, ensure build exists
             if (runCmd.cmd === 'npm' && runCmd.args.includes('run') && runCmd.args.includes('start')) {
@@ -197,6 +215,22 @@ export async function runStart(opts?: qflushOptions) {
       } else if (pkgJson && pkgJson.scripts && pkgJson.scripts.start) {
         // no bin but has start script in local package
         runCmd = { cmd: 'npm', args: ['--prefix', pkgPath, 'run', 'start'], cwd: pkgPath };
+      } else {
+        // try common subpackage locations under pkgPath
+        const subCandidates = ['spyder', 'apps/spyder-core'];
+        for (const sub of subCandidates) {
+          try {
+            const subPkg = require('path').join(pkgPath, sub);
+            const subPkgJsonPath = require('path').join(subPkg, 'package.json');
+            if (fs.existsSync(subPkgJsonPath)) {
+              const subPkgJson = readPackageJson(subPkg);
+              if (subPkgJson && subPkgJson.scripts && subPkgJson.scripts.start) {
+                runCmd = { cmd: 'npm', args: ['--prefix', subPkg, 'run', 'start'], cwd: subPkg };
+                break;
+              }
+            }
+          } catch (_) {}
+        }
       } else if (pkg) {
         // fallback to npz resolver
         const resolved = npz.npzResolve(pkg, { cwd: pkgPath });
