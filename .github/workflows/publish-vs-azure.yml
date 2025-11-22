@@ -1,12 +1,11 @@
 name: Publish to Visual Studio Azure
 
 on:
-  workflow_dispatch: {}
+  workflow_dispatch:
 
 jobs:
   publish-azure:
     runs-on: ubuntu-latest
-
     steps:
       - name: Placeholder
-        run: echo "Placeholder : implémenter Azure publish steps ici si besoin."
+        run: echo "Placeholder: implement Azure publish steps here if needed."        run: echo "Placeholder : implémenter Azure publish steps ici si besoin."
