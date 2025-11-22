@@ -10,9 +10,18 @@ import { startProcess } from "../supervisor";
 import { waitForService } from "../utils/health";
 import { runCustomsCheck, hasBlockingIssues, ModuleDescriptor } from "../utils/npz-customs";
 import npz from "../utils/npz";
+import * as fs from 'fs';
 
 export async function runStart(opts?: qflushOptions) {
   logger.info("qflush: starting modules...");
+
+  // Respect CI/dev flag to disable supervisor starting external services
+  const disableSupervisor = process.env.QFLUSH_DISABLE_SUPERVISOR === '1' || String(process.env.QFLUSH_DISABLE_SUPERVISOR).toLowerCase() === 'true';
+  if (disableSupervisor) {
+    logger.warn('QFLUSH supervisor disabled via QFLUSH_DISABLE_SUPERVISOR, skipping start of external modules');
+    return;
+  }
+
   const detected = opts?.detected || (await detectModules());
   const paths = resolvePaths(detected);
 
@@ -45,10 +54,34 @@ export async function runStart(opts?: qflushOptions) {
         if (pkgJson && pkgJson.bin) {
           const binEntry = typeof pkgJson.bin === "string" ? pkgJson.bin : Object.values(pkgJson.bin)[0];
           const binPath = require("path").join(p, binEntry);
-          const runCmd = pathExists(binPath) && binPath.endsWith('.js') ? { cmd: process.execPath, args: [binPath], cwd: p } : { cmd: binPath, args: [], cwd: p };
-          logger.info(`Launching ${modName} -> ${runCmd.cmd} ${runCmd.args.join(" ")}`);
-          startProcess(modName, runCmd.cmd, runCmd.args, { cwd: runCmd.cwd });
-          return;
+
+          // if bin exists and is a JS file, run via node; otherwise try to run directly but fallback to node if not executable
+          let runCmd = null as any;
+          if (pathExists(binPath) && binPath.endsWith('.js')) {
+            runCmd = { cmd: process.execPath, args: [binPath], cwd: p };
+          } else if (pathExists(binPath)) {
+            // check executable bit on POSIX; on Windows assume runnable
+            let isExec = true;
+            try {
+              if (process.platform !== 'win32') {
+                const st = fs.statSync(binPath);
+                isExec = !!(st.mode & 0o111);
+              }
+            } catch (e) { isExec = false; }
+
+            if (isExec) {
+              runCmd = { cmd: binPath, args: [], cwd: p };
+            } else {
+              // fallback: attempt to run with node
+              runCmd = { cmd: process.execPath, args: [binPath], cwd: p };
+            }
+          }
+
+          if (runCmd) {
+            logger.info(`Launching ${modName} -> ${runCmd.cmd} ${runCmd.args.join(" ")}`);
+            startProcess(modName, runCmd.cmd, runCmd.args, { cwd: runCmd.cwd });
+            return;
+          }
         }
       } catch (e) {
         logger.warn(`Failed to run local path for ${modName}: ${e}`);
@@ -117,7 +150,16 @@ export async function runStart(opts?: qflushOptions) {
         if (binPath.endsWith(".js") && pathExists(binPath)) {
           runCmd = { cmd: process.execPath, args: [binPath], cwd: pkgPath };
         } else if (pathExists(binPath)) {
-          runCmd = { cmd: binPath, args: [], cwd: pkgPath };
+          // if not executable on POSIX, fallback to running with node
+          let isExec = true;
+          try {
+            if (process.platform !== 'win32') {
+              const st = fs.statSync(binPath);
+              isExec = !!(st.mode & 0o111);
+            }
+          } catch (e) { isExec = false; }
+          if (isExec) runCmd = { cmd: binPath, args: [], cwd: pkgPath };
+          else runCmd = { cmd: process.execPath, args: [binPath], cwd: pkgPath };
         } else {
           logger.warn(`${mod} bin entry not found at ${binPath}. ${rebuildInstructionsFor(pkgPath)}`);
           return;
@@ -125,7 +167,7 @@ export async function runStart(opts?: qflushOptions) {
       } else if (pkg) {
         // fallback to npz resolver
         const resolved = npz.npzResolve(pkg, { cwd: pkgPath });
-        if (!resolved || resolved.gate === 'fail') {
+        if (!resolved or resolved.gate === 'fail') {
           logger.warn(`${mod} has no runnable entry, skipping`);
           return;
         }
