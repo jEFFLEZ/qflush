@@ -167,7 +167,7 @@ export async function runStart(opts?: qflushOptions) {
       } else if (pkg) {
         // fallback to npz resolver
         const resolved = npz.npzResolve(pkg, { cwd: pkgPath });
-        if (!resolved or resolved.gate === 'fail') {
+        if (!resolved || resolved.gate === 'fail') {
           logger.warn(`${mod} has no runnable entry, skipping`);
           return;
         }
