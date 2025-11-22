@@ -1,46 +1,35 @@
-# Node and build
+# Node / build
 node_modules/
 dist/
-*.tgz
-npm-debug.log
-.DS_Store
-.env
-.qflash.local
-
-# VS/IDE
-.vs/
-.idea/
-*.suo
-*.user
-*.userosscache
-*.sln.docstates
-
-# npm
+out/
+build/
+npm-debug.log*
 package-lock.json
-.pnpm-debug.log
 
-# temp
-temp/
-*/temp/
+# Spyder local import artifacts
+spyder/node_modules/
+spyder/dist/
+spyder/out/
+spyder/*.log
 
-# VSCode extension build
-extensions/vscode-npz/out/
-# Ignore VSIX artifacts created by packaging the VS Code extension
-/extensions/vscode-npz/*.vsix
-
-# Ignore nested extensions folder produced during packaging
-/extensions/vscode-npz/extensions/
-
-# local nested repo / artifacts
-qflash/
-
-# Local environment files
-.env.local
-.env.*.local
-.env
-
-# qflush runtime state
+# Local QFlush runtime state (should not be committed)
 .qflush/
 
-# logs
+# Visual Studio / VSIX build outputs
+extensions/visual-studio-npz/NPZVsix/obj/
+extensions/visual-studio-npz/NPZVsix/bin/
+extensions/vscode-npz/out/
+tmp-vsix-gen/
+
+# IDE folders
+.vscode/
+.vs/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temporary
+*.tmp
 *.log
