@@ -1,4 +1,3 @@
-
 let franc: any;
 try {
   franc = require('franc');
@@ -11,7 +10,13 @@ export function detectLanguage(text: string): string {
   try {
     if (!text || typeof text !== 'string') return 'unknown';
     const s = text.normalize ? text.normalize('NFC').trim() : String(text).trim();
-    if (!s || s.length < 3) return 'unknown';
+    if (!s || s.length < 1) return 'unknown';
+
+    // quick regex-based shortcuts for scripts
+    // detect Cyrillic -> ru
+    if (/[\u0400-\u04FF]/.test(s)) return 'ru';
+    // detect CJK -> zh
+    if (/[\u4E00-\u9FFF]/.test(s)) return 'zh';
 
     if (!franc) return 'unknown';
     try {
