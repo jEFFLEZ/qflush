@@ -11,7 +11,8 @@ export const SERVICE_MAP: Record<string, { pkg: string; candidates: string[] }> 
   freeland: { pkg: "@funeste38/freeland", candidates: ["./freeland", "./Freeland"] },
   bat: { pkg: "@funeste38/bat", candidates: ["./bat", "./BAT"] },
   // placeholders for future projects
-  spyder: { pkg: "@funeste38/spyder", candidates: ["./spyder"] },
+  // Prefer the apps/spyder-core subpackage so the runtime runs the actual app entrypoint
+  spyder: { pkg: "@funeste38/spyder", candidates: ["./spyder/apps/spyder-core", "./spyder/spyder", "./spyder"] },
 };
 
 export function resolvePaths(detected: any = {}) {
