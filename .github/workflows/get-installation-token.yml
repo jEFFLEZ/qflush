@@ -41,7 +41,7 @@ jobs:
         env:
           APP_ID: ${{ secrets.APP_ID }}
           INSTALLATION_ID: ${{ secrets.INSTALLATION_ID }}
-          GITHUB_PRIVATE_KEY_FILE: ${{ env.GITHUB_PRIVATE_KEY_FILE }}
+          GITHUB_PRIVATE_KEY_FILE: 'D:\\keys\\private.pem'
           GITHUB_APP_ID: ${{ secrets.APP_ID }}
           GITHUB_INSTALLATION_ID: ${{ secrets.INSTALLATION_ID }}
         run: |
