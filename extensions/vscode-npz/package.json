@@ -1,4 +1,4 @@
-﻿{
+{
   "name": "qflush",
   "displayName": "QFlush Extension",
   "publisher": "funesterie",
@@ -27,9 +27,6 @@
     "url": "https://github.com/jEFFLEZ/qflush.git"
   },
   "license": "MIT",
-  "activationEvents": [
-    "onCommand:qflush.openPanel"
-  ],
   "contributes": {
     "commands": [
       {

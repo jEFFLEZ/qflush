@@ -17,9 +17,18 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-      - name: Install deps
+      - name: Install @octokit/auth-app
         run: |
-          npm ci --no-audit --no-fund || npm i @octokit/auth-app
+          npm install @octokit/auth-app --no-audit --no-fund
+      - name: Debug installed packages
+        run: |
+          echo "node version: $(node -v)";
+          echo "npm version: $(npm -v)";
+          echo "Listing @octokit in node_modules:";
+          ls -la node_modules/@octokit || true;
+          echo "npm ls @octokit/auth-app:'";
+          npm ls @octokit/auth-app || true;
+          node -e "try { console.log('require.resolve.paths:', require.resolve.paths('@octokit/auth-app')); } catch(e){ console.error('resolve.paths failed', e && e.message); process.exit(0);}"
       - name: Obtain installation token
         id: get_token
         env:
