@@ -96,6 +96,13 @@ export function styledLog(title: string, msg: string, opts?: { accent?: 'joker' 
   const bg = ansiBg(darken(accent, 0.15));
   const fg = ansiFg(readableTextColor(darken(accent, 0.15)));
   const accentFg = ansiFg(accent);
+
+  // If output is not a TTY or NO_COLOR is set, avoid ANSI color sequences and print plain text
+  if (process.env.NO_COLOR || !(process.stdout && process.stdout.isTTY)) {
+    process.stdout.write(`[${title}] ${msg}\n`);
+    return;
+  }
+
   process.stdout.write(`${bg}${fg} [${title}] ${ansiReset} ${accentFg}${msg}${ansiReset}\n`);
 }
 
