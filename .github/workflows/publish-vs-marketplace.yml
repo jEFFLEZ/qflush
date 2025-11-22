@@ -18,7 +18,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '20.18.1'
       - name: Validate AZURE_PAT (warning)
         run: |
           if [ -z "${AZURE_PAT}" ]; then echo "AZURE_PAT is missing - Marketplace publish will be skipped"; else echo "AZURE_PAT is set"; fi
