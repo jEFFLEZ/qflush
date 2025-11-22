@@ -17,17 +17,25 @@ export const SERVICE_MAP: Record<string, { pkg: string; candidates: string[] }> 
 export function resolvePaths(detected: any = {}) {
   const out: Record<string, string | undefined> = {};
   for (const key of Object.keys(SERVICE_MAP)) {
-    if (detected && detected[key] && detected[key].path) {
-      out[key] = detected[key].path;
-      continue;
-    }
+    // Prefer local candidate folders when present in the workspace
     const tries = SERVICE_MAP[key].candidates;
+    let found: string | undefined;
     for (const t of tries) {
       const p = join(process.cwd(), t);
       if (existsSync(p)) {
-        out[key] = p;
+        found = p;
         break;
       }
+    }
+    if (found) {
+      out[key] = found;
+      continue;
+    }
+
+    // Fallback to detected package path (e.g., node_modules resolution)
+    if (detected && detected[key] && detected[key].path) {
+      out[key] = detected[key].path;
+      continue;
     }
   }
   return out;
