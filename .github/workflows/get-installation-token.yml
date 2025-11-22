@@ -8,7 +8,8 @@ permissions:
 
 jobs:
   get-token:
-    runs-on: ubuntu-latest
+    # Use a self-hosted Windows runner that has D:\keys\private.pem available
+    runs-on: [self-hosted, windows]
     steps:
       - uses: actions/checkout@v4
         with:
@@ -20,22 +21,6 @@ jobs:
       - name: Install @octokit/auth-app
         run: |
           npm install @octokit/auth-app --no-audit --no-fund
-      - name: Write private key to file
-        env:
-          PRIVATE_KEY_PEM: ${{ secrets.PRIVATE_KEY_PEM }}
-        run: |
-          printf '%s' "$PRIVATE_KEY_PEM" > private.pem
-          # trim quotes
-          sed -i "1s/^['\"]//;$s/['\"]$//" private.pem || true
-          if grep -q "ENCRYPTED" private.pem || grep -q "Proc-Type: 4,ENCRYPTED" private.pem; then
-            echo "ERROR: provided private key appears to be encrypted. Provide an unencrypted PEM or an OpenSSH private key that can be converted."
-            exit 1
-          fi
-          # export path for next steps
-          echo "GITHUB_PRIVATE_KEY_FILE=$(pwd)/private.pem" >> $GITHUB_ENV
-      - name: Debug key head
-        run: |
-          echo "key head:"; sed -n '1,5p' private.pem || true
       - name: Obtain installation token
         id: get_token
         env:
@@ -44,10 +29,14 @@ jobs:
           GITHUB_PRIVATE_KEY_FILE: 'D:\\keys\\private.pem'
           GITHUB_APP_ID: ${{ secrets.APP_ID }}
           GITHUB_INSTALLATION_ID: ${{ secrets.INSTALLATION_ID }}
+        shell: pwsh
         run: |
+          # On the self-hosted Windows runner the key file is expected at D:\keys\private.pem
+          Write-Host "Using private key file: $env:GITHUB_PRIVATE_KEY_FILE"
           node tools/get-installation-token.js > token.txt
-          echo "::add-mask::$(cat token.txt)"
-          echo "token=$(cat token.txt)" >> $GITHUB_OUTPUT
+          # mask token in logs and set step output
+          Write-Host "::add-mask::$(Get-Content token.txt -Raw)"
+          Write-Output ("token=$(Get-Content token.txt -Raw)") | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
 
       - name: Upload token artifact
         if: success()
