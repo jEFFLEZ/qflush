@@ -77,6 +77,11 @@ export async function runStart(opts?: qflushOptions) {
             }
           }
 
+          // if no bin but there is a start script, prefer npm --prefix <p> run start
+          if (!runCmd && pkgJson && pkgJson.scripts && pkgJson.scripts.start) {
+            runCmd = { cmd: 'npm', args: ['--prefix', p, 'run', 'start'], cwd: p };
+          }
+
           if (runCmd) {
             logger.info(`Launching ${modName} -> ${runCmd.cmd} ${runCmd.args.join(" ")}`);
             startProcess(modName, runCmd.cmd, runCmd.args, { cwd: runCmd.cwd });
@@ -91,7 +96,7 @@ export async function runStart(opts?: qflushOptions) {
     // otherwise, use NPZ resolver as primary
     if (pkg) {
       const resolved = npz.npzResolve(pkg, { cwd: p || process.cwd() });
-      if (!resolved || resolved.gate === 'fail') {
+      if (!resolved) {
         logger.warn(`${modName} path and package not found or NPZ failed to resolve, skipping`);
         return;
       }
@@ -164,6 +169,9 @@ export async function runStart(opts?: qflushOptions) {
           logger.warn(`${mod} bin entry not found at ${binPath}. ${rebuildInstructionsFor(pkgPath)}`);
           return;
         }
+      } else if (pkgJson && pkgJson.scripts && pkgJson.scripts.start) {
+        // no bin but has start script in local package
+        runCmd = { cmd: 'npm', args: ['--prefix', pkgPath, 'run', 'start'], cwd: pkgPath };
       } else if (pkg) {
         // fallback to npz resolver
         const resolved = npz.npzResolve(pkg, { cwd: pkgPath });
