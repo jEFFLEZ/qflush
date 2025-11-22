@@ -7,12 +7,14 @@ export type ServiceEntry = {
   stop?: () => Promise<void>;
 };
 
-export const ServiceState: Record<string, { running: boolean; lastError: any | null; lastStart: number | null }> = {
+export const ServiceState: Record<string, { running: boolean; lastError: any | null; lastStart: number | null; idle?: boolean }> = {
   bat: { running: false, lastError: null, lastStart: null },
   spyder: { running: false, lastError: null, lastStart: null },
   nezlephant: { running: false, lastError: null, lastStart: null },
   freeland: { running: false, lastError: null, lastStart: null },
 };
+
+export const GlobalState: { sleep?: boolean } = { sleep: false };
 
 function tryRequireService(modulePath: string): any | null {
   try {
@@ -75,6 +77,22 @@ export function listAvailableServices() {
   return Object.keys(ServiceState);
 }
 
+function ensureQflushDir() {
+  const dir = join(process.cwd(), '.qflush');
+  try { if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true }); } catch (e) {}
+  return dir;
+}
+
+function persistSafeMode(obj: any) {
+  try {
+    const dir = ensureQflushDir();
+    const p = join(dir, 'safe-modes.json');
+    fs.writeFileSync(p, JSON.stringify(obj, null, 2), 'utf8');
+  } catch (e) {
+    logger.warn('failed to persist safe-modes', String(e));
+  }
+}
+
 export async function startService(name: string, opts?: any) {
   const key = String(name || '').toLowerCase();
   if (!ServiceState[key]) throw new Error(`Unknown service: ${name}`);
@@ -91,6 +109,7 @@ export async function startService(name: string, opts?: any) {
     ServiceState[key].lastStart = Date.now();
     await svc.start(opts);
     ServiceState[key].running = true;
+    ServiceState[key].idle = false;
     logger.info(`[SERVICE] started ${key}`);
   } catch (e) {
     ServiceState[key].running = false;
@@ -107,10 +126,69 @@ export async function stopService(name: string) {
   try {
     if (svc.stop) await svc.stop();
     ServiceState[key].running = false;
+    ServiceState[key].idle = false;
     logger.info(`[SERVICE] stopped ${key}`);
   } catch (e) {
     ServiceState[key].lastError = e;
     logger.error(`[SERVICE] failed to stop ${key}: ${e}`);
     throw e;
   }
+}
+
+export function enterSleepMode() {
+  logger.info('[BAT] Sleep mode activated — entering quiet state.');
+  GlobalState.sleep = true;
+  // mark services idle
+  for (const k of Object.keys(ServiceState)) {
+    ServiceState[k].idle = true;
+  }
+  // persist mode
+  persistSafeMode({ mode: 'sleep', ts: Date.now() });
+}
+
+export function exitSleepMode() {
+  logger.info('[BAT] Sleep mode deactivated — resuming normal operations.');
+  GlobalState.sleep = false;
+  for (const k of Object.keys(ServiceState)) {
+    ServiceState[k].idle = false;
+  }
+  persistSafeMode({ mode: 'normal', ts: Date.now() });
+}
+
+export async function jokerWipe() {
+  logger.warn('[JOKER] EXPLOSIVE WIPE requested — attempting total cleanup.');
+  // attempt graceful stops
+  for (const k of Object.keys(ServiceState)) {
+    try {
+      await stopService(k);
+    } catch (e) {
+      logger.warn(`[JOKER] stop ${k} failed: ${e}`);
+    }
+  }
+
+  // kill child processes if any (best-effort)
+  try {
+    // non-portable: attempt to kill by listing process.children if available
+    // fallback: no-op here, supervisor mode would handle SIGKILL
+  } catch {}
+
+  // clear NPZ storage files and logs
+  try {
+    const dir = ensureQflushDir();
+    const logs = join(dir, 'logs');
+    if (fs.existsSync(logs)) {
+      fs.rmSync(logs, { recursive: true, force: true });
+    }
+    const active = join(dir, 'active-services.json');
+    if (fs.existsSync(active)) fs.unlinkSync(active);
+  } catch (e) { logger.warn(`[JOKER] cleanup fs failed: ${e}`); }
+
+  // persist mode
+  persistSafeMode({ mode: 'joker', ts: Date.now() });
+
+  // exit process shortly
+  setTimeout(() => {
+    logger.warn('[JOKER] Exiting process (forced).');
+    try { process.exit(137); } catch { /* ignore */ }
+  }, 300);
 }
