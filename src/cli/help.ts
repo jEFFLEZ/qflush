@@ -1,6 +1,7 @@
 // ROME-TAG: 0x1DEEBD
 
-import { logger } from "../utils/logger";
+import alias from '../utils/alias';
+const logger = alias.importUtil('@utils/logger') || alias.importUtil('../utils/logger') || console;
 
 export function showHelp() {
   logger.info(`qflush - Funesterie orchestrator`);
