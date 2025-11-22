@@ -5,7 +5,7 @@ import { existsSync } from 'fs';
 import * as path from 'path';
 import alias from './alias';
 
-const logger = alias.importUtil('../utils/logger') || alias.importUtil('./logger') || console;
+const logger = alias.importUtil('@utils/logger') || alias.importUtil('./logger') || console;
 const SERVICE_MAP = alias.importUtil('../utils/paths')?.SERVICE_MAP || require('./paths').SERVICE_MAP;
 
 export type ResolveResult = { gate: 'green' | 'yellow' | 'dlx' | 'fail'; cmd?: string; args?: string[]; cwd?: string };
