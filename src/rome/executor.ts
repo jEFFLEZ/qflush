@@ -4,8 +4,19 @@ import { spawn, execFile } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
 
-let fetch: any;
-try { fetch = require('node-fetch'); } catch (e) { fetch = undefined; }
+let fetchModule: any;
+try { fetchModule = require('../utils/fetch'); } catch (e) { fetchModule = undefined; }
+if (!fetchModule) {
+  try { fetchModule = require('node-fetch'); } catch (e) { fetchModule = undefined; }
+}
+if (!fetchModule && typeof (globalThis as any).fetch === 'function') {
+  fetchModule = (globalThis as any).fetch.bind(globalThis);
+}
+// normalize to callable function (handle both `module.exports = fn` and `{ default: fn }`)
+let fetchFn: any = undefined;
+if (fetchModule) {
+  fetchFn = fetchModule.default || fetchModule;
+}
 
 let saveEngineHistory: any;
 try { saveEngineHistory = require('./storage').saveEngineHistory; } catch (e) { saveEngineHistory = undefined; }
@@ -146,8 +157,8 @@ export async function executeAction(action: string, ctx: any = {}): Promise<any>
       const res = { success: result.code === 0, stdout: result.stdout, stderr: result.stderr, code: result.code };
 
       // webhook notify
-      if (cfg.webhookUrl && fetch) {
-        try { await fetch(cfg.webhookUrl, { method: 'POST', body: JSON.stringify({ action: cmd, path: ctx.path || null, result: res }), headers: { 'Content-Type': 'application/json' } }); } catch (e) {}
+      if (cfg.webhookUrl && fetchFn) {
+        try { await fetchFn(cfg.webhookUrl, { method: 'POST', body: JSON.stringify({ action: cmd, path: ctx.path || null, result: res }), headers: { 'Content-Type': 'application/json' } }); } catch (e) {}
       }
 
       // persist execution history
@@ -172,7 +183,7 @@ export async function executeAction(action: string, ctx: any = {}): Promise<any>
       writeNpzMetadata(metadata);
 
       const res = { success: true, id, path: outFile, metadata };
-      if (cfg.webhookUrl && fetch) { try { await fetch(cfg.webhookUrl, { method: 'POST', body: JSON.stringify({ action: 'npz.encode', path: filePath, result: res }), headers: { 'Content-Type': 'application/json' } }); } catch (e) {} }
+      if (cfg.webhookUrl && fetchFn) { try { await fetchFn(cfg.webhookUrl, { method: 'POST', body: JSON.stringify({ action: 'npz.encode', path: filePath, result: res }), headers: { 'Content-Type': 'application/json' } }); } catch (e) {} }
       try { if (saveEngineHistory) saveEngineHistory('npz-'+Date.now(), Date.now(), filePath, 'npz.encode', res); } catch (e) {}
       return res;
     }
