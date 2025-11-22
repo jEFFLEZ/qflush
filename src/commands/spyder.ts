@@ -3,7 +3,9 @@
 import { spawn } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
-import fetch from 'node-fetch';
+
+let fetch: any;
+try { fetch = require('node-fetch'); } catch (e) { fetch = undefined; }
 
 const CFG_PATH = path.join(process.cwd(), '.qflush', 'spyder.config.json');
 
@@ -51,27 +53,29 @@ export default async function runSpyder(argv: string[] = []) {
     return 0;
   }
 
-  // status
-  if (cfg.healthUrl) {
-    try {
-      const res = await fetch(cfg.healthUrl, { method: 'GET' });
-      if (res.ok) { console.log('Spyder healthy'); return 0; }
-      console.log('Spyder unhealthy, status', res.status);
-      return 2;
-    } catch (e) {
-      console.log('Spyder health check failed:', String(e));
-      return 3;
+  if (sub === 'status') {
+    // status
+    if (cfg.healthUrl) {
+      try {
+        const res = await (fetch ? fetch(cfg.healthUrl, { method: 'GET' }) : Promise.reject(new Error('fetch not available')));
+        if (res.ok) { console.log('Spyder healthy'); return 0; }
+        console.log('Spyder unhealthy, status', res.status);
+        return 2;
+      } catch (e) {
+        console.log('Spyder health check failed:', String(e));
+        return 3;
+      }
     }
-  }
 
-  // fallback: check pid
-  if (cfg.pidFile && fs.existsSync(cfg.pidFile)) {
-    try {
-      const pid = Number(fs.readFileSync(cfg.pidFile,'utf8'));
-      try { process.kill(pid, 0); console.log('Spyder running (pid', pid + ')'); return 0; } catch (e) { console.log('Spyder not running'); return 3; }
-    } catch (e) { console.log('Spyder check failed', String(e)); return 3; }
-  }
+    // fallback: check pid
+    if (cfg.pidFile && fs.existsSync(cfg.pidFile)) {
+      try {
+        const pid = Number(fs.readFileSync(cfg.pidFile,'utf8'));
+        try { process.kill(pid, 0); console.log('Spyder running (pid', pid + ')'); return 0; } catch (e) { console.log('Spyder not running'); return 3; }
+      } catch (e) { console.log('Spyder check failed', String(e)); return 3; }
+    }
 
-  console.log('Spyder not running (no healthUrl or pidFile)');
-  return 3;
+    console.log('Spyder not running (no healthUrl or pidFile)');
+    return 3;
+  }
 }

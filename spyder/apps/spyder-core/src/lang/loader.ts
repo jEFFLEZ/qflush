@@ -40,7 +40,7 @@ export async function loadLanguageDecoders() {
         throw new Error('decoder module not found');
       }
     } catch (e) {
-      console.warn('Failed to load language decoder', l, e && e.message ? e.message : e);
+      console.warn('Failed to load language decoder', l, String(e));
     }
   }
 }

@@ -3,7 +3,9 @@
 import { spawn } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
-import fetch from 'node-fetch';
+
+let fetch: any;
+try { fetch = require('node-fetch'); } catch (e) { fetch = undefined; }
 
 const CFG_PATH = path.join(process.cwd(), '.qflush', 'a11.config.json');
 
