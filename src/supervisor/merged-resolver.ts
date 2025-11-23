@@ -22,7 +22,12 @@ export type ResolveOptions = { cwd?: string };
 function mergeResults(sup: ResolveResult, def: ResolveResult | null | undefined): ResolveResult {
   // prefer supervisor gate but fall back to yellow if supervisor has no gate
   const gate = sup && sup.gate ? sup.gate : (def && def.gate ? def.gate : 'yellow');
-  const out: ResolveResult = { gate, cmd: sup.cmd || (def && def.cmd) || undefined, args: sup.args ? [...sup.args] : (def && def.args ? [...def.args] : []), cwd: sup.cwd || (def && def.cwd) };
+  const out: ResolveResult = {
+    gate,
+    cmd: sup.cmd || (def && def.cmd) || undefined,
+    args: sup.args ? [...sup.args] : (def && def.args ? [...def.args] : []),
+    cwd: sup.cwd ?? (def && (def.cwd ?? undefined))
+  };
   return out;
 }
 
