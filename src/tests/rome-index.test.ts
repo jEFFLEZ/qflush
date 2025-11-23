@@ -37,38 +37,42 @@ export async function runTests() {
   let serverMod: any = null;
   let spawned: ChildProcess | null = null;
   try {
-    // If service already reachable, skip starting
+    // Si le service est déjà joignable, skip démarrage
     if (!(await isReachable(100, 200))) {
       try {
         // prefer importing the TS module (no .js) so Vitest can resolve it
         serverMod = await import('../daemon/qflushd');
         // start server programmatically on test port
         if (serverMod && typeof serverMod.startServer === 'function') {
+          console.log('[rome-index] Démarrage du daemon via startServer');
           serverMod.startServer(PORT);
         } else {
           // fallback: spawn daemon process from dist (if present)
           try {
+            console.log('[rome-index] Démarrage du daemon via spawn');
             spawned = spawn('node', ['./dist/daemon/qflushd.js'], {
               env: { ...process.env, QFLUSHD_PORT: String(PORT), QFLUSH_ENABLE_REDIS: '0' },
               stdio: ['ignore', 'pipe', 'pipe'],
             });
-            // pipe output to console to help debugging
             if (spawned.stdout) spawned.stdout.on('data', (d) => console.log('[qflushd]', d.toString()));
             if (spawned.stderr) spawned.stderr.on('data', (d) => console.error('[qflushd]', d.toString()));
           } catch (e) {
-            // ignore spawn failure, will fail on subsequent fetch attempts
+            console.error('[rome-index] Echec du spawn du daemon', e);
           }
         }
       } catch (e) {
         // import failed; try spawning the dist daemon as a last resort
         try {
+          console.log('[rome-index] Import du daemon échoué, tentative spawn');
           spawned = spawn('node', ['./dist/daemon/qflushd.js'], {
             env: { ...process.env, QFLUSHD_PORT: String(PORT), QFLUSH_ENABLE_REDIS: '0' },
             stdio: ['ignore', 'pipe', 'pipe'],
           });
           if (spawned.stdout) spawned.stdout.on('data', (d) => console.log('[qflushd]', d.toString()));
           if (spawned.stderr) spawned.stderr.on('data', (d) => console.error('[qflushd]', d.toString()));
-        } catch (ee) {}
+        } catch (ee) {
+          console.error('[rome-index] Echec du spawn du daemon (fallback)', ee);
+        }
       }
 
       // give it a moment to start
@@ -76,9 +80,13 @@ export async function runTests() {
 
       // ensure it's reachable before proceeding
       if (!(await isReachable(100, 200))) {
-        console.error(`qflushd not reachable at ${BASE} après 100 tentatives`);
+        console.error(`[rome-index] qflushd not reachable at ${BASE} après 100 tentatives`);
         throw new Error(`qflushd not reachable at ${BASE}`);
+      } else {
+        console.log(`[rome-index] qflushd est bien démarré sur ${BASE}`);
       }
+    } else {
+      console.log(`[rome-index] qflushd déjà joignable sur ${BASE}`);
     }
 
     const res = await fetch(`${BASE}/npz/rome-index`);
