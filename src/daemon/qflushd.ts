@@ -28,6 +28,22 @@ function writeSafeModes(mode: string) {
   } catch (e) {}
 }
 
+// new helper: compute flexible checksum for a workspace file path
+async function computeFlexibleChecksumForPath(relPath: string) {
+  try {
+    const filePath = path.isAbsolute(relPath) ? relPath : path.join(process.cwd(), relPath);
+    if (!fs.existsSync(filePath)) throw new Error('file_not_found');
+    const fc = require('../utils/fileChecksum');
+    if (fc && typeof fc.flexibleChecksumFile === 'function') {
+      const val = await fc.flexibleChecksumFile(filePath);
+      return { success: true, checksum: String(val) };
+    }
+    return { success: false, error: 'checksum_unavailable' };
+  } catch (e) {
+    return { success: false, error: String(e) };
+  }
+}
+
 export async function startServer(port?: number) {
   return new Promise((resolve, reject) => {
     try {
@@ -43,7 +59,7 @@ export async function startServer(port?: number) {
           // collect body
           let body = '';
           req.on('data', (chunk) => body += chunk.toString());
-          req.on('end', () => {
+          req.on('end', async () => {
             // Token protected endpoints
             if (method === 'POST' && parsed.pathname === '/npz/sleep') {
               if (!requireToken(req)) {
@@ -107,11 +123,29 @@ export async function startServer(port?: number) {
                   try {
                     const obj = body ? JSON.parse(body) : {};
                     const id = obj.id;
-                    const checksum = obj.checksum;
+                    let checksum = obj.checksum;
                     const ttlMs = obj.ttlMs ? Number(obj.ttlMs) : undefined;
-                    if (!id || !checksum) {
+                    const filePath = obj.path;
+                    if (!id) {
                       res.writeHead(400, { 'Content-Type': 'application/json' });
-                      res.end(JSON.stringify({ success: false, error: 'missing id or checksum' }));
+                      res.end(JSON.stringify({ success: false, error: 'missing id' }));
+                      return;
+                    }
+
+                    // if checksum is special token '__auto__' and a path is provided, compute it
+                    if (checksum === '__auto__' && filePath) {
+                      const comp = await computeFlexibleChecksumForPath(String(filePath));
+                      if (!comp.success) {
+                        res.writeHead(500, { 'Content-Type': 'application/json' });
+                        res.end(JSON.stringify(comp));
+                        return;
+                      }
+                      checksum = comp.checksum;
+                    }
+
+                    if (!checksum) {
+                      res.writeHead(400, { 'Content-Type': 'application/json' });
+                      res.end(JSON.stringify({ success: false, error: 'missing checksum' }));
                       return;
                     }
                     const rec: any = { id, checksum, storedAt: Date.now() };
@@ -119,7 +153,33 @@ export async function startServer(port?: number) {
                     db[id] = rec;
                     try { fs.writeFileSync(dbFile, JSON.stringify(db, null, 2), 'utf8'); } catch (e) {}
                     res.writeHead(200, { 'Content-Type': 'application/json' });
-                    res.end(JSON.stringify({ success: true, id }));
+                    res.end(JSON.stringify({ success: true, id, checksum }));
+                    return;
+                  } catch (e) {
+                    res.writeHead(500, { 'Content-Type': 'application/json' });
+                    res.end(JSON.stringify({ success: false, error: String(e) }));
+                    return;
+                  }
+                }
+
+                // POST /npz/checksum/compute
+                if (method === 'POST' && parsed.pathname === '/npz/checksum/compute') {
+                  try {
+                    const obj = body ? JSON.parse(body) : {};
+                    const rel = obj.path;
+                    if (!rel) {
+                      res.writeHead(400, { 'Content-Type': 'application/json' });
+                      res.end(JSON.stringify({ success: false, error: 'missing path' }));
+                      return;
+                    }
+                    const comp = await computeFlexibleChecksumForPath(String(rel));
+                    if (!comp.success) {
+                      res.writeHead(500, { 'Content-Type': 'application/json' });
+                      res.end(JSON.stringify(comp));
+                      return;
+                    }
+                    res.writeHead(200, { 'Content-Type': 'application/json' });
+                    res.end(JSON.stringify(comp));
                     return;
                   } catch (e) {
                     res.writeHead(500, { 'Content-Type': 'application/json' });
@@ -133,7 +193,8 @@ export async function startServer(port?: number) {
                   try {
                     const obj = body ? JSON.parse(body) : {};
                     const id = obj.id;
-                    const checksum = obj.checksum;
+                    let checksum = obj.checksum;
+                    const filePath = obj.path;
                     if (!id || typeof checksum === 'undefined') {
                       res.writeHead(400, { 'Content-Type': 'application/json' });
                       res.end(JSON.stringify({ success: false, error: 'missing id or checksum' }));
@@ -152,6 +213,18 @@ export async function startServer(port?: number) {
                       res.end(JSON.stringify({ success: false, error: 'expired' }));
                       return;
                     }
+
+                    // if checksum is '__auto__' and a file path provided, compute actual checksum and compare
+                    if (checksum === '__auto__' && filePath) {
+                      const comp = await computeFlexibleChecksumForPath(String(filePath));
+                      if (!comp.success) {
+                        res.writeHead(500, { 'Content-Type': 'application/json' });
+                        res.end(JSON.stringify(comp));
+                        return;
+                      }
+                      checksum = comp.checksum;
+                    }
+
                     if (String(rec.checksum) === String(checksum)) {
                       res.writeHead(200, { 'Content-Type': 'application/json' });
                       res.end(JSON.stringify({ success: true }));

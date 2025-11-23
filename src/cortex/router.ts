@@ -16,18 +16,13 @@ function resolveImport(name: string) {
     // try require
     return require(name);
   } catch (e) {}
-  try {
-    // try local stubs folder
-    const local = require('../stubs/' + name.split('/').pop());
-    if (local) return local;
-  } catch (e) {}
   return undefined;
 }
 
 // helper wrappers that resolve modules at call time (so tests can mock resolveImport via global)
 async function safeExecuteAction(action: string, ctx: any = {}) {
   try {
-    const executorMod: any = resolveImport('../rome/executor') || resolveImport('@rome/executor') || resolveImport('src/rome/executor') || resolveImport('rome-executor-stub') || resolveImport('src/stubs/rome-executor-stub');
+    const executorMod: any = resolveImport('../rome/executor') || resolveImport('@rome/executor') || resolveImport('src/rome/executor') || resolveImport('../rome/executor');
     if (!executorMod) return { success: false, error: 'executor_unavailable' };
     const fn = executorMod.executeAction || (executorMod.default && executorMod.default.executeAction) || executorMod;
     if (typeof fn !== 'function') return { success: false, error: 'executeAction_unavailable' };
@@ -39,7 +34,7 @@ async function safeExecuteAction(action: string, ctx: any = {}) {
 
 async function safeRunSpyder(argv: string[] = []) {
   try {
-    const runSpyderMod: any = resolveImport('../commands/spyder') || resolveImport('@commands/spyder') || resolveImport('src/commands/spyder') || resolveImport('spyder-stub') || resolveImport('src/stubs/spyder-stub');
+    const runSpyderMod: any = resolveImport('../commands/spyder') || resolveImport('@commands/spyder') || resolveImport('src/commands/spyder');
     if (!runSpyderMod) return { code: null, error: 'spyder_unavailable' };
     const fn = runSpyderMod.default || runSpyderMod;
     if (typeof fn !== 'function') return { code: null, error: 'spyder_run_unavailable' };
@@ -51,7 +46,7 @@ async function safeRunSpyder(argv: string[] = []) {
 
 function safeEmit(eventName: string, payload: any) {
   try {
-    const emitMod: any = resolveImport('./emit') || resolveImport('@cortex/emit') || resolveImport('src/cortex/emit') || resolveImport('cortex-emit-stub') || resolveImport('src/stubs/cortex-emit-stub');
+    const emitMod: any = resolveImport('./emit') || resolveImport('@cortex/emit') || resolveImport('src/cortex/emit');
     if (!emitMod) return false;
     const fn = emitMod.cortexEmit || (emitMod.default && emitMod.default.cortexEmit) || emitMod;
     if (typeof fn !== 'function') return false;
