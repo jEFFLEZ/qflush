@@ -26,6 +26,21 @@ export function requireNpzToken(req: Request, res: Response, next: NextFunction)
   }
 
   const expected = process.env.QFLUSH_TEST_TOKEN || process.env.ACTIONS_TOKEN || undefined;
+
+  // Diagnostic logging (do not print token values) -- helpful in CI
+  try {
+    const headerPresent = !!token;
+    const expectedSet = !!expected;
+    const headerLen = token ? token.length : 0;
+    const expectedLen = expected ? expected.length : 0;
+    const equal = expected && token ? (token === expected) : false;
+    // log minimal non-sensitive info
+    // eslint-disable-next-line no-console
+    console.log(`[diag] requireNpzToken: headerPresent=${headerPresent}, expectedSet=${expectedSet}, headerLen=${headerLen}, expectedLen=${expectedLen}, equal=${equal}`);
+  } catch (e) {
+    // ignore logging errors
+  }
+
   if (!expected) {
     // if no expected token configured, return 401
     return res.status(401).json({ error: 'invalid token' });
