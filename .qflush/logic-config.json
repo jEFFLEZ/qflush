@@ -1,4 +1,4 @@
 {
-  "webhookUrl": "http://localhost",
+  "webhookUrl": "http://localhost:43565",
   "otherConfig": {}
 }

@@ -165,7 +165,7 @@ export async function runStart(opts?: qflushOptions) {
 
     // otherwise, use merged resolver (supervisor + NPZ) as primary
     if (pkg) {
-      const resolved = await resolveMerged(pkg, { cwd: p || process.cwd() });
+      const resolved = await resolveMerged(pkg);
       if (!resolved) {
         logger.warn(`${modName} path and package not found or merged resolver failed to resolve, skipping`);
         return;
@@ -276,7 +276,7 @@ export async function runStart(opts?: qflushOptions) {
 
       // 4) fallback to merged resolver if still not found
       if (!runCmd && pkg) {
-        const resolved = await resolveMerged(pkg, { cwd: pkgPath });
+        const resolved = await resolveMerged(pkg);
         if (!resolved || resolved.gate === 'fail') {
           logger.warn(`${mod} has no runnable entry, skipping`);
           return;

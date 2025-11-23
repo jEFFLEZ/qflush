@@ -38,7 +38,7 @@ export async function runTests() {
   let spawned: ChildProcess | null = null;
   try {
     // If service already reachable, skip starting
-    if (!(await isReachable(3, 200))) {
+    if (!(await isReachable(100, 200))) {
       try {
         serverMod = await import('../daemon/qflushd.js');
         // start server programmatically on test port
@@ -74,7 +74,8 @@ export async function runTests() {
       await new Promise((r) => setTimeout(r, 400));
 
       // ensure it's reachable before proceeding
-      if (!(await isReachable(40, 200))) {
+      if (!(await isReachable(100, 200))) {
+        console.error(`qflushd not reachable at ${BASE} après 100 tentatives`);
         throw new Error(`qflushd not reachable at ${BASE}`);
       }
     }

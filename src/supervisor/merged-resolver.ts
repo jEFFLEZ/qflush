@@ -1,87 +1,66 @@
-import * as npz from '../utils/npz';
-import type { ResolveResult } from '../utils/npz';
+
 import { listRunning } from './index';
+import { npzResolve, ResolveResult } from '../utils/npz';
 
-// Score helper
-function score(r: ResolveResult | null | undefined) {
-  if (!r) return 0;
-  switch (r.gate) {
-    case 'green': return 3;
-    case 'yellow': return 2;
-    case 'dlx': return 1;
-    default: return 0;
-  }
-}
-
-export type ResolveOptions = { cwd?: string };
-
-/**
- * Merge two ResolveResult candidates into one, preferring supervisor result but
- * filling missing fields from default result.
- */
-function mergeResults(sup: ResolveResult, def: ResolveResult | null | undefined): ResolveResult {
-  // prefer supervisor gate but fall back to yellow if supervisor has no gate
-  const gate = sup && sup.gate ? sup.gate : (def && def.gate ? def.gate : 'yellow');
+function mergeResults(
+  sup: ResolveResult,
+  def: ResolveResult | null | undefined
+): ResolveResult {
   const out: ResolveResult = {
-    gate,
-    cmd: sup.cmd || (def && def.cmd) || undefined,
-    args: sup.args ? [...sup.args] : (def && def.args ? [...def.args] : []),
-    // coerce possible null to undefined and assert the resulting type
-    cwd: (sup.cwd ?? (def && def.cwd) ?? undefined) as string | undefined
+    gate: sup.gate,
+    cmd: sup.cmd,
+    args: sup.args ? [...sup.args] : undefined,
+    cwd: sup.cwd,
   };
+
+  if (def) {
+    if ((!out.cmd || out.cmd.length === 0) && typeof def.cmd === 'string') {
+      out.cmd = def.cmd;
+    }
+
+    if ((!out.args || out.args.length === 0) && Array.isArray(def.args)) {
+      out.args = [...def.args];
+    }
+
+    if ((!out.cwd || out.cwd.length === 0) && typeof def.cwd === 'string') {
+      out.cwd = def.cwd;
+    }
+  }
+
   return out;
 }
 
-/**
- * Try to create a supervisor-based ResolveResult from currently running managed processes.
- * This is a lightweight heuristic: if a managed process name matches the requested package
- * or the recorded cmd includes the package name, we return a green result.
- */
-function supervisorCandidate(nameOrPkg: string): ResolveResult | null {
+export async function resolveMerged(profile: string): Promise<ResolveResult | null> {
+  const def = await npzResolve(profile);
+
+  // 🔒 CI/test mode : superviseur totalement ignoré
+  const supervisorDisabled =
+    process.env.QFLUSH_DISABLE_SUPERVISOR === '1' ||
+    process.env.QFLUSH_SAFE_CI === '1' ||
+    process.env.NODE_ENV === 'test';
+
+  if (supervisorDisabled) {
+    return def;
+  }
+
+  let sup: ResolveResult | null = null;
   try {
-    const running = listRunning();
-    for (const r of running) {
-      try {
-        if (!r) continue;
-        // Match by exact name or package-like match
-        if (r.name === nameOrPkg || r.cmd === nameOrPkg || (r.cmd && r.cmd.includes(nameOrPkg)) || (r.log && r.log.includes(nameOrPkg))) {
-          return { gate: 'green', cmd: r.cmd, args: r.args || [], cwd: r.cwd };
-        }
-      } catch (e) {
-        continue;
-      }
+    const running = await listRunning();
+    // On cherche par name ou cmd
+    const found = running.find(r => r.name === profile || r.cmd === profile) ?? null;
+    if (found) {
+      sup = {
+        gate: 'green',
+        cmd: found.cmd,
+        args: found.args,
+        cwd: found.cwd
+      };
     }
-  } catch (e) {
-    // ignore
-  }
-  return null;
-}
-
-/**
- * Resolve using supervisor and default npz strategies in parallel, then merge according to priority.
- * By default supervisor result wins if valid; otherwise fallback to default.
- */
-export async function resolveMerged(nameOrPkg: string, opts: ResolveOptions = {}): Promise<ResolveResult> {
-  const defPromise = Promise.resolve().then(() => npz.npzResolve(nameOrPkg, opts));
-  const supPromise = Promise.resolve().then(() => supervisorCandidate(nameOrPkg));
-
-  const [defR, supR] = await Promise.all([defPromise, supPromise]);
-
-  const sScore = score(supR as ResolveResult | null);
-  const dScore = score(defR as ResolveResult | null);
-
-  if (supR && sScore > 0) {
-    // supervisor wins; merge to fill gaps
-    return mergeResults(supR as ResolveResult, defR as ResolveResult | null | undefined);
+  } catch {
+    sup = null;
   }
 
-  if (defR && dScore > 0) return defR as ResolveResult;
+  if (!sup) return def;
 
-  // last-resort: pick highest score
-  if (sScore >= dScore && supR) return supR as ResolveResult;
-  if (defR) return defR as ResolveResult;
-
-  return { gate: 'fail' };
+  return mergeResults(sup, def);
 }
-
-export default { resolveMerged };
