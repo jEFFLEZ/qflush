@@ -54,13 +54,21 @@ jobs:
         run: |
           npx tsc -p . --pretty false > tsc-output.log 2>&1 || (echo "tsc failed, printing log:" && sed -n '1,200p' tsc-output.log && exit 1)
           echo "tsc succeeded"
-      - name: Build optional spyder
+      - name: Build optional spyder and apps
         run: |
           if [ -f spyder/package.json ]; then
-            echo "Building spyder (optional)..."
-            npm --prefix spyder run build || echo "spyder build failed or not present, continuing"
+            echo "Building spyder root..."
+            npm --prefix spyder run build || echo "spyder root build failed, continuing"
           else
-            echo "No spyder package, skipping build"
+            echo "No spyder package, skipping root build"
+          fi
+          # Build spyder apps (spyder-core) if present
+          if [ -d spyder/apps/spyder-core ]; then
+            echo "Building spyder core app..."
+            npm --prefix spyder/apps/spyder-core ci --no-audit --no-fund || echo "npm ci for spyder-core failed, continuing"
+            npm --prefix spyder/apps/spyder-core run build || echo "spyder-core build failed, continuing"
+          else
+            echo "No spyder core app, skipping"
           fi
       - name: Start Cortex bus (background)
         if: env.QFLUSH_USE_CORTEX == '1'
