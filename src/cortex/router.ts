@@ -12,15 +12,24 @@ function resolveImport(name: string) {
     if (g && typeof g.__importUtilMock === 'function') return g.__importUtilMock(name);
   } catch (e) {}
   try { return alias.importUtil(name); } catch (e) {}
+  try {
+    // try require
+    return require(name);
+  } catch (e) {}
+  try {
+    // try local stubs folder
+    const local = require('../stubs/' + name.split('/').pop());
+    if (local) return local;
+  } catch (e) {}
   return undefined;
 }
 
 // helper wrappers that resolve modules at call time (so tests can mock resolveImport via global)
 async function safeExecuteAction(action: string, ctx: any = {}) {
   try {
-    const executorMod: any = resolveImport('../rome/executor') || resolveImport('@rome/executor') || (typeof require !== 'undefined' ? (() => { try { return require('../rome/executor'); } catch (e) { try { return require('src/rome/executor'); } catch (e2) { return undefined; } } })() : undefined);
+    const executorMod: any = resolveImport('../rome/executor') || resolveImport('@rome/executor') || resolveImport('src/rome/executor') || resolveImport('rome-executor-stub') || resolveImport('src/stubs/rome-executor-stub');
     if (!executorMod) return { success: false, error: 'executor_unavailable' };
-    const fn = executorMod.executeAction || (executorMod.default && executorMod.default.executeAction);
+    const fn = executorMod.executeAction || (executorMod.default && executorMod.default.executeAction) || executorMod;
     if (typeof fn !== 'function') return { success: false, error: 'executeAction_unavailable' };
     return await fn(action, ctx);
   } catch (e) {
@@ -30,7 +39,7 @@ async function safeExecuteAction(action: string, ctx: any = {}) {
 
 async function safeRunSpyder(argv: string[] = []) {
   try {
-    const runSpyderMod: any = resolveImport('../commands/spyder') || resolveImport('@commands/spyder') || (typeof require !== 'undefined' ? (() => { try { return require('../commands/spyder'); } catch (e) { try { return require('src/commands/spyder'); } catch (e2) { return undefined; } } })() : undefined);
+    const runSpyderMod: any = resolveImport('../commands/spyder') || resolveImport('@commands/spyder') || resolveImport('src/commands/spyder') || resolveImport('spyder-stub') || resolveImport('src/stubs/spyder-stub');
     if (!runSpyderMod) return { code: null, error: 'spyder_unavailable' };
     const fn = runSpyderMod.default || runSpyderMod;
     if (typeof fn !== 'function') return { code: null, error: 'spyder_run_unavailable' };
@@ -42,9 +51,9 @@ async function safeRunSpyder(argv: string[] = []) {
 
 function safeEmit(eventName: string, payload: any) {
   try {
-    const emitMod: any = resolveImport('./emit') || resolveImport('@cortex/emit') || (typeof require !== 'undefined' ? (() => { try { return require('./emit'); } catch (e) { try { return require('src/cortex/emit'); } catch (e2) { return undefined; } } })() : undefined);
+    const emitMod: any = resolveImport('./emit') || resolveImport('@cortex/emit') || resolveImport('src/cortex/emit') || resolveImport('cortex-emit-stub') || resolveImport('src/stubs/cortex-emit-stub');
     if (!emitMod) return false;
-    const fn = emitMod.cortexEmit || (emitMod.default && emitMod.default.cortexEmit);
+    const fn = emitMod.cortexEmit || (emitMod.default && emitMod.default.cortexEmit) || emitMod;
     if (typeof fn !== 'function') return false;
     fn(eventName, payload);
     return true;
@@ -55,7 +64,7 @@ function safeEmit(eventName: string, payload: any) {
 
 async function safeProcessVision(p: any) {
   try {
-    const visionMod: any = resolveImport('./vision') || resolveImport('@cortex/vision') || (typeof require !== 'undefined' ? (() => { try { return require('./vision'); } catch (e) { try { return require('src/cortex/vision'); } catch (e2) { return undefined; } } })() : undefined);
+    const visionMod: any = resolveImport('./vision') || resolveImport('@cortex/vision') || resolveImport('src/cortex/vision');
     if (!visionMod) return { ok: false, error: 'vision_unavailable' };
     const fn = visionMod.processVisionImage || (visionMod.default && visionMod.default.processVisionImage);
     if (typeof fn !== 'function') return { ok: false, error: 'vision_fn_unavailable' };
@@ -67,9 +76,9 @@ async function safeProcessVision(p: any) {
 
 async function safeApplyPacket(pkt: any) {
   try {
-    const applyMod: any = resolveImport('./applyPacket') || resolveImport('@cortex/applyPacket') || (typeof require !== 'undefined' ? (() => { try { return require('./applyPacket'); } catch (e) { try { return require('src/cortex/applyPacket'); } catch (e2) { return undefined; } } })() : undefined);
+    const applyMod: any = resolveImport('./applyPacket') || resolveImport('@cortex/applyPacket') || resolveImport('src/cortex/applyPacket');
     if (!applyMod) return { ok: false, error: 'apply_unavailable' };
-    const fn = applyMod.applyCortexPacket || (applyMod.default && applyMod.default.applyCortexPacket) || (applyMod.default && applyMod.default.default) || applyMod.default;
+    const fn = applyMod.applyCortexPacket || (applyMod.default && applyMod.default.applyCortexPacket) || (applyMod.default && applyMod.default.default) || applyMod.default || applyMod;
     if (typeof fn !== 'function') return { ok: false, error: 'apply_fn_unavailable' };
     return await fn(pkt);
   } catch (e) {
@@ -147,7 +156,7 @@ function findHandler(pkt: CortexPacket): CortexRouteHandler {
 
   // fallback to routesCfg pick logic if present
   try {
-    const routesCfg: any = resolveImport('./routesConfig') || resolveImport('@cortex/routesConfig') || (typeof require !== 'undefined' ? (() => { try { return require('./routesConfig'); } catch (e) { try { return require('src/cortex/routesConfig'); } catch (e2) { return undefined; } } })() : undefined);
+    const routesCfg: any = resolveImport('./routesConfig') || resolveImport('@cortex/routesConfig') || resolveImport('src/cortex/routesConfig');
     if (routesCfg && typeof routesCfg.pickBestRoute === 'function') {
       const pick = routesCfg.pickBestRoute(candidates as any) as string | null;
       if (pick) {
