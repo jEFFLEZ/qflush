@@ -40,17 +40,21 @@ export async function runTests() {
     // Si le service est déjà joignable, skip démarrage
     if (!(await isReachable(100, 200))) {
       try {
+        // ensure daemon token available when starting in-process or spawning
+        if (!process.env.QFLUSH_TOKEN) process.env.QFLUSH_TOKEN = 'test-token';
         // prefer importing the TS module (no .js) so Vitest can resolve it
         serverMod = await import('../daemon/qflushd');
         // start server programmatically on test port
         if (serverMod && typeof serverMod.startServer === 'function') {
           console.log('[rome-index] Démarrage du daemon via startServer');
-          serverMod.startServer(PORT);
+          await serverMod.startServer(PORT);
         } else {
           // fallback: spawn daemon process from dist (if present)
           try {
             console.log('[rome-index] Démarrage du daemon via spawn');
-            spawned = spawn('node', ['./dist/daemon/qflushd.js'], {
+            // spawn a node helper that requires the dist module and starts the server
+            const inline = `require('./dist/daemon/qflushd').startServer(${PORT}).catch(e=>{ console.error(e); process.exit(1); });`;
+            spawned = spawn('node', ['-e', inline], {
               env: { ...process.env, QFLUSHD_PORT: String(PORT), QFLUSH_ENABLE_REDIS: '0' },
               stdio: ['ignore', 'pipe', 'pipe'],
             });
@@ -64,7 +68,8 @@ export async function runTests() {
         // import failed; try spawning the dist daemon as a last resort
         try {
           console.log('[rome-index] Import du daemon échoué, tentative spawn');
-          spawned = spawn('node', ['./dist/daemon/qflushd.js'], {
+          const inline = `require('./dist/daemon/qflushd').startServer(${PORT}).catch(e=>{ console.error(e); process.exit(1); });`;
+          spawned = spawn('node', ['-e', inline], {
             env: { ...process.env, QFLUSHD_PORT: String(PORT), QFLUSH_ENABLE_REDIS: '0' },
             stdio: ['ignore', 'pipe', 'pipe'],
           });

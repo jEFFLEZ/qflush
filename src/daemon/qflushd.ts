@@ -47,8 +47,8 @@ export async function startServer(port?: number) {
             // Token protected endpoints
             if (method === 'POST' && parsed.pathname === '/npz/sleep') {
               if (!requireToken(req)) {
-                res.writeHead(403, { 'Content-Type': 'application/json' });
-                res.end(JSON.stringify({ success: false, error: 'forbidden' }));
+                res.writeHead(401, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ success: false, error: 'unauthorized' }));
                 return;
               }
               _state.safeMode = true;
@@ -60,8 +60,8 @@ export async function startServer(port?: number) {
             }
             if (method === 'POST' && parsed.pathname === '/npz/wake') {
               if (!requireToken(req)) {
-                res.writeHead(403, { 'Content-Type': 'application/json' });
-                res.end(JSON.stringify({ success: false, error: 'forbidden' }));
+                res.writeHead(401, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ success: false, error: 'unauthorized' }));
                 return;
               }
               _state.safeMode = false;
@@ -73,8 +73,8 @@ export async function startServer(port?: number) {
             }
             if (method === 'POST' && parsed.pathname === '/npz/joker-wipe') {
               if (!requireToken(req)) {
-                res.writeHead(403, { 'Content-Type': 'application/json' });
-                res.end(JSON.stringify({ success: false, error: 'forbidden' }));
+                res.writeHead(401, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ success: false, error: 'unauthorized' }));
                 return;
               }
               // pretend to wipe but in test mode skip exit
@@ -87,7 +87,27 @@ export async function startServer(port?: number) {
             }
 
             // health endpoint
-            if (parsed.pathname === '/health' || parsed.pathname === '/status') {
+              // rome-index endpoint (serve cached index from .qflush/rome-index.json)
+              if (parsed.pathname === '/npz/rome-index') {
+                try {
+                  // lazy require to avoid circulars
+                  const loader = require('../rome/index-loader');
+                  const idx = (loader && typeof loader.getCachedRomeIndex === 'function') ? loader.getCachedRomeIndex() : {};
+                  const items = Object.values(idx || {});
+                  // optional type filter
+                  const qtype = parsed.query && (parsed.query as any).type ? String((parsed.query as any).type) : null;
+                  const filtered = qtype ? items.filter((it: any) => it && it.type === qtype) : items;
+                  res.writeHead(200, { 'Content-Type': 'application/json' });
+                  res.end(JSON.stringify({ success: true, count: filtered.length, items: filtered }));
+                  return;
+                } catch (e) {
+                  // no loader available — respond with empty index
+                  res.writeHead(200, { 'Content-Type': 'application/json' });
+                  res.end(JSON.stringify({ success: true, count: 0, items: [] }));
+                  return;
+                }
+              }
+              if (parsed.pathname === '/health' || parsed.pathname === '/status') {
               res.writeHead(200, { 'Content-Type': 'application/json' });
               res.end(JSON.stringify({ ok: true }));
               return;
@@ -202,8 +222,14 @@ export async function startServer(port?: number) {
         }
       });
 
-      srv.listen(p, '127.0.0.1', () => {
+      // listen on all interfaces to avoid localhost IPv6/IPv4 resolution issues in CI
+      // bind explicitly to 0.0.0.0 to ensure IPv4 localhost connects reliably
+      srv.listen(p, '0.0.0.0', () => {
         _server = srv;
+        try {
+          const addr = srv.address();
+          console.warn('[qflushd] listening', addr);
+        } catch (e) {}
         resolve({ ok: true, port: p });
       });
 
@@ -230,3 +256,9 @@ export async function stopServer() {
 }
 
 export default { startServer, stopServer };
+
+// If executed directly, start the server on provided port
+if (require && require.main === module) {
+  const port = process.env.QFLUSHD_PORT ? Number(process.env.QFLUSHD_PORT) : 4500;
+  startServer(port).then(() => console.warn('[qflushd] started server on', port)).catch((e) => console.error('[qflushd] failed to start', e));
+}
