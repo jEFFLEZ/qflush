@@ -40,7 +40,8 @@ export async function runTests() {
     // If service already reachable, skip starting
     if (!(await isReachable(100, 200))) {
       try {
-        serverMod = await import('../daemon/qflushd.js');
+        // prefer importing the TS module (no .js) so Vitest can resolve it
+        serverMod = await import('../daemon/qflushd');
         // start server programmatically on test port
         if (serverMod && typeof serverMod.startServer === 'function') {
           serverMod.startServer(PORT);

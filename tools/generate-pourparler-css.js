@@ -16,7 +16,9 @@ if (!fs.existsSync(src)) {
   console.log('wrote placeholder', outFile, placeholder);
   process.exit(0);
 }
-const data = fs.readFileSync(src, 'utf8');
+let data = fs.readFileSync(src, 'utf8');
+// strip ROME-TAG comment lines to ensure stable checksum despite roman tags
+data = data.split(/\r?\n/).filter(l => !/^\s*\/\/\s*ROME-TAG:/i.test(l)).join('\n');
 const hash = crypto.createHash('sha256').update(data).digest('hex');
 const css = `/* npz-pourparler checksum: ${hash} */\n:root { --npz-pourparler-checksum: '${hash}'; }\n`;
 fs.writeFileSync(outFile, css, 'utf8');

@@ -1,12 +1,10 @@
-// Cortex listener: watch a folder for PNG packets and dispatch decoded JSON to executor
+// Cortex listener: watch a folder for PNG packets and dispatch decoded JSON to router
 import * as fs from 'fs';
 import * as path from 'path';
 import { decodePNGsToPacket, parseCortexPacket } from './codec';
-import { executeAction } from '../rome/executor';
-import runSpyder from '../commands/spyder';
+import { routeCortexPacket } from './router';
 
 const WATCH_DIR = path.join(process.cwd(), 'canal');
-const SPYDER_CFG = path.join(process.cwd(), '.qflush', 'spyder.config.json');
 
 export function startCortexListener() {
   try {
@@ -35,50 +33,16 @@ export function startCortexListener() {
         }
         const fullBuf = await decodePNGsToPacket(glob);
         const parsed = parseCortexPacket(fullBuf);
-        // try to parse raw as JSON
+        // attempt to decode payload to JSON where possible
+        let payload: any = null;
         try {
           const txt = parsed.raw.toString('utf-8');
-          const j = JSON.parse(txt);
-          console.log('[CORTEX] packet received', j);
-          // if the packet includes a cmd, route to executor or local handlers
-          if (j && typeof j.cmd === 'string') {
-            if (j.cmd === 'enable-spyder') {
-              try {
-                // ensure .qflush dir exists
-                const cfgDir = path.dirname(SPYDER_CFG);
-                if (!fs.existsSync(cfgDir)) fs.mkdirSync(cfgDir, { recursive: true });
-                // write a minimal spyder config enabling the service
-                const cfg: any = {
-                  enabled: true,
-                  path: process.cwd(),
-                  startCommand: Array.isArray(j.args) && j.args.length ? j.args : ['qflush'],
-                  pidFile: path.join(process.cwd(), '.qflush', 'spyder.pid')
-                };
-                fs.writeFileSync(SPYDER_CFG, JSON.stringify(cfg, null, 2), 'utf8');
-                console.log('[CORTEX] wrote spyder config to', SPYDER_CFG);
-                // invoke runSpyder to start it (uses the config file)
-                try {
-                  const code = await runSpyder(['start']);
-                  console.log('[CORTEX] runSpyder returned', code);
-                } catch (e) {
-                  console.warn('[CORTEX] runSpyder failed', e);
-                }
-              } catch (e) {
-                console.warn('[CORTEX] enable-spyder handler failed', e);
-              }
-            } else {
-              const action = `run \"echo unknown-cmd ${j.cmd}\"`;
-              try {
-                const res = await executeAction(action, { path: j.args && j.args[0] ? j.args[0] : '' });
-                console.log('[CORTEX] executed', res);
-              } catch (e) {
-                console.warn('[CORTEX] execution failed', e);
-              }
-            }
-          }
+          payload = JSON.parse(txt);
         } catch (e) {
-          console.warn('[CORTEX] payload not JSON', e);
+          payload = parsed.raw;
         }
+        const routed = await routeCortexPacket({ totalLen: parsed.totalLen, payloadLen: parsed.payloadLen, flags: parsed.flags, payload });
+        console.log('[CORTEX] routed packet result', routed);
       } catch (e) {
         console.warn('[CORTEX] decode failed', e);
       } finally {

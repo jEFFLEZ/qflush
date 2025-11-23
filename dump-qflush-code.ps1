@@ -38,7 +38,10 @@ function IsPathExcluded($fullPath) {
 # Collect files
 $allFiles = Get-ChildItem -Recurse -File -Force -ErrorAction SilentlyContinue | Where-Object {
     try {
-        $ext = ([IO.Path]::GetExtension($_.FullName) ?? '').ToLower()
+        # Compatible with Windows PowerShell (no '??' operator)
+        $ext = [IO.Path]::GetExtension($_.FullName)
+        if ($null -eq $ext) { $ext = '' }
+        $ext = $ext.ToLower()
         if ($ext -eq '') { return $false }
         if ($ext -eq '.log') { return $false }
         if (-not ($includeExts -contains $ext)) { return $false }

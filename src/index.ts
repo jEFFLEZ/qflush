@@ -57,6 +57,7 @@ import { startQflushSystem } from './core/start-system';
 declare const require: any;
 if (typeof require !== 'undefined' && require.main === module) {
   const argv = process.argv.slice(2);
+  let cliHandled = false;
   if (argv.includes("--help") || argv.includes("-h")) {
     showHelp();
     process.exit(0);
@@ -99,6 +100,24 @@ if (typeof require !== 'undefined' && require.main === module) {
   if (first === "compose") {
     void runCompose(argv.slice(1));
     process.exit(0);
+  }
+  if (first === 'apply') {
+    (async () => {
+      try {
+        const m: any = await import('./commands/apply.js');
+        if (m && typeof m.default === 'function') {
+          const code = await m.default(argv.slice(1));
+          process.exit(code ?? 0);
+        } else {
+          console.error('apply command not available');
+          process.exit(2);
+        }
+      } catch (e) {
+        console.error('failed to run apply', e);
+        process.exit(1);
+      }
+    })();
+    cliHandled = true;
   }
   if (first === "doctor") {
     void runDoctor(argv.slice(1));
@@ -146,8 +165,8 @@ if (typeof require !== 'undefined' && require.main === module) {
       console.error('failed to start qflush system', err);
       process.exit(1);
     }
-    // keep process alive
-    return;
+    // keep process alive by marking handled (avoid running CLI pipeline)
+    cliHandled = true;
   }
 
   if (first === 'a11' || first === 'a11:status') {
@@ -265,7 +284,7 @@ if (typeof require !== 'undefined' && require.main === module) {
         process.exit(1);
       }
       try {
-        const m = await import('./cortex/cli');
+        const m = await import('./cortex/cli.js');
         const id = m.cortexSend(cmd, argv.slice(2));
         try {
           const res = await m.cortexWaitFor(id, 10000);
@@ -280,12 +299,31 @@ if (typeof require !== 'undefined' && require.main === module) {
         process.exit(1);
       }
     })();
+    cliHandled = true;
   }
 
-  const { pipeline, options } = buildPipeline(argv);
+  // Add 'resonnance' command routing
+  if (first === 'resonnance') {
+    (async () => {
+      try {
+        const m: any = await import('./commands/resonnance.js');
+        if (!m || typeof m.default !== 'function') throw new Error('resonnance command not available');
+        await m.default();
+        process.exit(0);
+      } catch (err) {
+        console.error('failed to start resonnance', err);
+        process.exit(1);
+      }
+    })();
+    cliHandled = true;
+  }
 
-  executePipeline(pipeline, options).catch((err) => {
-    console.error("qflush: fatal", err);
-    process.exit(1);
-  });
+  if (!cliHandled) {
+    const { pipeline, options } = buildPipeline(argv);
+
+    executePipeline(pipeline, options).catch((err) => {
+      console.error("qflush: fatal", err);
+      process.exit(1);
+    });
+  }
 }

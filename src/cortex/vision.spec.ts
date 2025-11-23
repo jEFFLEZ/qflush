@@ -1,0 +1,18 @@
+import { describe, it, expect } from 'vitest';
+import vision from './vision';
+import * as fs from 'fs';
+import * as path from 'path';
+
+describe('vision pipeline', () => {
+  it('processes png if present (smoke)', async () => {
+    const f = path.join(process.cwd(), 'parts', 'ideas_oc8.png');
+    if (!fs.existsSync(f)) {
+      // skip
+      expect(true).toBe(true);
+      return;
+    }
+    const res = await vision.processVisionImage(f);
+    expect(res).toBeDefined();
+    expect(res.packet).toBeDefined();
+  });
+});

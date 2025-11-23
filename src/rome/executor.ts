@@ -109,7 +109,7 @@ export async function executeAction(action: string, ctx: any = {}): Promise<any>
 
       // Robust detection of command name (handles path separators)
       const cmdName = String(normalizedCmd).split(' ')[0].toLowerCase();
-      const baseName = cmdName.split(/[\\/]/).pop() || cmdName;
+      const baseName = cmdName.split(/[\\\/]/).pop() || cmdName;
       const isEcho = baseName === 'echo';
       let allowedByPolicy = false;
       if (isEcho) {
@@ -192,5 +192,16 @@ export async function executeAction(action: string, ctx: any = {}): Promise<any>
     return { success: false, error: 'unknown action' };
   } catch (e: any) {
     return { success: false, error: e && e.message ? e.message : String(e) };
+  }
+}
+
+// New helper used by cortex bus to execute a simple command with args
+export async function execCommand(cmd: string, args: string[] = []) {
+  try {
+    const command = [cmd, ...(args || [])].join(' ');
+    const res = await safeExecFile(command, process.cwd(), (loadConfig() as any).commandTimeoutMs || 15000);
+    return { code: res.code, stdout: res.stdout, stderr: res.stderr };
+  } catch (e) {
+    return { code: 1, stdout: '', stderr: String(e) };
   }
 }

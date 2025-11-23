@@ -3,7 +3,8 @@
   "version": "3.1.4",
   "description": "QFLUSH orchestrator",
   "bin": {
-    "qflush": "dist/index.js"
+    "qflush": "dist/index.js",
+    "qf": "dist/index.js"
   },
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -44,7 +45,8 @@
     "cortex": "node -e \"console.log('cortex helpers')\"",
     "cortex:encode": "node -e \"require('./dist/cortex/codec').encodeFileToPNGs(process.argv[1], process.argv[2]).then(console.log).catch(console.error)\"",
     "cortex:decode": "node -e \"require('./dist/cortex/codec').decodePNGsToFile(process.argv.slice(1, -1), process.argv[process.argv.length-1]).then(console.log).catch(console.error)\"",
-    "cortex:listen": "node dist/cortex/listener.js"
+    "cortex:listen": "node dist/cortex/listener.js",
+    "resonnance": "qf resonnance"
   },
   "keywords": [
     "funeste38",

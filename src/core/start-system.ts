@@ -3,7 +3,7 @@ import { QFLUSH_MODE } from './qflush-mode';
 export async function startQflushSystem() {
   if (QFLUSH_MODE !== 'daemon') {
     try {
-      const m = await import('../cortex/bus');
+      const m = await import('../cortex/bus.js');
       if (m && typeof m.startCortexBus === 'function') {
         console.log('[QFLUSH] starting CORTEX bus');
         m.startCortexBus();
@@ -15,12 +15,14 @@ export async function startQflushSystem() {
 
   if (QFLUSH_MODE !== 'cortex') {
     try {
-      const m = await import('../daemon/qflushd');
-      if (m && typeof m.startServer === 'function') {
+      const m = await import('../daemon/qflushd.js');
+      const mm: any = m;
+      // accept either startServer export or default export function
+      const startFn = (mm && typeof mm.startServer === 'function') ? mm.startServer : (mm && typeof mm.default === 'function') ? mm.default : null;
+      if (startFn) {
         console.log('[QFLUSH] starting legacy daemon server');
-        // start daemon on configured port in-process (non-detached)
         const port = process.env.QFLUSHD_PORT ? Number(process.env.QFLUSHD_PORT) : undefined;
-        m.startServer(port);
+        startFn(port);
       }
     } catch (e) {
       console.warn('[QFLUSH] failed to start legacy daemon (continuing):', String(e));

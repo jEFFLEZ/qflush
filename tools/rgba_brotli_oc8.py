@@ -65,6 +65,84 @@ def extract_rgb_from_image(img: Image.Image) -> bytes:
     return img.tobytes()
 
 
+def extract_rgba_and_strip_alpha(img: Image.Image) -> bytes:
+    # if image is not RGBA, convert
+    if img.mode != 'RGBA':
+        img = img.convert('RGBA')
+    data = img.tobytes()
+    # strip every 4th byte (alpha)
+    if len(data) % 4 != 0:
+        # still try best-effort
+        stripped = bytearray()
+        for i in range(0, len(data), 4):
+            chunk = data[i:i+4]
+            if len(chunk) >= 3:
+                stripped.extend(chunk[0:3])
+        return bytes(stripped)
+    else:
+        return bytes(b for i, b in enumerate(data) if (i % 4) != 3)
+
+
+def try_decode_stream(full: bytes, output_path: str) -> None:
+    # Expect CortexHeader of 16 bytes: uint32 totalLength, uint32 payloadLength, uint8 flags, uint8[7] reserved
+    if len(full) < 16:
+        raise ValueError('Stream too short for Cortex header')
+    try:
+        total_len, payload_len, flags = struct.unpack('>I I B', full[:9])
+        # reserved = full[9:16]
+    except Exception:
+        raise ValueError('Invalid Cortex header format')
+
+    # validate sizes
+    if payload_len < 1:
+        raise ValueError('Payload length invalid or zero')
+    if len(full) < 16 + payload_len:
+        raise ValueError(f'Stream shorter than expected payload: have {len(full)-16}, need {payload_len}')
+
+    payload_with_crc = full[16:16+payload_len]
+    if len(payload_with_crc) < 1:
+        raise ValueError('Payload too short')
+    compressed = payload_with_crc[:-1]
+    checksum = payload_with_crc[-1]
+    expected = crc8_oc8(compressed)
+    if checksum != expected:
+        raise ValueError(f'CRC mismatch: expected {expected}, got {checksum}')
+    raw = brotli.decompress(compressed)
+    with open(output_path, 'wb') as f:
+        f.write(raw)
+
+
+def decode_pngs_to_file(png_paths: List[str], output_path: str) -> None:
+    # Try multiple extraction strategies to be robust against RGB/RGBA variations and ordering
+    def build_stream(paths, extractor):
+        all_rgb = bytearray()
+        for p in paths:
+            img = Image.open(p)
+            all_rgb.extend(extractor(img))
+        return bytes(all_rgb)
+
+    errors = []
+    # try normal order first
+    strategies = [
+        ('rgb', lambda img: extract_rgb_from_image(img)),
+        ('rgba_strip_alpha', lambda img: extract_rgba_and_strip_alpha(img)),
+    ]
+    orders = [png_paths, list(reversed(png_paths))]
+    for order in orders:
+        for name, extractor in strategies:
+            try:
+                full = build_stream(order, extractor)
+                try_decode_stream(full, output_path)
+                print(f'Decoded using strategy={name}, order={"reversed" if order is orders[1] else "normal"}')
+                return
+            except Exception as e:
+                errors.append((name, 'reversed' if order is orders[1] else 'normal', str(e)))
+                # continue
+    # if we reach here none worked
+    err_msg = 'All decoding strategies failed:\n' + '\n'.join([f'{s} ({ord}): {m}' for s, ord, m in errors])
+    raise ValueError(err_msg)
+
+
 def encode_file_to_pngs(input_path: str, output_prefix: str, max_png_bytes: int = 200 * 1024 * 1024, brotli_quality: int = 11, max_width: int = 4096) -> List[str]:
     # read
     with open(input_path, 'rb') as f:
@@ -74,8 +152,11 @@ def encode_file_to_pngs(input_path: str, output_prefix: str, max_png_bytes: int 
     # crc
     checksum = crc8_oc8(compressed)
     payload = compressed + bytes([checksum])
-    N = len(payload)
-    header = struct.pack('>Q', N)
+    payload_len = len(payload)
+    # construct Cortex header: totalLength = payload_len + 16, payloadLength = payload_len, flags=0
+    total_len = payload_len + 16
+    flags = 0
+    header = struct.pack('>I I B 7s', total_len, payload_len, flags, b'\x00'*7)
     full = header + payload
     rgb_stream = pack_bytes_to_rgb(full)
     total_pixels = len(rgb_stream) // 3
@@ -98,28 +179,6 @@ def encode_file_to_pngs(input_path: str, output_prefix: str, max_png_bytes: int 
         out_paths.append(part_name)
         pixel_offset += pixels_in_chunk
     return out_paths
-
-
-def decode_pngs_to_file(png_paths: List[str], output_path: str) -> None:
-    all_rgb = bytearray()
-    for p in png_paths:
-        img = Image.open(p)
-        all_rgb.extend(extract_rgb_from_image(img))
-    full = bytes(all_rgb)
-    if len(full) < 8:
-        raise ValueError('Stream too short')
-    N = struct.unpack('>Q', full[:8])[0]
-    payload_with_crc = full[8:8+N]
-    if len(payload_with_crc) < 1:
-        raise ValueError('Payload too short')
-    compressed = payload_with_crc[:-1]
-    checksum = payload_with_crc[-1]
-    expected = crc8_oc8(compressed)
-    if checksum != expected:
-        raise ValueError(f'CRC mismatch: expected {expected}, got {checksum}')
-    raw = brotli.decompress(compressed)
-    with open(output_path, 'wb') as f:
-        f.write(raw)
 
 
 def main() -> None:

@@ -341,6 +341,66 @@ export async function runStart(opts?: qflushOptions) {
 
   await Promise.all(procs);
 
+  // After starting services, optionally start SPYDER resonnance when configured
+  try {
+    const spyCfgPath = require('path').join(process.cwd(), '.qflush', 'spyder.config.json');
+    if (fs.existsSync(spyCfgPath)) {
+      try {
+        const raw = fs.readFileSync(spyCfgPath, 'utf8');
+        const spyCfg = JSON.parse(raw || '{}');
+        if (spyCfg && spyCfg.enabled) {
+          // start resonnance (non-blocking)
+          try {
+            const m: any = await import('../cortex/resonnance.js');
+            if (m && typeof m.resonnance === 'function') {
+              // launch but don't await to keep start fast
+              void m.resonnance();
+              logger.info('SPYDER resonnance started as part of qflush start');
+            } else if (m && typeof m.default === 'function') {
+              // fallback if module exports default command runner
+              void m.default();
+              logger.info('SPYDER resonnance (default) started as part of qflush start');
+            } else {
+              logger.warn('SPYDER resonnance module found but no callable export');
+            }
+          } catch (e) {
+            logger.warn('Failed to import/start SPYDER resonnance: ' + String(e));
+          }
+        }
+      } catch (e) {
+        logger.warn('Failed to read or parse spyder.config.json: ' + String(e));
+      }
+    }
+  } catch (_) {}
+
+  // Also, if cortex.routes.json contains routes, start resonnance (makes SPYDER active when routes present)
+  try {
+    const routesPath = require('path').join(process.cwd(), '.qflush', 'cortex.routes.json');
+    if (fs.existsSync(routesPath)) {
+      try {
+        const rawRoutes = fs.readFileSync(routesPath, 'utf8') || '{}';
+        const parsed = JSON.parse(rawRoutes);
+        const routesArr = parsed && (parsed.routes || parsed.cortexActions) ? (parsed.routes || parsed.cortexActions) : null;
+        let count = 0;
+        if (Array.isArray(routesArr)) count = routesArr.length;
+        else if (routesArr && typeof routesArr === 'object') count = Object.keys(routesArr).length;
+        if (count > 0) {
+          try {
+            const m: any = await import('../cortex/resonnance.js');
+            if (m && typeof m.resonnance === 'function') {
+              void m.resonnance();
+              logger.info('SPYDER resonnance started because cortex.routes.json contains routes');
+            }
+          } catch (e) {
+            logger.warn('Failed to import/start SPYDER resonnance from cortex.routes: ' + String(e));
+          }
+        }
+      } catch (e) {
+        logger.warn('Failed to read or parse cortex.routes.json: ' + String(e));
+      }
+    }
+  } catch (_) {}
+
   logger.success("qflush: start sequence initiated for selected modules");
 }
 

@@ -4,20 +4,21 @@ import alias from '../utils/alias';
 
 export type CortexRouteHandler = (packet: CortexPacket) => Promise<any> | any;
 
-const noopHandler: CortexRouteHandler = async () => {
-  // router stub : exorcised version, does nothing for now
-  return;
-};
+const noopHandler: CortexRouteHandler = async () => { return; };
 
-// runtime-safe imports (may return undefined)
-const executorMod: any = alias.importUtil('../rome/executor') || alias.importUtil('@rome/executor') || (typeof require !== 'undefined' ? (() => { try { return require('../rome/executor'); } catch (e) { try { return require('src/rome/executor'); } catch (e2) { return undefined; } } })() : undefined);
-const runSpyderMod: any = alias.importUtil('../commands/spyder') || alias.importUtil('@commands/spyder') || (typeof require !== 'undefined' ? (() => { try { return require('../commands/spyder'); } catch (e) { try { return require('src/commands/spyder'); } catch (e2) { return undefined; } } })() : undefined);
-const emitMod: any = alias.importUtil('./emit') || alias.importUtil('@cortex/emit') || (typeof require !== 'undefined' ? (() => { try { return require('./emit'); } catch (e) { try { return require('src/cortex/emit'); } catch (e2) { return undefined; } } })() : undefined);
-const routesCfg: any = alias.importUtil('./routesConfig') || alias.importUtil('@cortex/routesConfig') || (typeof require !== 'undefined' ? (() => { try { return require('./routesConfig'); } catch (e) { try { return require('src/cortex/routesConfig'); } catch (e2) { return undefined; } } })() : undefined);
+function resolveImport(name: string) {
+  try {
+    const g: any = (globalThis as any) || (global as any);
+    if (g && typeof g.__importUtilMock === 'function') return g.__importUtilMock(name);
+  } catch (e) {}
+  try { return alias.importUtil(name); } catch (e) {}
+  return undefined;
+}
 
-// helper wrappers
+// helper wrappers that resolve modules at call time (so tests can mock resolveImport via global)
 async function safeExecuteAction(action: string, ctx: any = {}) {
   try {
+    const executorMod: any = resolveImport('../rome/executor') || resolveImport('@rome/executor') || (typeof require !== 'undefined' ? (() => { try { return require('../rome/executor'); } catch (e) { try { return require('src/rome/executor'); } catch (e2) { return undefined; } } })() : undefined);
     if (!executorMod) return { success: false, error: 'executor_unavailable' };
     const fn = executorMod.executeAction || (executorMod.default && executorMod.default.executeAction);
     if (typeof fn !== 'function') return { success: false, error: 'executeAction_unavailable' };
@@ -29,6 +30,7 @@ async function safeExecuteAction(action: string, ctx: any = {}) {
 
 async function safeRunSpyder(argv: string[] = []) {
   try {
+    const runSpyderMod: any = resolveImport('../commands/spyder') || resolveImport('@commands/spyder') || (typeof require !== 'undefined' ? (() => { try { return require('../commands/spyder'); } catch (e) { try { return require('src/commands/spyder'); } catch (e2) { return undefined; } } })() : undefined);
     if (!runSpyderMod) return { code: null, error: 'spyder_unavailable' };
     const fn = runSpyderMod.default || runSpyderMod;
     if (typeof fn !== 'function') return { code: null, error: 'spyder_run_unavailable' };
@@ -40,6 +42,7 @@ async function safeRunSpyder(argv: string[] = []) {
 
 function safeEmit(eventName: string, payload: any) {
   try {
+    const emitMod: any = resolveImport('./emit') || resolveImport('@cortex/emit') || (typeof require !== 'undefined' ? (() => { try { return require('./emit'); } catch (e) { try { return require('src/cortex/emit'); } catch (e2) { return undefined; } } })() : undefined);
     if (!emitMod) return false;
     const fn = emitMod.cortexEmit || (emitMod.default && emitMod.default.cortexEmit);
     if (typeof fn !== 'function') return false;
@@ -50,10 +53,33 @@ function safeEmit(eventName: string, payload: any) {
   }
 }
 
+async function safeProcessVision(p: any) {
+  try {
+    const visionMod: any = resolveImport('./vision') || resolveImport('@cortex/vision') || (typeof require !== 'undefined' ? (() => { try { return require('./vision'); } catch (e) { try { return require('src/cortex/vision'); } catch (e2) { return undefined; } } })() : undefined);
+    if (!visionMod) return { ok: false, error: 'vision_unavailable' };
+    const fn = visionMod.processVisionImage || (visionMod.default && visionMod.default.processVisionImage);
+    if (typeof fn !== 'function') return { ok: false, error: 'vision_fn_unavailable' };
+    return await fn(p && p.path ? p.path : (p && p.pngPath ? p.pngPath : p));
+  } catch (e) {
+    return { ok: false, error: String(e) };
+  }
+}
+
+async function safeApplyPacket(pkt: any) {
+  try {
+    const applyMod: any = resolveImport('./applyPacket') || resolveImport('@cortex/applyPacket') || (typeof require !== 'undefined' ? (() => { try { return require('./applyPacket'); } catch (e) { try { return require('src/cortex/applyPacket'); } catch (e2) { return undefined; } } })() : undefined);
+    if (!applyMod) return { ok: false, error: 'apply_unavailable' };
+    const fn = applyMod.applyCortexPacket || (applyMod.default && applyMod.default.applyCortexPacket) || (applyMod.default && applyMod.default.default) || applyMod.default;
+    if (typeof fn !== 'function') return { ok: false, error: 'apply_fn_unavailable' };
+    return await fn(pkt);
+  } catch (e) {
+    return { ok: false, error: String(e) };
+  }
+}
+
 // Handlers
 const handlers: Record<string, CortexRouteHandler> = {
   'cortex:npz-graph': async (pkt) => {
-    // prefer payload.path
     const filePath = pkt.payload && pkt.payload.path ? pkt.payload.path : 'unknown';
     const res = await safeExecuteAction('npz.encode', { path: filePath });
     return res;
@@ -68,10 +94,8 @@ const handlers: Record<string, CortexRouteHandler> = {
     return { ok };
   },
   'cortex:enable-spyder': async (pkt) => {
-    // write config then attempt start
     try {
       const cfg = pkt.payload || {};
-      // if payload provides args array, pass through
       const args = Array.isArray(cfg.args) && cfg.args.length ? cfg.args : ['start'];
       const res = await safeRunSpyder(args);
       return { ok: true, res };
@@ -79,6 +103,30 @@ const handlers: Record<string, CortexRouteHandler> = {
       return { ok: false, error: String(e) };
     }
   },
+  'cortex:spyder-vision': async (pkt) => {
+    return await safeProcessVision(pkt.payload);
+  },
+  'spyder-vision': async (pkt) => {
+    return await safeProcessVision(pkt.payload);
+  },
+  'vision': async (pkt) => {
+    return await safeProcessVision(pkt.payload);
+  },
+  // apply-related handlers
+  'cortex:apply': async (pkt) => {
+    return await safeApplyPacket(pkt);
+  },
+  'qflush:apply': async (pkt) => {
+    return await safeApplyPacket(pkt);
+  },
+  // save state and auto-patch forward to apply logic
+  'cortex:save-state': async (pkt) => { return await safeApplyPacket(pkt); },
+  'save-state': async (pkt) => { return await safeApplyPacket(pkt); },
+  'save:state': async (pkt) => { return await safeApplyPacket(pkt); },
+  'auto-patch': async (pkt) => { return await safeApplyPacket(pkt); },
+  'auto_patch': async (pkt) => { return await safeApplyPacket(pkt); },
+  'auto-patch:apply': async (pkt) => { return await safeApplyPacket(pkt); },
+  'auto_patch:apply': async (pkt) => { return await safeApplyPacket(pkt); },
 };
 
 // normalize and lookup function
@@ -99,6 +147,7 @@ function findHandler(pkt: CortexPacket): CortexRouteHandler {
 
   // fallback to routesCfg pick logic if present
   try {
+    const routesCfg: any = resolveImport('./routesConfig') || resolveImport('@cortex/routesConfig') || (typeof require !== 'undefined' ? (() => { try { return require('./routesConfig'); } catch (e) { try { return require('src/cortex/routesConfig'); } catch (e2) { return undefined; } } })() : undefined);
     if (routesCfg && typeof routesCfg.pickBestRoute === 'function') {
       const pick = routesCfg.pickBestRoute(candidates as any) as string | null;
       if (pick) {
