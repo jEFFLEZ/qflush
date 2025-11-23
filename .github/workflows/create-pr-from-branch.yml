@@ -22,6 +22,8 @@ on:
 
 jobs:
   create-pr:
+    # prevent self-dispatch loops when workflow is invoked by GitHub Actions
+    if: "${{ github.actor != 'github-actions[bot]' }}"
     runs-on: ubuntu-latest
     steps:
       - name: Create PR via REST API
