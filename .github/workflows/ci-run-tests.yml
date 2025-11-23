@@ -1,0 +1,44 @@
+name: CI Run Tests with qflushd
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch: {}
+
+jobs:
+  test-with-qflushd:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Use Node.js 18
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Build TypeScript
+        run: npm run build
+
+      - name: Run tests with qflushd helper
+        # this script starts qflushd and runs vitest then stops the server
+        run: node tools/run-tests-with-qflushd.js
+        env:
+          CI: true
+
+      - name: Upload vitest snapshot (if any)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: vitest-logs
+          path: |
+            ./**/vitest-debug.log
+            ./**/coverage
