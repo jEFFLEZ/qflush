@@ -20,15 +20,6 @@ export function decodeCortexPNG(file: string) {
   const calc = crypto.createHash('sha256').update(compressed).digest().subarray(0, 1)[0];
   if (oc8 !== null && oc8 !== calc) throw new Error('OC8 checksum mismatch');
 
-  // HMAC verification
-  const hmacHex = png.text && png.text.hmac ? String(png.text.hmac) : null;
-  if (hmacHex) {
-    const key = process.env.QFLUSH_HMAC_KEY || '';
-    if (!key) throw new Error('HMAC present but no QFLUSH_HMAC_KEY provided in env');
-    const expect = crypto.createHmac('sha256', key).update(compressed).digest('hex');
-    if (expect !== hmacHex) throw new Error('HMAC mismatch');
-  }
-
   const json = zlib.brotliDecompressSync(compressed);
   const payload = JSON.parse(json.toString('utf8'));
 
