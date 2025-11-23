@@ -270,6 +270,31 @@ if (typeof require !== 'undefined' && require.main === module) {
     })();
   }
 
+  if (first === 'cortex') {
+    (async () => {
+      const cmd = argv[1];
+      if (!cmd) {
+        console.error('usage: qflush cortex <command> [args]');
+        process.exit(1);
+      }
+      try {
+        const m = await import('./cortex/cli');
+        const id = m.cortexSend(cmd, argv.slice(2));
+        try {
+          const res = await m.cortexWaitFor(id, 10000);
+          console.log(JSON.stringify(res, null, 2));
+          process.exit(0);
+        } catch (e) {
+          console.error('cortex wait error', e);
+          process.exit(1);
+        }
+      } catch (err) {
+        console.error('failed to run cortex command', err);
+        process.exit(1);
+      }
+    })();
+  }
+
   const { pipeline, options } = buildPipeline(argv);
 
   executePipeline(pipeline, options).catch((err) => {
