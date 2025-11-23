@@ -29,12 +29,24 @@ export function encodeCortexCommand(ner: any, outPath: string) {
 
   // OC8: first byte of sha256 of compressed payload (simple integrity tag)
   const oc8 = crypto.createHash('sha256').update(compressed).digest().subarray(0, 1)[0];
+  // HMAC for stronger integrity/replay protection if key provided
+  const hmacKey = process.env.QFLUSH_HMAC_KEY || '';
+  let hmacHex = '';
+  if (hmacKey) {
+    const h = crypto.createHmac('sha256', hmacKey).update(compressed).digest('hex');
+    hmacHex = h;
+  }
+
   // store as tEXt chunk
   // @ts-ignore png.text exists on PNG
   png.text = png.text || {};
   // store numeric oc8 as string
   // @ts-ignore
   png.text.oc8 = String(oc8);
+  if (hmacHex) {
+    // @ts-ignore
+    png.text.hmac = hmacHex;
+  }
 
   // ensure parent dir
   fs.mkdirSync(path.dirname(outPath), { recursive: true });

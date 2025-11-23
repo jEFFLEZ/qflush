@@ -38,7 +38,8 @@
     "run:timeout": "bash ./scripts/run-with-timeout.sh",
     "run:timeout:ps1": "pwsh ./scripts/run-with-timeout.ps1",
     "typecheck": "tsc -p . --noEmit && tsc -p tests/tsconfig.json --noEmit",
-    "typecheck:tests": "tsc -p tests/tsconfig.json --noEmit"
+    "typecheck:tests": "tsc -p tests/tsconfig.json --noEmit",
+    "cortex": "node -e \"require('./dist/cortex/bus').startCortexBus()\""
   },
   "keywords": [
     "funeste38",
