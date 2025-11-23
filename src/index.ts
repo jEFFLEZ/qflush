@@ -51,6 +51,7 @@ import runA11 from "./commands/a11";
 import runSpyder from "./commands/spyder";
 import { spawn } from 'child_process';
 import { enterSleepMode, exitSleepMode, jokerWipe } from './services';
+import { startQflushSystem } from './core/start-system';
 
 // Only run the CLI dispatch when this module is the entrypoint
 declare const require: any;
@@ -112,24 +113,7 @@ if (typeof require !== 'undefined' && require.main === module) {
     }
 
     const useCortex = argv.includes('--use-cortex') || process.env.QFLUSH_USE_CORTEX === '1';
-    if (useCortex) {
-      // Start Cortex bus in-process (replaces HTTP daemon)
-      console.log('qflush: starting CORTEX PNG bus in-process');
-      void import('./cortex/bus').then((m) => {
-        if (m && typeof m.startCortexBus === 'function') {
-          m.startCortexBus();
-        } else {
-          console.error('CORTEX module loaded but startCortexBus not found');
-          process.exit(1);
-        }
-      }).catch((err) => {
-        console.error('failed to start CORTEX bus', err);
-        process.exit(1);
-      });
-      // Keep process alive for bus
-      return;
-    }
-
+    // If the user explicitly requested --use-cortex we still allow startQflushSystem to manage both.
     if (detached) {
       try {
         // attempt to use @funeste38/bat to spawn detached
@@ -153,14 +137,17 @@ if (typeof require !== 'undefined' && require.main === module) {
         }
       }
     }
-    // start qflushd in-process
-    void import("./daemon/qflushd.js").then(() => {
-      // module starts itself and logs
-    }).catch((err) => {
-      console.error("failed to start daemon", err);
+
+    // start systems in-process using hybrid starter (CORTEX and/or daemon depending on QFLUSH_MODE)
+    try {
+      // This will start Cortex bus and/or daemon server per QFLUSH_MODE
+      startQflushSystem();
+    } catch (err) {
+      console.error('failed to start qflush system', err);
       process.exit(1);
-    });
-    process.exit(0);
+    }
+    // keep process alive
+    return;
   }
 
   if (first === 'a11' || first === 'a11:status') {
