@@ -2,7 +2,6 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
-import crypto from 'crypto';
 import fetch from 'node-fetch';
 import { EventEmitter } from 'events';
 import { CopilotConfig, TelemetryEvent, EngineState, RuleEvent, Diagnostic } from './copilot-types';
@@ -45,24 +44,12 @@ function loadCfg() {
   }
 }
 
-function signPayload(payload: string): string | null {
-  try {
-    if (!cfg.hmacSecretEnv) return null;
-    const secret = process.env[cfg.hmacSecretEnv || ''];
-    if (!secret) return null;
-    const h = crypto.createHmac('sha256', secret).update(payload).digest('hex');
-    return h;
-  } catch (e) { return null; }
-}
-
 async function sendWebhook(event: TelemetryEvent) {
   if (!cfg.enabled) return;
   if (!cfg.webhookUrl) return;
   try {
     const payload = JSON.stringify(event);
     const headers: any = { 'Content-Type': 'application/json' };
-    const sig = signPayload(payload);
-    if (sig) headers['X-Copilot-Signature'] = `sha256=${sig}`;
     await fetch(cfg.webhookUrl, { method: 'POST', body: payload, headers });
   } catch (e) {
     // best-effort
@@ -115,13 +102,6 @@ export async function emitDiagnostic(diag: Diagnostic) {
   if (cfg.transports.includes('file')) writeFileEvent(event);
   try { saveTelemetryEvent('diag-'+Date.now(), 'diagnostic', Date.now(), diag); } catch (e) {}
   emitter.emit('telemetry', event);
-}
-
-export function _signPayloadForTest(payload: string, secret: string) {
-  try {
-    const h = crypto.createHmac('sha256', secret).update(payload).digest('hex');
-    return h;
-  } catch (e) { return null; }
 }
 
 export function onTelemetry(cb: (ev: TelemetryEvent)=>void) { emitter.on('telemetry', cb); }
