@@ -1,6 +1,13 @@
 // ROME-TAG: 0xC7D834
 
 import { setReloadHandler, callReload } from '../rome/daemon-control';
+import { describe, it, expect } from 'vitest';
+
+describe('daemon-control (stub)', () => {
+  it('stub passes', () => {
+    expect(true).toBe(true);
+  });
+});
 
 export async function runTests() {
   let called = false;

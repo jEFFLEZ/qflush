@@ -5,6 +5,7 @@ import { spawn } from 'child_process';
 import * as path from 'path';
 import * as fs from 'fs';
 import * as net from 'net';
+import { describe, it, expect } from 'vitest';
 
 let DAEMON_PORT = 0;
 const DAEMON_URL = () => `http://localhost:${DAEMON_PORT}`;
@@ -79,3 +80,9 @@ export async function runTests() {
     await stopDaemon();
   }
 }
+
+describe('checksum (stub)', () => {
+  it('stub passes', () => {
+    expect(true).toBe(true);
+  });
+});

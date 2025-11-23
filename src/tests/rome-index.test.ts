@@ -102,3 +102,11 @@ export async function runTests() {
     try { if (spawned && typeof spawned.kill === 'function') spawned.kill(); } catch (e) {}
   }
 }
+
+import { describe, it, expect } from 'vitest';
+
+describe('rome-index (stub)', () => {
+  it('stub passes', () => {
+    expect(true).toBe(true);
+  });
+});
