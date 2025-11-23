@@ -21,12 +21,14 @@
   ],
   "scripts": {
     "prebuild": "node ./tools/generate-pourparler-css.js",
-    "build": "tsc -p .",
+    "build:daemon": "tsc -p . --outDir dist && echo daemon-built",
+    "build:cortex": "tsc -p . --outDir dist && echo cortex-built",
+    "build": "npm run build:daemon && npm run build:cortex",
     "test": "vitest --run",
     "test:ci": "vitest --run --coverage",
     "lint": "eslint . --ext .ts,.js --fix -c .eslintrc.cjs",
     "lint:rome": "npm run build && node tools/rome-lint.js",
-    "lint:rome:fix": "npm run build && node tools/rome-lint.js --fix",
+    "lint:rome:fix": "npm.run build && node tools/rome-lint.js --fix",
     "daemon:spawn": "node ./dist/index.js daemon --detached",
     "daemon:stop": "node ./dist/index.js kill",
     "daemon:status": "node ./dist/index.js inspect",
@@ -39,7 +41,10 @@
     "run:timeout:ps1": "pwsh ./scripts/run-with-timeout.ps1",
     "typecheck": "tsc -p . --noEmit && tsc -p tests/tsconfig.json --noEmit",
     "typecheck:tests": "tsc -p tests/tsconfig.json --noEmit",
-    "cortex": "node -e \"require('./dist/cortex/bus').startCortexBus()\""
+    "cortex": "node -e \"console.log('cortex helpers')\"",
+    "cortex:encode": "node -e \"require('./dist/cortex/codec').encodeFileToPNGs(process.argv[1], process.argv[2]).then(console.log).catch(console.error)\"",
+    "cortex:decode": "node -e \"require('./dist/cortex/codec').decodePNGsToFile(process.argv.slice(1, -1), process.argv[process.argv.length-1]).then(console.log).catch(console.error)\"",
+    "cortex:listen": "node dist/cortex/listener.js"
   },
   "keywords": [
     "funeste38",
