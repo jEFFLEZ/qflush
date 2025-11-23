@@ -136,3 +136,23 @@ export async function decodePNGsToFile(pngGlobPaths: string[], outputPath: strin
   const parsed = parseCortexPacket(full);
   fs.writeFileSync(outputPath, parsed.raw);
 }
+
+export function decodeCortexPacket(buf: Buffer) {
+  // parseCortexPacket already verifies CRC and decompresses
+  const parsed = parseCortexPacket(buf);
+  let payload: any = null;
+  try {
+    const txt = parsed.raw.toString('utf-8');
+    payload = JSON.parse(txt);
+  } catch (e) {
+    payload = parsed.raw;
+  }
+  return {
+    totalLen: parsed.totalLen,
+    payloadLen: parsed.payloadLen,
+    flags: parsed.flags,
+    payload
+  };
+}
+
+export default { buildCortexPacket, parseCortexPacket, decodeCortexPacket, encodePacketToPNGs, decodePNGsToPacket };
