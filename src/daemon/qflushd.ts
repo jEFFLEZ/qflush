@@ -280,7 +280,23 @@ export async function startServer(port?: number) {
         resolve({ ok: true, port: p });
       });
 
-      srv.on('error', (err) => {
+      srv.on('error', (err: any) => {
+        // If address already in use, attempt to probe existing server on the same port and treat it as OK
+        if (err && err.code === 'EADDRINUSE') {
+          try {
+            const probe = http.request({ hostname: '127.0.0.1', port: p, path: '/health', method: 'GET', timeout: 1000 }, (res) => {
+              const ok = res.statusCode && res.statusCode >= 200 && res.statusCode < 300;
+              if (ok) return resolve({ ok: true, port: p });
+              return reject(err);
+            });
+            probe.on('error', () => reject(err));
+            probe.on('timeout', () => { probe.destroy(); reject(err); });
+            probe.end();
+            return;
+          } catch (e) {
+            return reject(err);
+          }
+        }
         reject(err);
       });
     } catch (err) {

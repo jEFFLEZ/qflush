@@ -2,6 +2,13 @@
   try {
     const path = require('path');
     const child_process = require('child_process');
+
+    // initialize token from QFLUSH_TEST_TOKEN if not set
+    if (!process.env.QFLUSH_TOKEN && process.env.QFLUSH_TEST_TOKEN) {
+      process.env.QFLUSH_TOKEN = process.env.QFLUSH_TEST_TOKEN;
+      console.log('Initialized QFLUSH_TOKEN from QFLUSH_TEST_TOKEN');
+    }
+
     const qflushdPath = path.join(process.cwd(), 'dist', 'daemon', 'qflushd.js');
     let serverModule;
     try {
@@ -19,8 +26,12 @@
     }
 
     console.log('Starting qflushd...');
-    await start(4500);
-    console.log('qflushd started on 4500');
+    try {
+      await start(4500);
+      console.log('qflushd started on 4500');
+    } catch (e) {
+      console.warn('startServer reported error, attempting to continue if server exists:', String(e));
+    }
 
     const vitestArgs = ['vitest', 'run', '--reporter', 'verbose', '--testTimeout', '60000'];
     const runner = child_process.spawn('npx', vitestArgs, { stdio: 'inherit', shell: true });

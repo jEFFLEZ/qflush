@@ -85,31 +85,81 @@ def extract_rgba_and_strip_alpha(img: Image.Image) -> bytes:
 
 def try_decode_stream(full: bytes, output_path: str) -> None:
     # Expect CortexHeader of 16 bytes: uint32 totalLength, uint32 payloadLength, uint8 flags, uint8[7] reserved
-    if len(full) < 16:
-        raise ValueError('Stream too short for Cortex header')
-    try:
-        total_len, payload_len, flags = struct.unpack('>I I B', full[:9])
-        # reserved = full[9:16]
-    except Exception:
-        raise ValueError('Invalid Cortex header format')
+    # Be robust: try big-endian and little-endian, and scan the stream for a valid header if initial parse fails.
+    def parse_header_at(buf: bytes, offset: int):
+        if offset + 16 > len(buf):
+            return None
+        hdr = buf[offset:offset+16]
+        # try big-endian
+        try:
+            total_len_be, payload_len_be, flags_be = struct.unpack('>I I B', hdr[:9])
+        except Exception:
+            total_len_be = payload_len_be = flags_be = None
+        # try little-endian
+        try:
+            total_len_le, payload_len_le, flags_le = struct.unpack('<I I B', hdr[:9])
+        except Exception:
+            total_len_le = payload_len_le = flags_le = None
+        return (
+            ('>','be', total_len_be, payload_len_be, flags_be),
+            ('<','le', total_len_le, payload_len_le, flags_le)
+        )
 
-    # validate sizes
-    if payload_len < 1:
-        raise ValueError('Payload length invalid or zero')
-    if len(full) < 16 + payload_len:
-        raise ValueError(f'Stream shorter than expected payload: have {len(full)-16}, need {payload_len}')
+    def validate_and_decompress(buf: bytes, offset: int, total_len: int, payload_len: int):
+        if payload_len < 1:
+            return False, 'payload_len<1'
+        if offset + 16 + payload_len > len(buf):
+            return False, f'stream shorter than expected payload: have {len(buf)- (offset+16)}, need {payload_len}'
+        payload_with_crc = buf[offset+16: offset+16+payload_len]
+        if len(payload_with_crc) < 1:
+            return False, 'payload too short'
+        compressed = payload_with_crc[:-1]
+        checksum = payload_with_crc[-1]
+        expected = crc8_oc8(compressed)
+        if checksum != expected:
+            return False, f'CRC mismatch: expected {expected}, got {checksum}'
+        try:
+            raw = brotli.decompress(compressed)
+        except Exception as e:
+            return False, f'brotli decompress failed: {e}'
+        with open(output_path, 'wb') as f:
+            f.write(raw)
+        return True, 'ok'
 
-    payload_with_crc = full[16:16+payload_len]
-    if len(payload_with_crc) < 1:
-        raise ValueError('Payload too short')
-    compressed = payload_with_crc[:-1]
-    checksum = payload_with_crc[-1]
-    expected = crc8_oc8(compressed)
-    if checksum != expected:
-        raise ValueError(f'CRC mismatch: expected {expected}, got {checksum}')
-    raw = brotli.decompress(compressed)
-    with open(output_path, 'wb') as f:
-        f.write(raw)
+    # initial direct attempt at offset 0
+    headers = parse_header_at(full, 0)
+    if headers:
+        for prefix, label, total_len, payload_len, flags in headers:
+            if total_len is None:
+                continue
+            ok, msg = validate_and_decompress(full, 0, total_len, payload_len)
+            if ok:
+                print(f'Decoded using header at offset=0 endianness={label}')
+                return
+            else:
+                # continue to scanning
+                pass
+
+    # scan the stream for plausible header positions
+    max_scan = min(65536, max(0, len(full) - 16))
+    for off in range(0, max_scan, 1):
+        headers = parse_header_at(full, off)
+        if not headers:
+            continue
+        for prefix, label, total_len, payload_len, flags in headers:
+            if total_len is None or payload_len is None:
+                continue
+            # sanity checks: payload_len should be reasonable (< remaining bytes and < 100MB)
+            if payload_len <= 0 or payload_len > 200 * 1024 * 1024:
+                continue
+            if off + 16 + payload_len > len(full):
+                continue
+            ok, msg = validate_and_decompress(full, off, total_len, payload_len)
+            if ok:
+                print(f'Decoded using header at offset={off} endianness={label}')
+                return
+            # else continue scanning
+    raise ValueError('No valid Cortex OC8 header + payload found in stream (scanned up to %d bytes)' % max_scan)
 
 
 def decode_pngs_to_file(png_paths: List[str], output_path: str) -> None:
