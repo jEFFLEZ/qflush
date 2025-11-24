@@ -95,14 +95,12 @@ export async function applyCortexPacket(packet: CortexPacket): Promise<void> {
 
       case 'npz-graph':
       case 'npz:graph':
-      case 'npz-graph':
       case 'cortex:npz-graph':
         await applyNpzGraph(packet);
         break;
 
       case 'save-state':
       case 'save:state':
-      case 'save-state':
       case 'cortex:save-state':
         await applySaveState(packet);
         break;
