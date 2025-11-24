@@ -3,6 +3,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { decodePNGsToPacket, parseCortexPacket } from './codec';
 import { routeCortexPacket } from './router';
+import { getServiceClients } from '../services';
 
 const WATCH_DIR = path.join(process.cwd(), 'canal');
 
@@ -14,6 +15,9 @@ export function startCortexListener() {
   console.log('[CORTEX] listener watching', WATCH_DIR);
 
   const pending = new Set<string>();
+
+  // initialize service clients once
+  const services = getServiceClients();
 
   fs.watch(WATCH_DIR, { persistent: false }, async (ev, filename) => {
     if (!filename) return;
@@ -41,7 +45,7 @@ export function startCortexListener() {
         } catch (e) {
           payload = parsed.raw;
         }
-        const routed = await routeCortexPacket({ totalLen: parsed.totalLen, payloadLen: parsed.payloadLen, flags: parsed.flags, payload });
+        const routed = await routeCortexPacket({ totalLen: parsed.totalLen, payloadLen: parsed.payloadLen, flags: parsed.flags, payload }, services);
         console.log('[CORTEX] routed packet result', routed);
       } catch (e) {
         console.warn('[CORTEX] decode failed', e);
