@@ -13,6 +13,10 @@ jobs:
     # use a dedicated self-hosted runner labeled 'funesterie' to avoid contention
     runs-on: [self-hosted, funesterie, Windows]
 
+    env:
+      QFLUSHD_PORT: '43421'
+      QFLUSH_SPYDER_ADMIN_PORT: '4022'
+
     steps:
       - uses: actions/checkout@v4
         with:
