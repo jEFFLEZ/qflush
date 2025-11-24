@@ -1,6 +1,7 @@
 // vitest.setup.ts — Test bootstrap for Vitest
 // Ensures runtime environment and guards used by legacy tests.
 
+import * as fs from 'node:fs';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 
@@ -25,17 +26,56 @@ process.on('exit', (code) => {
 process.env.QFLUSH_MODE = 'cortex';
 
 // Ensure .qflush/logs and spyder.log exist in each test working directory
-try {
-  const root = process.cwd();
-  const logs = path.join(root, '.qflush', 'logs');
-  mkdirSync(logs, { recursive: true });
-  // open file in append mode so we never truncate existing logs during tests
-  writeFileSync(path.join(logs, 'spyder.log'), '', { flag: 'a' });
-} catch (e) {
-  // swallow any errors to avoid interfering with tests
-  // eslint-disable-next-line no-console
-  console.warn('[vitest.setup] could not ensure .qflush/logs:', String(e));
+function ensureLogsForCwd(cwd: string) {
+  try {
+    const root = cwd || process.cwd();
+    const logs = path.join(root, '.qflush', 'logs');
+    mkdirSync(logs, { recursive: true });
+    // open file in append mode so we never truncate existing logs during tests
+    writeFileSync(path.join(logs, 'spyder.log'), '', { flag: 'a' });
+  } catch (e) {
+    // swallow any errors to avoid interfering with tests
+    // eslint-disable-next-line no-console
+    console.warn('[vitest.setup] could not ensure .qflush/logs:', String(e));
+  }
 }
+
+// Ensure for initial cwd
+ensureLogsForCwd(process.cwd());
+
+// Monkeypatch common fs write functions so any code that writes to a path will have parent dir created first
+try {
+  const origWrite = fs.writeFileSync;
+  (fs as any).writeFileSync = function (p: any, data: any, opts?: any) {
+    try {
+      const dir = path.dirname(String(p));
+      if (dir) mkdirSync(dir, { recursive: true });
+    } catch (e) {}
+    return origWrite.apply(fs, arguments as any);
+  };
+} catch (_) {}
+
+try {
+  const origAppend = fs.appendFileSync;
+  (fs as any).appendFileSync = function (p: any, data: any, opts?: any) {
+    try {
+      const dir = path.dirname(String(p));
+      if (dir) mkdirSync(dir, { recursive: true });
+    } catch (e) {}
+    return origAppend.apply(fs, arguments as any);
+  };
+} catch (_) {}
+
+try {
+  const origOpen = fs.openSync;
+  (fs as any).openSync = function (p: any, flags: any, mode?: any) {
+    try {
+      const dir = path.dirname(String(p));
+      if (dir && (flags && String(flags).indexOf('w') >= 0)) mkdirSync(dir, { recursive: true });
+    } catch (e) {}
+    return origOpen.apply(fs, arguments as any);
+  };
+} catch (_) {}
 
 // Start the compiled qflush daemon during tests when VITEST env var is set and mode allows it
 if (process.env.VITEST) {
