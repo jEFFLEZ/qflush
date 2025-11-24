@@ -16,7 +16,7 @@ export async function runTests() {
   const port = (srv.address() as any).port;
   const cfgPath = path.join(process.cwd(), '.qflush', 'logic-config.json');
   const cfg = JSON.parse(fs.readFileSync(cfgPath,'utf8'));
-  cfg.webhookUrl = `http://localhost:${port}`;
+  cfg.webhookUrl = `http://127.0.0.1:${port}`;
   fs.writeFileSync(cfgPath, JSON.stringify(cfg, null, 2), 'utf8');
 
   // disallowed command

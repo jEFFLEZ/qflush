@@ -21,7 +21,7 @@ describe('NPZ BAT control endpoints (embedded)', () => {
   it('POST /npz/sleep requires token and sets safe mode', async () => {
     // without token header
     const r1 = await fetch(`${URL}/npz/sleep`, { method: 'POST' });
-    expect(r1.status).toBe(403);
+    expect(r1.status).toBe(401);
 
     // with token
     const r2 = await fetch(`${URL}/npz/sleep`, { method: 'POST', headers: { 'x-qflush-token': 'test-token' } });

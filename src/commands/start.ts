@@ -2,17 +2,17 @@
 
 import { detectModules } from "../utils/detect";
 import logger from "../utils/logger";
-import { spawnSafe, ensurePackageInstalled, pathExists, rebuildInstructionsFor } from "../utils/exec";
+import { ensurePackageInstalled, pathExists, rebuildInstructionsFor } from "../utils/exec";
 import { resolvePaths, SERVICE_MAP } from "../utils/paths";
 import { qflushOptions } from "../chain/smartChain";
 import { resolvePackagePath, readPackageJson } from "../utils/package";
 import { startProcess } from "../supervisor";
 import { waitForService } from "../utils/health";
 import { runCustomsCheck, hasBlockingIssues, ModuleDescriptor } from "../utils/npz-customs";
-import npz from "../utils/npz";
 import { resolveMerged } from "../supervisor/merged-resolver";
-import * as fs from 'fs';
-import { spawnSync } from 'child_process';
+import * as fs from 'node:fs';
+import { spawnSync } from 'node:child_process';
+import path from 'node:path';
 import { startService } from '../services';
 
 export async function runStart(opts?: qflushOptions) {
@@ -39,15 +39,14 @@ export async function runStart(opts?: qflushOptions) {
 
   async function ensureBuiltIfNeeded(prefixPath: string) {
     try {
-      const pathJoin = require('path').join;
       const candidates = [
         prefixPath,
-        pathJoin(prefixPath, 'spyder'),
-        pathJoin(prefixPath, 'apps', 'spyder-core')
+        path.join(prefixPath, 'spyder'),
+        path.join(prefixPath, 'apps', 'spyder-core')
       ];
 
       for (const cand of candidates) {
-        const distEntry = require('path').join(cand, 'dist', 'index.js');
+        const distEntry = path.join(cand, 'dist', 'index.js');
         if (fs.existsSync(distEntry)) {
           return true;
         }
@@ -56,7 +55,7 @@ export async function runStart(opts?: qflushOptions) {
       // Try to build candidates that have a build script
       for (const cand of candidates) {
         try {
-          const pkgJsonPath = require('path').join(cand, 'package.json');
+          const pkgJsonPath = path.join(cand, 'package.json');
           if (!fs.existsSync(pkgJsonPath)) continue;
           const pj = readPackageJson(cand);
           if (!pj || !pj.scripts || !pj.scripts.build) continue;
@@ -64,7 +63,7 @@ export async function runStart(opts?: qflushOptions) {
           logger.info(`Local package at ${cand} missing dist; running build...`);
           const r = spawnSync('npm', ['--prefix', cand, 'run', 'build'], { stdio: 'inherit' });
           if (r.status === 0) {
-            const distEntry = require('path').join(cand, 'dist', 'index.js');
+            const distEntry = path.join(cand, 'dist', 'index.js');
             if (fs.existsSync(distEntry)) return true;
           }
         } catch (e) {
@@ -133,8 +132,8 @@ export async function runStart(opts?: qflushOptions) {
             const subCandidates = ['spyder', 'apps/spyder-core'];
             for (const sub of subCandidates) {
               try {
-                const subPkg = require('path').join(p, sub);
-                const subPkgJsonPath = require('path').join(subPkg, 'package.json');
+                const subPkg = path.join(p, sub);
+                const subPkgJsonPath = path.join(subPkg, 'package.json');
                 if (fs.existsSync(subPkgJsonPath)) {
                   const subPkgJson = readPackageJson(subPkg);
                   if (subPkgJson && subPkgJson.scripts && subPkgJson.scripts.start) {
@@ -261,8 +260,8 @@ export async function runStart(opts?: qflushOptions) {
         const subCandidates = ['spyder', 'apps/spyder-core'];
         for (const sub of subCandidates) {
           try {
-            const subPkg = require('path').join(pkgPath, sub);
-            const subPkgJsonPath = require('path').join(subPkg, 'package.json');
+                const subPkg = path.join(pkgPath, sub);
+                const subPkgJsonPath = path.join(subPkg, 'package.json');
             if (fs.existsSync(subPkgJsonPath)) {
               const subPkgJson = readPackageJson(subPkg);
               if (subPkgJson && subPkgJson.scripts && subPkgJson.scripts.start) {
@@ -343,7 +342,7 @@ export async function runStart(opts?: qflushOptions) {
 
   // After starting services, optionally start SPYDER resonnance when configured
   try {
-    const spyCfgPath = require('path').join(process.cwd(), '.qflush', 'spyder.config.json');
+    const spyCfgPath = path.join(process.cwd(), '.qflush', 'spyder.config.json');
     if (fs.existsSync(spyCfgPath)) {
       try {
         const raw = fs.readFileSync(spyCfgPath, 'utf8');
@@ -375,7 +374,7 @@ export async function runStart(opts?: qflushOptions) {
 
   // Also, if cortex.routes.json contains routes, start resonnance (makes SPYDER active when routes present)
   try {
-    const routesPath = require('path').join(process.cwd(), '.qflush', 'cortex.routes.json');
+    const routesPath = path.join(process.cwd(), '.qflush', 'cortex.routes.json');
     if (fs.existsSync(routesPath)) {
       try {
         const rawRoutes = fs.readFileSync(routesPath, 'utf8') || '{}';

@@ -8,7 +8,7 @@ import * as net from 'net';
 import { describe, it, expect } from 'vitest';
 
 let DAEMON_PORT = 0;
-const DAEMON_URL = () => `http://localhost:${DAEMON_PORT}`;
+const DAEMON_URL = () => `http://127.0.0.1:${DAEMON_PORT}`;
 let daemonProc: any = null;
 
 function wait(ms: number) { return new Promise((r) => setTimeout(r, ms)); }
@@ -33,9 +33,26 @@ async function startDaemon() {
   });
 
   DAEMON_PORT = await getFreePort();
+  // ensure test token is present for the spawned daemon
+  const env = { ...process.env, QFLUSHD_PORT: String(DAEMON_PORT) } as any;
+  if (!env.QFLUSH_TOKEN) env.QFLUSH_TOKEN = process.env.QFLUSH_TOKEN || 'test-token';
 
-  daemonProc = spawn(process.execPath, [path.join(process.cwd(), 'dist', 'daemon', 'qflushd.js')], { env: { ...process.env, QFLUSHD_PORT: String(DAEMON_PORT) }, stdio: 'inherit' });
-  await wait(400);
+  // spawn a Node process that requires the module and starts the server
+  const nodeCmd = `require('${path.join(process.cwd(), 'dist', 'daemon', 'qflushd.js').replace(/\\/g,'\\\\')}').startServer(${DAEMON_PORT}).catch(e=>{ console.error(e); process.exit(1); });`;
+  daemonProc = spawn(process.execPath, ['-e', nodeCmd], { env, stdio: 'inherit' });
+
+  // wait until daemon responds on health endpoint
+  const maxAttempts = 40;
+  let healthy = false;
+  for (let i = 0; i < maxAttempts; i++) {
+    try {
+      // try loopback on the port
+      const res = await fetch(`http://127.0.0.1:${DAEMON_PORT}/health`);
+      if (res.ok) { healthy = true; break; }
+    } catch (e) {}
+    await wait(200);
+  }
+  if (!healthy) throw new Error('daemon failed to start');
 }
 
 async function stopDaemon() {
