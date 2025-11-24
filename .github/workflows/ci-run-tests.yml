@@ -12,7 +12,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     env:
-      QFLUSH_TEST_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      QFLUSH_TEST_TOKEN: ${{ secrets.QFLUSH_TEST_TOKEN }}
+      QFLUSH_SPYDER_ADMIN_PORT: ${{ secrets.QFLUSH_SPYDER_ADMIN_PORT }}
 
     steps:
       - name: Checkout repository

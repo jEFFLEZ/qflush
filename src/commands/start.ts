@@ -298,6 +298,15 @@ export async function runStart(opts?: qflushOptions) {
                 logger.warn(`Failed to write .qflush/spyder.config.json: ${e}`);
               }
             }
+            // Also write a small .qflush/spyder.env file for consumers that prefer env files
+            try {
+              const spyEnvPath = path.join(qflushDir, 'spyder.env');
+              const envContent = `SPYDER_ADMIN_PORT=${spyCfg.adminPort}\n`;
+              fs.writeFileSync(spyEnvPath, envContent, 'utf8');
+              logger.info(`Wrote .qflush/spyder.env with SPYDER_ADMIN_PORT=${spyCfg.adminPort}`);
+            } catch (e) {
+              logger.warn(`Failed to write .qflush/spyder.env: ${e}`);
+            }
           } catch (e) {
             logger.warn(`Failed to persist spyder admin port: ${e}`);
           }
