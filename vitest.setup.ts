@@ -71,7 +71,7 @@ try {
   (fs as any).openSync = function (p: any, flags: any, mode?: any) {
     try {
       const dir = path.dirname(String(p));
-      if (dir && (flags && String(flags).indexOf('w') >= 0)) mkdirSync(dir, { recursive: true });
+      if (dir) mkdirSync(dir, { recursive: true });
     } catch (e) {}
     return origOpen.apply(fs, arguments as any);
   };
