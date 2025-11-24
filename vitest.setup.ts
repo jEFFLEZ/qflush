@@ -67,13 +67,58 @@ try {
 } catch (_) {}
 
 try {
-  const origOpen = fs.openSync;
+  const origOpenSync = fs.openSync;
   (fs as any).openSync = function (p: any, flags: any, mode?: any) {
     try {
       const dir = path.dirname(String(p));
       if (dir) mkdirSync(dir, { recursive: true });
     } catch (e) {}
+    return origOpenSync.apply(fs, arguments as any);
+  };
+} catch (_) {}
+
+// Patch async variants and streams
+try {
+  const origWriteFile = fs.writeFile;
+  (fs as any).writeFile = function (p: any, data: any, opts?: any, cb?: any) {
+    try {
+      const dir = path.dirname(String(p));
+      if (dir) mkdirSync(dir, { recursive: true });
+    } catch (e) {}
+    return origWriteFile.apply(fs, arguments as any);
+  };
+} catch (_) {}
+
+try {
+  const origAppendFile = fs.appendFile;
+  (fs as any).appendFile = function (p: any, data: any, opts?: any, cb?: any) {
+    try {
+      const dir = path.dirname(String(p));
+      if (dir) mkdirSync(dir, { recursive: true });
+    } catch (e) {}
+    return origAppendFile.apply(fs, arguments as any);
+  };
+} catch (_) {}
+
+try {
+  const origOpen = fs.open;
+  (fs as any).open = function (p: any, flags: any, mode?: any, cb?: any) {
+    try {
+      const dir = path.dirname(String(p));
+      if (dir) mkdirSync(dir, { recursive: true });
+    } catch (e) {}
     return origOpen.apply(fs, arguments as any);
+  };
+} catch (_) {}
+
+try {
+  const origCreateWrite = fs.createWriteStream;
+  (fs as any).createWriteStream = function (p: any, opts?: any) {
+    try {
+      const dir = path.dirname(String(p));
+      if (dir) mkdirSync(dir, { recursive: true });
+    } catch (e) {}
+    return origCreateWrite.apply(fs, arguments as any);
   };
 } catch (_) {}
 
