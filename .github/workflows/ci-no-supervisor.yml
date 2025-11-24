@@ -14,10 +14,17 @@ jobs:
       QFLUSH_ENABLE_REDIS: '0'
       QFLUSH_DISABLE_COPILOT: '1'
       QFLUSH_TELEMETRY: '0'
+      TAR: '/usr/bin/tar'
 
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
+
+      - name: Ensure system tar/gzip (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gzip tar
 
       - name: Install dependencies
         run: npm ci --no-audit --no-fund
