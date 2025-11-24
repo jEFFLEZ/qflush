@@ -9,12 +9,12 @@ import { resolvePackagePath, readPackageJson } from "../utils/package";
 import { startProcess } from "../supervisor";
 import { waitForService } from "../utils/health";
 import { runCustomsCheck, hasBlockingIssues, ModuleDescriptor } from "../utils/npz-customs";
-import { resolveMerged } from "../supervisor/merged-resolver";
 import * as fs from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import path from 'node:path';
 import { startService } from '../services';
 import net from 'node:net';
+import { safeWriteFileSync } from '../utils/safe-fs';
 
 // Read SPYDER admin port from config/env with sensible fallback
 function getSpyderAdminPort(): number {
@@ -98,7 +98,7 @@ function persistSpyderAdminPort(spyPort: number) {
     }
     if (needWrite) {
       try {
-        fs.writeFileSync(spyCfgPath, JSON.stringify(spyCfg, null, 2), 'utf8');
+        safeWriteFileSync(spyCfgPath, JSON.stringify(spyCfg, null, 2), 'utf8');
         logger.info(`Wrote .qflush/spyder.config.json with adminPort ${spyPort}`);
       } catch (e) {
         logger.warn(`Failed to write .qflush/spyder.config.json: ${e}`);
@@ -107,7 +107,7 @@ function persistSpyderAdminPort(spyPort: number) {
     try {
       const spyEnvPath = path.join(qflushDir, 'spyder.env');
       const envContent = `SPYDER_ADMIN_PORT=${spyCfg.adminPort}\n`;
-      fs.writeFileSync(spyEnvPath, envContent, 'utf8');
+      safeWriteFileSync(spyEnvPath, envContent, 'utf8');
       logger.info(`Wrote .qflush/spyder.env with SPYDER_ADMIN_PORT=${spyCfg.adminPort}`);
     } catch (e) {
       logger.warn(`Failed to write .qflush/spyder.env: ${e}`);
@@ -177,66 +177,69 @@ export async function startWithCustoms(modName: string, optsParam?: qflushOption
   // if an explicit path is provided, prefer to run it directly
   if (p) {
     try {
-      const pkgJson = readPackageJson(p);
-      if (pkgJson && pkgJson.bin) {
-        const binEntry = typeof pkgJson.bin === "string" ? pkgJson.bin : Object.values(pkgJson.bin)[0];
-        const binPath = path.join(p, binEntry);
+      const pkgJsonPath = path.join(p, 'package.json');
+      if (fs.existsSync(pkgJsonPath)) {
+        const pj = readPackageJson(p);
+        if (pj && pj.bin) {
+          const binEntry = typeof pj.bin === "string" ? pj.bin : Object.values(pj.bin)[0];
+          const binPath = path.join(p, binEntry);
 
-        // if bin exists and is a JS file, run via node; otherwise try to run directly but fallback to node if not executable
-        let runCmd = null as any;
-        if (pathExists(binPath) && binPath.endsWith('.js')) {
-          runCmd = { cmd: process.execPath, args: [binPath], cwd: p };
-        } else if (pathExists(binPath)) {
-          // check executable bit on POSIX; on Windows assume runnable
-          let isExec = true;
-          try {
-            if (process.platform !== 'win32') {
-              const st = fs.statSync(binPath);
-              isExec = !!(st.mode & 0o111);
-            }
-          } catch (e) { isExec = false; }
-
-          if (isExec) {
-            runCmd = { cmd: binPath, args: [], cwd: p };
-          } else {
-            // fallback: attempt to run with node
+          // if bin exists and is a JS file, run via node; otherwise try to run directly but fallback to node if not executable
+          let runCmd = null as any;
+          if (pathExists(binPath) && binPath.endsWith('.js')) {
             runCmd = { cmd: process.execPath, args: [binPath], cwd: p };
-          }
-        }
-
-        // if no bin but there is a start script, prefer npm --prefix <p> run start
-        if (!runCmd && pkgJson && pkgJson.scripts && pkgJson.scripts.start) {
-          runCmd = { cmd: 'npm', args: ['--prefix', p, 'run', 'start'], cwd: p };
-        }
-
-        // If runCmd still not set or dist missing, try common subpackage locations
-        if (!runCmd) {
-          const subCandidates = ['spyder', 'apps/spyder-core'];
-          for (const sub of subCandidates) {
+          } else if (pathExists(binPath)) {
+            // check executable bit on POSIX; on Windows assume runnable
+            let isExec = true;
             try {
-              const subPkg = path.join(p, sub);
-              const subPkgJsonPath = path.join(subPkg, 'package.json');
-              if (fs.existsSync(subPkgJsonPath)) {
-                const subPkgJson = readPackageJson(subPkg);
-                if (subPkgJson && subPkgJson.scripts && subPkgJson.scripts.start) {
-                  runCmd = { cmd: 'npm', args: ['--prefix', subPkg, 'run', 'start'], cwd: subPkg };
-                  break;
-                }
+              if (process.platform !== 'win32') {
+                const st = fs.statSync(binPath);
+                isExec = !!(st.mode & 0o111);
               }
-            } catch (_) {}
-          }
-        }
+            } catch (e) { isExec = false; }
 
-        if (runCmd) {
-          // if runCmd is npm start with prefix, ensure build exists
-          if (runCmd.cmd === 'npm' && runCmd.args.includes('run') && runCmd.args.includes('start')) {
-            const ok = await ensureBuiltIfNeeded(p);
-            if (!ok) return;
+            if (isExec) {
+              runCmd = { cmd: binPath, args: [], cwd: p };
+            } else {
+              // fallback: attempt to run with node
+              runCmd = { cmd: process.execPath, args: [binPath], cwd: p };
+            }
           }
 
-          logger.info(`Launching ${modName} -> ${runCmd.cmd} ${runCmd.args.join(" ")}`);
-          startProcess(modName, runCmd.cmd, runCmd.args, { cwd: runCmd.cwd });
-          return;
+          // if no bin but there is a start script, prefer npm --prefix <p> run start
+          if (!runCmd && pj && pj.scripts && pj.scripts.start) {
+            runCmd = { cmd: 'npm', args: ['--prefix', p, 'run', 'start'], cwd: p };
+          }
+
+          // If runCmd still not set or dist missing, try common subpackage locations
+          if (!runCmd) {
+            const subCandidates = ['spyder', 'apps/spyder-core'];
+            for (const sub of subCandidates) {
+              try {
+                const subPkg = path.join(p, sub);
+                const subPkgJsonPath = path.join(subPkg, 'package.json');
+                if (fs.existsSync(subPkgJsonPath)) {
+                  const subPkgJson = readPackageJson(subPkg);
+                  if (subPkgJson && subPkgJson.scripts && subPkgJson.scripts.start) {
+                    runCmd = { cmd: 'npm', args: ['--prefix', subPkg, 'run', 'start'], cwd: subPkg };
+                    break;
+                  }
+                }
+              } catch (_) {}
+            }
+          }
+
+          if (runCmd) {
+            // if runCmd is npm start with prefix, ensure build exists
+            if (runCmd.cmd === 'npm' && runCmd.args.includes('run') && runCmd.args.includes('start')) {
+              const ok = await ensureBuiltIfNeeded(p);
+              if (!ok) return;
+            }
+
+            logger.info(`Launching ${modName} -> ${runCmd.cmd} ${runCmd.args.join(" ")}`);
+            startProcess(modName, runCmd.cmd, runCmd.args, { cwd: runCmd.cwd });
+            return;
+          }
         }
       }
     } catch (e) {
@@ -531,7 +534,7 @@ export async function runStart(opts?: qflushOptions) {
     const logsDir = path.join(qflushDir, 'logs');
     if (!fs.existsSync(logsDir)) fs.mkdirSync(logsDir, { recursive: true });
     const spyLog = path.join(logsDir, 'spyder.log');
-    if (!fs.existsSync(spyLog)) fs.writeFileSync(spyLog, '', 'utf8');
+    if (!fs.existsSync(spyLog)) safeWriteFileSync(spyLog, '', 'utf8');
   } catch (e) {
     logger.warn('Failed to ensure .qflush/logs at runStart: ' + String(e));
   }
