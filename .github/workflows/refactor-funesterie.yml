@@ -32,39 +32,56 @@ jobs:
       - name: Build TypeScript
         run: npx tsc -p .
 
-      - name: Install qflush globally on runner (from repo tgz)
+      - name: Install qflush globally on runner (from repo tgz or npm)
         shell: pwsh
         run: |
-          Write-Host 'Packing qflush and installing globally for this runner session'
-          # create tgz from repo
-          npm pack
-          $tgz = Get-ChildItem -Path . -Filter '*.tgz' -File | Sort-Object LastWriteTime -Descending | Select-Object -First 1
-          if ($tgz) {
-            Write-Host "Found tgz: $($tgz.FullName) - installing globally"
-            # if runner-package exists, pack and install it instead so runner uses safe wrapper
-            if (Test-Path 'runner-package/package.json') {
-              Write-Host 'Packaging runner-specific variant'
-              Push-Location runner-package
+          Write-Host 'Installing qflush CLI for this runner (prefer published runner variant)'
+          $npmBin = $null
+          try {
+            # try installing published runner variant from npm first
+            try {
+              Write-Host 'Attempting to install published runner package @funeste38/qflush-runner@3.1.5-runner'
+              npm install -g @funeste38/qflush-runner@3.1.5-runner --no-audit --no-fund
+              Write-Host 'Installed @funeste38/qflush-runner from npm'
+              $npmBin = (npm config get prefix 2>$null).Trim()
+              if (-not $npmBin -or $npmBin -eq '') { $npmBin = Join-Path $env:APPDATA 'npm' }
+              "$([String]::Format('PATH={0};{1}', $npmBin, $env:PATH))" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+              Write-Host 'Runner variant installed and PATH updated for job'
+            } catch {
+              Write-Host 'Failed to install published runner package, falling back to local pack/install'
+              # create tgz from repo
               npm pack
-              $runnerTgz = Get-ChildItem -Path .. -Filter '*.tgz' -File | Sort-Object LastWriteTime -Descending | Select-Object -First 1
-              Pop-Location
-              if ($runnerTgz) {
-                Write-Host "Installing runner variant: $($runnerTgz.FullName)"
-                npm install -g $runnerTgz.FullName
-                # also install main tgz for library usage
+              $tgz = Get-ChildItem -Path . -Filter '*.tgz' -File | Sort-Object LastWriteTime -Descending | Select-Object -First 1
+              if ($tgz) {
+                Write-Host "Found tgz: $($tgz.FullName) - installing globally"
+                # if runner-package exists, pack and install it instead
+                if (Test-Path 'runner-package/package.json') {
+                  Write-Host 'Packaging runner-specific variant (local)'
+                  Push-Location runner-package
+                  npm pack
+                  $runnerTgz = Get-ChildItem -Path .. -Filter '*.tgz' -File | Sort-Object LastWriteTime -Descending | Select-Object -First 1
+                  Pop-Location
+                  if ($runnerTgz) {
+                    Write-Host "Installing runner variant: $($runnerTgz.FullName)"
+                    npm install -g $runnerTgz.FullName
+                    # also install main tgz for library usage
+                    npm install -g $tgz.FullName
+                    $npmBin = (npm config get prefix 2>$null).Trim() || Join-Path $env:APPDATA 'npm'
+                    "$([String]::Format('PATH={0};{1}', $npmBin, $env:PATH))" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+                    Write-Host 'Runner variant and main package installed and PATH updated for job'
+                    exit 0
+                  }
+                }
                 npm install -g $tgz.FullName
                 $npmBin = (npm config get prefix 2>$null).Trim() || Join-Path $env:APPDATA 'npm'
                 "$([String]::Format('PATH={0};{1}', $npmBin, $env:PATH))" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-                Write-Host 'Runner variant and main package installed and PATH updated for job'
-                exit 0
+                Write-Host 'qflush installed and PATH updated for job'
+              } else {
+                Write-Host 'No tgz produced by npm pack, skipping install'
               }
             }
-            npm install -g $tgz.FullName
-            $npmBin = (npm config get prefix 2>$null).Trim() || Join-Path $env:APPDATA 'npm'
-            "$([String]::Format('PATH={0};{1}', $npmBin, $env:PATH))" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-            Write-Host 'qflush installed and PATH updated for job'
-          } else {
-            Write-Host 'No tgz produced by npm pack, skipping install'
+          } finally {
+            # no-op
           }
 
       - name: Install Spyder (from npm, optional)
