@@ -84,57 +84,6 @@ jobs:
             # no-op
           }
 
-      - name: Install Spyder (from npm, optional)
-        shell: pwsh
-        continue-on-error: true
-        env:
-          QFLUSH_SKIP_GLOBAL_INSTALLS: '1'
-          QFLUSH_EMBED_SERVICES: '0'
-          SPYDER_SKIP_START: '1'
-          TAR: 'C:/Windows/System32/tar.exe'
-        run: |
-          Write-Host 'Preparing to install @funeste38/spyder (optional)'
-          # try to clean npm cache to avoid corrupted tarballs
-          try { npm cache clean --force; Write-Host 'npm cache cleaned' } catch { Write-Host 'npm cache clean failed, continuing' }
-
-          $pkg = '@funeste38/spyder'
-          $max = 3
-          $installed = $false
-          for ($i = 1; $i -le $max; $i++) {
-            Write-Host "Attempt $i to install $pkg"
-            try {
-              npm i $pkg --no-audit --no-fund
-              Write-Host "$pkg installed successfully"
-              $installed = $true
-              break
-            } catch {
-              Write-Host "Install attempt $i failed: $_"
-              Start-Sleep -Seconds (2 * $i)
-            }
-          }
-
-          if (-not $installed) {
-            Write-Host 'Primary npm install failed — attempting GitHub fallback'
-            try {
-              npm i git+https://github.com/jEFFLEZ/spyder.git --no-audit --no-fund
-              Write-Host 'Installed spyder from GitHub'
-              $installed = $true
-            } catch {
-              Write-Host 'GitHub fallback failed: ' $_
-            }
-          }
-
-          if ($installed) {
-            if (Test-Path 'spyder') {
-              Write-Host 'Attempting to build local spyder package (if present)'
-              npm --prefix spyder run build --if-present || Write-Host 'spyder build failed or not present, continuing'
-            } else {
-              Write-Host 'No local spyder folder present, skipping local build'
-            }
-          } else {
-            Write-Host 'Spyder not installed; continuing without spyder (step marked optional)'
-          }
-
       - name: Ensure Funesterie rules file
         shell: pwsh
         run: |
