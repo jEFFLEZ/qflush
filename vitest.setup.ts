@@ -43,6 +43,18 @@ function ensureLogsForCwd(cwd: string) {
 // Ensure for initial cwd
 ensureLogsForCwd(process.cwd());
 
+// Monkeypatch process.chdir so tests that change cwd get logs created
+try {
+  const origChdir = process.chdir;
+  (process as any).chdir = function (dir: string) {
+    const ret = origChdir.apply(process, arguments as any);
+    try {
+      ensureLogsForCwd(process.cwd());
+    } catch (e) {}
+    return ret;
+  };
+} catch (_) {}
+
 // Monkeypatch common fs write functions so any code that writes to a path will have parent dir created first
 try {
   const origWrite = fs.writeFileSync;
