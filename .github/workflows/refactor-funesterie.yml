@@ -83,7 +83,10 @@ jobs:
         run: npx ts-node --prefer-ts-exts scripts/refactor-funesterie.ts .qflush/funesterie.rules.json
 
       - name: Run tests
-        run: npm test
+        # Use explicit vitest invocation with ESM config; set NODE_OPTIONS to assist ESM loading on Windows
+        env:
+          NODE_OPTIONS: "--experimental-specifier-resolution=node --enable-source-maps"
+        run: npx vitest --config vitest.config.mjs --run
 
       - name: Create PR
         uses: peter-evans/create-pull-request@v6
