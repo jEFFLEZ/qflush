@@ -27,7 +27,7 @@ jobs:
       QFLUSH_DISABLE_COPILOT: '1'
       QFLUSH_TELEMETRY: '0'
       # Provide test token to NPZ tests (populated from repo secret)
-      QFLUSH_TEST_TOKEN: ${{ secrets.ACTIONS_TOKEN }}
+      QFLUSH_TEST_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       # Enable cortex bus during CI (set to '1' to start cortex bus)
       QFLUSH_USE_CORTEX: '1'
     steps:

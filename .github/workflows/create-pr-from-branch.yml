@@ -28,11 +28,11 @@ jobs:
     steps:
       - name: Create PR via REST API
         env:
-          GH_TOKEN: ${{ secrets.ACTIONS_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_API_URL: https://api.github.com
         run: |
           if [ -z "$GH_TOKEN" ]; then
-            echo "ERROR: ACTIONS_TOKEN secret is not set in repository secrets." >&2
+            echo "ERROR: GITHUB_TOKEN is not available in environment." >&2
             exit 1
           fi
           echo "Creating PR from '${{ github.event.inputs.head_branch }}' -> '${{ github.event.inputs.base_branch }}'"
