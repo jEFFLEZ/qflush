@@ -39,35 +39,33 @@ jobs:
         shell: pwsh
         run: |
           if (-not (Test-Path '.qflush')) { New-Item -ItemType Directory -Path .qflush | Out-Null }
-          $json = @'
-{
-  "version": "1.0",
-  "architecture": {
-    "core": "src/core",
-    "cortex": "src/cortex",
-    "utils": "src/utils",
-    "commands": "src/commands",
-    "legacy": "src/legacy"
-  },
-  "rules": {
-    "commands_no_logic": true,
-    "router_pure": true,
-    "apply_pure": true,
-    "no_direct_fs_in_cortex": true,
-    "logs_uniform": true,
-    "config_centralized": true,
-    "state_in_core": true
-  },
-  "refactor": {
-    "move_legacy": true,
-    "rebuild_imports": true,
-    "fix_paths": true,
-    "split_large_files": true,
-    "auto_generate_types": true
-  }
-}
-'@
-          Set-Content -Path .qflush/funesterie.rules.json -Value $json -Encoding UTF8
+          $rules = @{ 
+            version = '1.0';
+            architecture = @{
+              core = 'src/core';
+              cortex = 'src/cortex';
+              utils = 'src/utils';
+              commands = 'src/commands';
+              legacy = 'src/legacy'
+            };
+            rules = @{
+              commands_no_logic = $true;
+              router_pure = $true;
+              apply_pure = $true;
+              no_direct_fs_in_cortex = $true;
+              logs_uniform = $true;
+              config_centralized = $true;
+              state_in_core = $true
+            };
+            refactor = @{
+              move_legacy = $true;
+              rebuild_imports = $true;
+              fix_paths = $true;
+              split_large_files = $true;
+              auto_generate_types = $true
+            }
+          }
+          $rules | ConvertTo-Json -Depth 5 | Set-Content -Path .qflush/funesterie.rules.json -Encoding UTF8
 
       - name: Run refactor engine (TS)
         run: npx ts-node --prefer-ts-exts scripts/refactor-funesterie.ts .qflush/funesterie.rules.json
