@@ -2,6 +2,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { CortexPacket } from './types';
 import { executeAction } from '../rome/executor';
+import { safeWriteFileSync, safeAppendFileSync } from '../utils/safe-fs';
 
 const QFLUSH_DIR = path.join(process.cwd(), '.qflush');
 const CACHE_PATH = path.join(QFLUSH_DIR, 'spyder.cache.json');
@@ -22,7 +23,7 @@ function loadCache(): { appliedIds: string[] } {
 function saveCache(cache: { appliedIds: string[] }) {
   try {
     if (!fs.existsSync(QFLUSH_DIR)) fs.mkdirSync(QFLUSH_DIR, { recursive: true });
-    fs.writeFileSync(CACHE_PATH, JSON.stringify(cache, null, 2), 'utf8');
+    safeWriteFileSync(CACHE_PATH, JSON.stringify(cache, null, 2), 'utf8');
   } catch (e) {
     // ignore
   }
@@ -36,7 +37,7 @@ function appendPatchAudit(entry: any) {
   try {
     ensurePatchesDir();
     const line = JSON.stringify(entry) + "\n";
-    fs.appendFileSync(PATCH_AUDIT, line, 'utf8');
+    safeAppendFileSync(PATCH_AUDIT, line, 'utf8');
   } catch (e) { /* ignore */ }
 }
 
@@ -187,9 +188,9 @@ async function applySaveState(packet: CortexPacket) {
     // allow packet.payload to merge into state snapshot
     const payload: any = packet.payload || {};
     const merged = { ...current, ...payload };
-    fs.writeFileSync(snapshotFile, JSON.stringify(merged, null, 2), 'utf8');
+    safeWriteFileSync(snapshotFile, JSON.stringify(merged, null, 2), 'utf8');
     // also write state.json as current
-    fs.writeFileSync(stateFile, JSON.stringify(merged, null, 2), 'utf8');
+    safeWriteFileSync(stateFile, JSON.stringify(merged, null, 2), 'utf8');
 
     console.log('[APPLY] SAVE-STATE snapshot written to', snapshotFile);
     appendPatchAudit({ id: packet.id || null, type: packet.type, action: 'save-state', path: snapshotFile, when: new Date().toISOString() });
@@ -213,7 +214,7 @@ async function applyAutoPatch(packet: CortexPacket) {
       try {
         ensurePatchesDir();
         const blockedFile = path.join(PATCHES_DIR, `blocked-${packet.id || Date.now()}.json`);
-        fs.writeFileSync(blockedFile, JSON.stringify({ packetId: packet.id || null, reason: validation.reason, patch }, null, 2), 'utf8');
+        safeWriteFileSync(blockedFile, JSON.stringify({ packetId: packet.id || null, reason: validation.reason, patch }, null, 2), 'utf8');
         appendPatchAudit({ id: packet.id || null, type: packet.type, action: 'auto-patch', status: 'blocked', reason: validation.reason, when: new Date().toISOString() });
       } catch (e) {}
       console.warn('[APPLY] AUTO-PATCH blocked by whitelist:', validation.reason);
@@ -231,7 +232,7 @@ async function applyAutoPatch(packet: CortexPacket) {
       const outDir = path.join(dir, 'patches');
       if (!fs.existsSync(outDir)) fs.mkdirSync(outDir, { recursive: true });
       const outFile = path.join(outDir, `dryrun-${packet.id || Date.now()}.json`);
-      fs.writeFileSync(outFile, JSON.stringify({ current, patch, merged }, null, 2), 'utf8');
+      safeWriteFileSync(outFile, JSON.stringify({ current, patch, merged }, null, 2), 'utf8');
       appendPatchAudit({ id: packet.id || null, type: packet.type, action: 'auto-patch', status: 'dryrun', file: outFile, when: new Date().toISOString() });
       console.log('[APPLY] AUTO-PATCH dry-run saved to', outFile);
       if (approve) {
@@ -242,7 +243,7 @@ async function applyAutoPatch(packet: CortexPacket) {
     }
 
     // apply
-    fs.writeFileSync(cfgFile, JSON.stringify(merged, null, 2), 'utf8');
+    safeWriteFileSync(cfgFile, JSON.stringify(merged, null, 2), 'utf8');
     appendPatchAudit({ id: packet.id || null, type: packet.type, action: 'auto-patch', status: 'applied', file: cfgFile, when: new Date().toISOString() });
     console.log('[APPLY] AUTO-PATCH applied to', cfgFile);
   } catch (e) {
@@ -278,7 +279,7 @@ async function applyEnableSpyder(packet: CortexPacket) {
   if (!Number.isNaN(ap) && ap > 0) adminPort = ap;
 
   if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-  fs.writeFileSync(file, JSON.stringify(spyderConfig, null, 2), 'utf8');
+  safeWriteFileSync(file, JSON.stringify(spyderConfig, null, 2), 'utf8');
   console.log('[APPLY] SPYDER mis à jour via packet enable-spyder');
   appendPatchAudit({ id: packet.id || null, type: packet.type, action: 'enable-spyder', when: new Date().toISOString() });
 
@@ -286,7 +287,7 @@ async function applyEnableSpyder(packet: CortexPacket) {
   try {
     const envPath = path.join(dir, 'spyder.env');
     const content = `SPYDER_ADMIN_PORT=${adminPort}\n`;
-    fs.writeFileSync(envPath, content, 'utf8');
+    safeWriteFileSync(envPath, content, 'utf8');
     console.log(`[APPLY] Wrote ${envPath} with SPYDER_ADMIN_PORT=${adminPort}`);
     appendPatchAudit({ id: packet.id || null, type: packet.type, action: 'write-spyder-env', file: envPath, when: new Date().toISOString() });
   } catch (e) {
@@ -300,7 +301,7 @@ async function applyCortexRoutes(packet: CortexPacket) {
   const payload: any = packet.payload ?? {};
 
   if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-  fs.writeFileSync(file, JSON.stringify(payload, null, 2), 'utf8');
+  safeWriteFileSync(file, JSON.stringify(payload, null, 2), 'utf8');
   console.log('[APPLY] cortex.routes.json mis à jour.');
   appendPatchAudit({ id: packet.id || null, type: packet.type, action: 'cortex:routes', when: new Date().toISOString() });
 }
@@ -319,7 +320,7 @@ async function applyQflushConfigPatch(packet: CortexPacket) {
   };
 
   if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-  fs.writeFileSync(file, JSON.stringify(merged, null, 2), 'utf8');
+  safeWriteFileSync(file, JSON.stringify(merged, null, 2), 'utf8');
   console.log('[APPLY] config.json mis à jour via packet qflush:apply');
   appendPatchAudit({ id: packet.id || null, type: packet.type, action: 'qflush:apply', when: new Date().toISOString() });
 }
@@ -331,7 +332,7 @@ async function applyOc8(packet: CortexPacket) {
     const metaFile = path.join(QFLUSH_DIR, 'oc8.meta.json');
     const info = payload.info || { name: 'OC8', description: 'OC8 format' };
     if (!fs.existsSync(QFLUSH_DIR)) fs.mkdirSync(QFLUSH_DIR, { recursive: true });
-    fs.writeFileSync(metaFile, JSON.stringify(info, null, 2), 'utf8');
+    safeWriteFileSync(metaFile, JSON.stringify(info, null, 2), 'utf8');
     appendPatchAudit({ id: packet.id || null, type: packet.type, action: 'oc8:register', file: metaFile, when: new Date().toISOString() });
     console.log('[APPLY] OC8 metadata written to', metaFile);
   } catch (e) { console.warn('[APPLY] OC8 failed', String(e)); }
@@ -345,7 +346,7 @@ async function applyQrouter(packet: CortexPacket) {
     try { if (fs.existsSync(file)) current = JSON.parse(fs.readFileSync(file, 'utf8') || '{}'); } catch (e) { current = {}; }
     const merged = { ...current, ...(payload.routes || {}) };
     if (!fs.existsSync(QFLUSH_DIR)) fs.mkdirSync(QFLUSH_DIR, { recursive: true });
-    fs.writeFileSync(file, JSON.stringify(merged, null, 2), 'utf8');
+    safeWriteFileSync(file, JSON.stringify(merged, null, 2), 'utf8');
     appendPatchAudit({ id: packet.id || null, type: packet.type, action: 'qrouter:update', file, when: new Date().toISOString() });
     console.log('[APPLY] QROUTER updated', file);
   } catch (e) { console.warn('[APPLY] QROUTER failed', String(e)); }
@@ -359,7 +360,7 @@ async function applySpyderSound(packet: CortexPacket) {
     try { if (fs.existsSync(file)) current = JSON.parse(fs.readFileSync(file, 'utf8') || '{}'); } catch (e) { current = {}; }
     const merged = { ...current, ...payload };
     if (!fs.existsSync(QFLUSH_DIR)) fs.mkdirSync(QFLUSH_DIR, { recursive: true });
-    fs.writeFileSync(file, JSON.stringify(merged, null, 2), 'utf8');
+    safeWriteFileSync(file, JSON.stringify(merged, null, 2), 'utf8');
     appendPatchAudit({ id: packet.id || null, type: packet.type, action: 'spyder-sound', file, when: new Date().toISOString() });
     console.log('[APPLY] spyder-sound config updated');
   } catch (e) { console.warn('[APPLY] spyder-sound failed', String(e)); }
@@ -376,7 +377,7 @@ async function applyA11Key(packet: CortexPacket) {
     if (safePayload.apiKey) delete safePayload.apiKey;
     const merged = { ...current, ...payload };
     if (!fs.existsSync(QFLUSH_DIR)) fs.mkdirSync(QFLUSH_DIR, { recursive: true });
-    fs.writeFileSync(file, JSON.stringify(merged, null, 2), 'utf8');
+    safeWriteFileSync(file, JSON.stringify(merged, null, 2), 'utf8');
     appendPatchAudit({ id: packet.id || null, type: packet.type, action: 'a11-key', file, when: new Date().toISOString() });
     console.log('[APPLY] A11 config updated (apiKey redacted in logs)');
   } catch (e) { console.warn('[APPLY] A11 failed', String(e)); }
@@ -387,7 +388,7 @@ async function applyMagic(packet: CortexPacket) {
     const entry = { id: packet.id || null, when: new Date().toISOString(), payload: packet.payload };
     const file = path.join(QFLUSH_DIR, 'magic.log');
     if (!fs.existsSync(QFLUSH_DIR)) fs.mkdirSync(QFLUSH_DIR, { recursive: true });
-    fs.appendFileSync(file, JSON.stringify(entry) + '\n', 'utf8');
+    safeAppendFileSync(file, JSON.stringify(entry) + '\n', 'utf8');
     appendPatchAudit({ id: packet.id || null, type: packet.type, action: 'magic', file, when: new Date().toISOString() });
     console.log('[APPLY] magic recorded');
   } catch (e) { console.warn('[APPLY] magic failed', String(e)); }

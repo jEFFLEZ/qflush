@@ -5,6 +5,7 @@ import * as http from 'http';
 import * as url from 'url';
 import * as fs from 'fs';
 import * as path from 'path';
+import { safeWriteFileSync, safeAppendFileSync, ensureParentDir } from '../utils/safe-fs';
 
 let _server: http.Server | null = null;
 let _state: { safeMode: boolean; mode?: string } = { safeMode: false };
@@ -24,7 +25,8 @@ function writeSafeModes(mode: string) {
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
     const p = path.join(dir, 'safe-modes.json');
     const obj = { mode, updatedAt: new Date().toISOString() };
-    fs.writeFileSync(p, JSON.stringify(obj, null, 2), 'utf8');
+    // use safe write
+    safeWriteFileSync(p, JSON.stringify(obj, null, 2), 'utf8');
   } catch (e) { console.warn('[qflushd] writeSafeModes failed:', String(e)); }
 }
 
@@ -171,7 +173,7 @@ export async function startServer(port?: number) {
                     const rec: any = { id, checksum, storedAt: Date.now() };
                     if (ttlMs) rec.expiresAt = Date.now() + Number(ttlMs);
                     db[id] = rec;
-                    try { fs.writeFileSync(dbFile, JSON.stringify(db, null, 2), 'utf8'); } catch (e) { console.warn('[qflushd] failed writing checksums db:', String(e)); }
+                    try { safeWriteFileSync(dbFile, JSON.stringify(db, null, 2), 'utf8'); } catch (e) { console.warn('[qflushd] failed writing checksums db:', String(e)); }
                     res.writeHead(200, { 'Content-Type': 'application/json' });
                     res.end(JSON.stringify({ success: true, id, checksum }));
                     return;
@@ -228,7 +230,7 @@ export async function startServer(port?: number) {
                     }
                     if (rec.expiresAt && Date.now() > rec.expiresAt) {
                       delete db[id];
-                      try { fs.writeFileSync(dbFile, JSON.stringify(db, null, 2), 'utf8'); } catch (e) { console.warn('[qflushd] failed writing checksums db:', String(e)); }
+                      try { safeWriteFileSync(dbFile, JSON.stringify(db, null, 2), 'utf8'); } catch (e) { console.warn('[qflushd] failed writing checksums db:', String(e)); }
                       res.writeHead(404, { 'Content-Type': 'application/json' });
                       res.end(JSON.stringify({ success: false, error: 'expired' }));
                       return;
@@ -268,7 +270,7 @@ export async function startServer(port?: number) {
                   for (const k of Object.keys(db)) {
                     if (db[k] && db[k].expiresAt && now > db[k].expiresAt) delete db[k];
                   }
-                  try { fs.writeFileSync(dbFile, JSON.stringify(db, null, 2), 'utf8'); } catch (e) { console.warn('[qflushd] failed writing checksums db:', String(e)); }
+                  try { safeWriteFileSync(dbFile, JSON.stringify(db, null, 2), 'utf8'); } catch (e) { console.warn('[qflushd] failed writing checksums db:', String(e)); }
                   const items = Object.values(db);
                   res.writeHead(200, { 'Content-Type': 'application/json' });
                   res.end(JSON.stringify({ success: true, count: items.length, items }));
@@ -278,7 +280,7 @@ export async function startServer(port?: number) {
                 // DELETE /npz/checksum/clear
                 if (method === 'DELETE' && parsed.pathname === '/npz/checksum/clear') {
                   db = {};
-                  try { fs.writeFileSync(dbFile, JSON.stringify(db, null, 2), 'utf8'); } catch (e) { console.warn('[qflushd] failed writing checksums db:', String(e)); }
+                  try { safeWriteFileSync(dbFile, JSON.stringify(db, null, 2), 'utf8'); } catch (e) { console.warn('[qflushd] failed writing checksums db:', String(e)); }
                   res.writeHead(200, { 'Content-Type': 'application/json' });
                   res.end(JSON.stringify({ success: true }));
                   return;
@@ -309,7 +311,7 @@ export async function startServer(port?: number) {
         const commonFiles = ['spyder.log', 'qflushd.out', 'qflushd.err'];
         for (const f of commonFiles) {
           const p = path.join(logsDir, f);
-          try { if (!fs.existsSync(p)) fs.writeFileSync(p, '', 'utf8'); } catch (e) { /* ignore */ }
+          try { if (!fs.existsSync(p)) safeWriteFileSync(p, '', 'utf8'); } catch (e) { /* ignore */ }
         }
       } catch (e) { console.warn('[qflushd] failed to ensure .qflush/logs:', String(e)); }
 

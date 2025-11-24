@@ -43,137 +43,18 @@ function ensureLogsForCwd(cwd: string) {
 // Ensure for initial cwd
 ensureLogsForCwd(process.cwd());
 
-// Monkeypatch process.chdir so tests that change cwd get logs created
+// Patch process.chdir so tests that change cwd get logs created
 try {
   const origChdir = process.chdir;
   (process as any).chdir = function (dir: string) {
     const ret = origChdir.apply(process, arguments as any);
-    try {
-      ensureLogsForCwd(process.cwd());
-    } catch (e) {}
+    try { ensureLogsForCwd(process.cwd()); } catch (e) {}
     return ret;
   };
 } catch (_) {}
 
-// Monkeypatch common fs write functions so any code that writes to a path will have parent dir created first
-try {
-  const origWrite = fs.writeFileSync;
-  (fs as any).writeFileSync = function (p: any, data: any, opts?: any) {
-    try {
-      const dir = path.dirname(String(p));
-      if (dir) mkdirSync(dir, { recursive: true });
-    } catch (e) {}
-    return origWrite.apply(fs, arguments as any);
-  };
-} catch (_) {}
-
-try {
-  const origAppend = fs.appendFileSync;
-  (fs as any).appendFileSync = function (p: any, data: any, opts?: any) {
-    try {
-      const dir = path.dirname(String(p));
-      if (dir) mkdirSync(dir, { recursive: true });
-    } catch (e) {}
-    return origAppend.apply(fs, arguments as any);
-  };
-} catch (_) {}
-
-try {
-  const origOpenSync = fs.openSync;
-  (fs as any).openSync = function (p: any, flags: any, mode?: any) {
-    try {
-      const dir = path.dirname(String(p));
-      if (dir) mkdirSync(dir, { recursive: true });
-    } catch (e) {}
-    return origOpenSync.apply(fs, arguments as any);
-  };
-} catch (_) {}
-
-// Patch async variants and streams
-try {
-  const origWriteFile = fs.writeFile;
-  (fs as any).writeFile = function (p: any, data: any, opts?: any, cb?: any) {
-    try {
-      const dir = path.dirname(String(p));
-      if (dir) mkdirSync(dir, { recursive: true });
-    } catch (e) {}
-    return origWriteFile.apply(fs, arguments as any);
-  };
-} catch (_) {}
-
-try {
-  const origAppendFile = fs.appendFile;
-  (fs as any).appendFile = function (p: any, data: any, opts?: any, cb?: any) {
-    try {
-      const dir = path.dirname(String(p));
-      if (dir) mkdirSync(dir, { recursive: true });
-    } catch (e) {}
-    return origAppendFile.apply(fs, arguments as any);
-  };
-} catch (_) {}
-
-try {
-  const origOpen = fs.open;
-  (fs as any).open = function (p: any, flags: any, mode?: any, cb?: any) {
-    try {
-      const dir = path.dirname(String(p));
-      if (dir) mkdirSync(dir, { recursive: true });
-    } catch (e) {}
-    return origOpen.apply(fs, arguments as any);
-  };
-} catch (_) {}
-
-try {
-  const origCreateWrite = fs.createWriteStream;
-  (fs as any).createWriteStream = function (p: any, opts?: any) {
-    try {
-      const dir = path.dirname(String(p));
-      if (dir) mkdirSync(dir, { recursive: true });
-    } catch (e) {}
-    return origCreateWrite.apply(fs, arguments as any);
-  };
-} catch (_) {}
-
-// Global handlers: intercept ENOENT for .qflush spyder.log and create folders to silence unhandled errors
-process.on('uncaughtException', (err: any) => {
-  try {
-    if (err && err.code === 'ENOENT' && String(err.path || '').includes(path.join('.qflush', 'logs'))) {
-      try {
-        const dir = path.dirname(String(err.path));
-        if (dir && !fs.existsSync(dir)) mkdirSync(dir, { recursive: true });
-        writeFileSync(String(err.path), '', { flag: 'a' });
-        // swallow this error
-        // eslint-disable-next-line no-console
-        console.warn('[vitest.setup] intercepted ENOENT for', err.path, '- created parent dir and file');
-        return;
-      } catch (e) {
-        // fallthrough to rethrow
-      }
-    }
-  } catch (_) {}
-  // rethrow for other errors
-  throw err;
-});
-
-process.on('unhandledRejection', (reason: any) => {
-  try {
-    const err = reason instanceof Error ? reason : null;
-    if (err && (err as any).code === 'ENOENT' && String((err as any).path || '').includes(path.join('.qflush', 'logs'))) {
-      try {
-        const p = String((err as any).path || '');
-        const dir = path.dirname(p);
-        if (dir && !fs.existsSync(dir)) mkdirSync(dir, { recursive: true });
-        writeFileSync(p, '', { flag: 'a' });
-        // eslint-disable-next-line no-console
-        console.warn('[vitest.setup] intercepted unhandledRejection ENOENT for', p);
-        return;
-      } catch (e) {}
-    }
-  } catch (_) {}
-  // if not handled, log and continue
-  // eslint-disable-next-line no-console
-  console.warn('[vitest.setup] unhandledRejection:', String(reason));
-});
+// Keep setup minimal — filesystem write interception removed.
+// The daemon and core code now use safe write helpers so tests should no longer see ENOENT.
 
 // Start the compiled qflush daemon during tests when VITEST env var is set and mode allows it
 if (process.env.VITEST) {
