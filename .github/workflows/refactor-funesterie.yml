@@ -5,7 +5,7 @@ on:
 
 # avoid running multiple concurrent refactor jobs and cancel in-progress when a new one is triggered
 concurrency:
-  group: refactor-funesterie-${{ github.ref }}
+  group: refactor-funesterie-${{ github.ref }}-${{ github.run_id }}
   cancel-in-progress: true
 
 jobs:
