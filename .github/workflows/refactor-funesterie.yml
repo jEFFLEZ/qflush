@@ -28,7 +28,7 @@ jobs:
       - name: Build TypeScript
         run: npx tsc -p .
 
-      - name: Install Spyder (safe, optional)
+      - name: Install Spyder (from npm, optional)
         shell: pwsh
         continue-on-error: true
         env:
@@ -36,13 +36,13 @@ jobs:
           QFLUSH_EMBED_SERVICES: '0'
           SPYDER_SKIP_START: '1'
         run: |
-          Write-Host 'Installing @funeste38/spyder safely (ignore scripts)'
-          npm i @funeste38/spyder --no-audit --no-fund --ignore-scripts || npm i git+https://github.com/jEFFLEZ/spyder.git --no-audit --no-fund --ignore-scripts
+          Write-Host 'Installing @funeste38/spyder from npm (optional)'
+          npm i @funeste38/spyder --no-audit --no-fund || Write-Host 'spyder install failed, continuing'
           if (Test-Path 'spyder') {
-            Write-Host 'Attempting to build spyder package (safe)'
-            npm --prefix spyder run build --if-present || Write-Host 'spyder build failed, continuing'
+            Write-Host 'Attempting to build local spyder package (if present)'
+            npm --prefix spyder run build --if-present || Write-Host 'spyder build failed or not present, continuing'
           } else {
-            Write-Host 'No spyder folder found, skipping build'
+            Write-Host 'No local spyder folder present, skipping local build'
           }
 
       - name: Ensure Funesterie rules file
