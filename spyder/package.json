@@ -1,6 +1,6 @@
 {
   "name": "@funeste38/spyder",
-  "version": "1.0.0",
+  "version": "1.0.3",
   "description": "Spyder package for Funesterie — local assistant components",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
