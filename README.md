@@ -181,4 +181,24 @@ Behavior notes:
 - If `enabled` is false or config file is absent, qflush will not try to install or start A-11.
 - On start failure qflush logs a clear message and continues with other services.
 
----
+## CI / Ports guidance
+To avoid port collisions with SPYDER when running CI on shared/self-hosted runners, set the following environment variables in your workflow or `.env`:
+
+```
+# Qflush daemon port (avoid conflicts with Spyder admin port)
+QFLUSHD_PORT=43421
+# SPYDER admin port (override to avoid conflicts)
+QFLUSH_SPYDER_ADMIN_PORT=4022
+```
+
+Use these in GitHub Actions jobs:
+
+```yaml
+env:
+  QFLUSHD_PORT: '43421'
+  QFLUSH_SPYDER_ADMIN_PORT: '4022'
+  QFLUSH_DISABLE_WEBHOOK: '1'
+  QFLUSH_TEST_TOKEN: '${{ secrets.QFLUSH_TEST_TOKEN }}'
+```
+
+This mirrors `docs/quick-start.md` recommendations and the `.env.example` in the repo.
