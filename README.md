@@ -1,3 +1,5 @@
+[![Activate CI](https://github.com/jEFFLEZ/qflush/actions/workflows/activate-ci.yml/badge.svg)](https://github.com/jEFFLEZ/qflush/actions/workflows/activate-ci.yml)
+
 # qflush — Aperçu et guide développeur
 
 Résumé rapide
@@ -10,7 +12,7 @@ Architecture (big picture)
   - `src/commands/*` : implémentation des commandes CLI exposées dans `package.json`.
   - `src/utils/*` : helpers (redis, secrets, fetch, hmac, etc.).
 
-- Flux de données : le daemon expose des endpoints `/npz/*` pour checksum, rome-index et rome-links ; le moteur Rome parcourt et évalue des règles qui déclenchent des actions (ex : `daemon.reload`, `start-service`).
+- Flux de données : le daemon expose des endpoints `/npz/*` pour checksum, rome-index et liens ; le moteur Rome parcourt et évalue des règles qui déclenchent des actions (ex : `daemon.reload`, `start-service`).
 
 Convention de build / piège courant
 - TypeScript : `tsconfig.json` doit avoir `rootDir: "src"` et `include: ["src/**/*"]` — cela permet à `tsc` de générer `dist/daemon/qflushd.js` (les scripts CI s'attendent à `dist/daemon/*`).
