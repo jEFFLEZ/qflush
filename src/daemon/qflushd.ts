@@ -51,7 +51,7 @@ export async function startServer(port?: number) {
         return resolve({ ok: true, port: (port || process.env.QFLUSHD_PORT || 4500) });
       }
 
-      const p = port || (process.env.QFLUSHD_PORT ? Number(process.env.QFLUSHD_PORT) : 4500);
+      const p = port || (process.env.QFLUSHD_PORT ? Number(process.env.QFLUSHD_PORT) : 43421);
       const srv = http.createServer(async (req, res) => {
         try {
           const parsed = url.parse(req.url || '', true);
@@ -356,7 +356,7 @@ export default { startServer, stopServer };
 
 // If executed directly, start the server on provided port
 if (require?.main === module) {
-  const port = process.env.QFLUSHD_PORT ? Number(process.env.QFLUSHD_PORT) : 4500;
+  const port = process.env.QFLUSHD_PORT ? Number(process.env.QFLUSHD_PORT) : 43421;
   (async () => {
     try {
       await startServer(port);
