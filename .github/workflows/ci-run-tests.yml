@@ -11,6 +11,8 @@ jobs:
   test-with-qflushd:
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    env:
+      QFLUSH_TEST_TOKEN: ${{ secrets.ACTIONS_TOKEN }}
 
     steps:
       - name: Checkout repository

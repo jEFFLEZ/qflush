@@ -18,6 +18,8 @@
       process.exit(1);
     }
 
+    // ensure running qflushd has an expected token for tests
+    process.env.QFLUSH_TOKEN = process.env.QFLUSH_TOKEN || process.env.QFLUSH_TEST_TOKEN || 'test-token';
     console.log('Starting qflushd...');
     await start(4500);
     console.log('qflushd started on 4500');
