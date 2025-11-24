@@ -1,0 +1,15 @@
+name: Example using self-hosted runner
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install dependencies
+        run: npm ci
+      - name: Build
+        run: npm run build --if-present
+      - name: Run tests
+        run: node tools/run-tests-with-qflushd.js
