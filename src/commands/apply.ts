@@ -17,6 +17,20 @@ export default async function runApply(argv: string[] = []) {
     const qflushDir = path.join(process.cwd(), '.qflush');
     if (!fs.existsSync(qflushDir)) fs.mkdirSync(qflushDir, { recursive: true });
 
+    // Ensure logs directory and essential log files exist to avoid ENOENT in tests/runner
+    try {
+      const logsDir = path.join(qflushDir, 'logs');
+      if (!fs.existsSync(logsDir)) fs.mkdirSync(logsDir, { recursive: true });
+      const spyLog = path.join(logsDir, 'spyder.log');
+      if (!fs.existsSync(spyLog)) fs.writeFileSync(spyLog, '', 'utf8');
+      const qflushOut = path.join(logsDir, 'qflushd.out');
+      if (!fs.existsSync(qflushOut)) fs.writeFileSync(qflushOut, '', 'utf8');
+      const qflushErr = path.join(logsDir, 'qflushd.err');
+      if (!fs.existsSync(qflushErr)) fs.writeFileSync(qflushErr, '', 'utf8');
+    } catch (e) {
+      logger.warn('Failed to create .qflush/logs files: ' + String(e));
+    }
+
     // 1) Ensure spyder.config.json exists
     const spyCfgPath = path.join(qflushDir, 'spyder.config.json');
     if (!fs.existsSync(spyCfgPath)) {
