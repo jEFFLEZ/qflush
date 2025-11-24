@@ -10,9 +10,8 @@ concurrency:
 
 jobs:
   refactor:
--    runs-on: [self-hosted, Windows]
-+    # use a dedicated self-hosted runner labeled 'funesterie' to avoid contention
-+    runs-on: [self-hosted, funesterie, Windows]
+    # use a dedicated self-hosted runner labeled 'funesterie' to avoid contention
+    runs-on: [self-hosted, funesterie, Windows]
 
     steps:
       - uses: actions/checkout@v4
@@ -28,6 +27,13 @@ jobs:
 
       - name: Build TypeScript
         run: npx tsc -p .
+
+      - name: Install Spyder (optional)
+        shell: pwsh
+        run: |
+          # try install spyder package locally; allow failure in CI
+          echo 'Attempting to install @funeste38/spyder (optional)';
+          npm i @funeste38/spyder --no-audit --no-fund || echo 'spyder install failed or not available, continuing';
 
       - name: Ensure Funesterie rules file
         shell: pwsh
