@@ -1,0 +1,33 @@
+name: Refactor Funesterie Engine
+
+on:
+  workflow_dispatch: {}
+
+jobs:
+  refactor:
+    runs-on: [self-hosted, Windows]
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Node setup
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - run: npm ci
+
+      - name: Run refactor engine
+        run: node -e "require('./scripts/refactor-funesterie.js')('.qflush/funesterie.rules.json')"
+
+      - name: Run tests
+        run: npm test
+
+      - name: Create PR
+        uses: peter-evans/create-pull-request@v6
+        with:
+          branch: auto/refactor-funesterie
+          commit-message: "refactor: applied Funesterie Rules via A11 Engine"
+          title: "Auto-refactor (Funesterie Engine)"

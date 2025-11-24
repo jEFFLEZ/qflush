@@ -9,7 +9,7 @@ on:
 
 jobs:
   test-with-qflushd:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Windows, X64]
     timeout-minutes: 30
     env:
       QFLUSH_TEST_TOKEN: ${{ secrets.QFLUSH_TEST_TOKEN }}
