@@ -38,9 +38,18 @@ jobs:
           if ($tgz) {
             Write-Host "Found tgz: $($tgz.FullName) - installing globally"
             npm install -g $tgz.FullName
-            # expose npm global bin to PATH for subsequent steps
-            $npmBin = (npm bin -g).Trim()
+            # robustly determine npm global bin for Windows runners
+            try {
+              $npmBin = (npm bin -g 2>$null).Trim()
+            } catch {
+              try { $npmBin = (npm config get prefix 2>$null).Trim() } catch { $npmBin = $null }
+            }
+            if (-not $npmBin -or $npmBin -eq '') {
+              # fallback to APPDATA npm folder which is common on Windows
+              $npmBin = Join-Path $env:APPDATA 'npm'
+            }
             Write-Host "Global npm bin: $npmBin"
+            # ensure the path string is exported for subsequent steps
             "$([String]::Format('PATH={0};{1}', $npmBin, $env:PATH))" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
             Write-Host 'qflush installed and PATH updated for job'
           } else {
