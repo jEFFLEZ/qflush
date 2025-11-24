@@ -299,6 +299,20 @@ export async function startServer(port?: number) {
 
       // listen on all interfaces to avoid localhost IPv6/IPv4 resolution issues in CI
       // bind explicitly to 0.0.0.0 to ensure IPv4 localhost connects reliably
+
+      // Ensure .qflush and logs directory exist and create common log files to avoid ENOENT in tests
+      try {
+        const baseDir = path.join(process.cwd(), '.qflush');
+        if (!fs.existsSync(baseDir)) fs.mkdirSync(baseDir, { recursive: true });
+        const logsDir = path.join(baseDir, 'logs');
+        if (!fs.existsSync(logsDir)) fs.mkdirSync(logsDir, { recursive: true });
+        const commonFiles = ['spyder.log', 'qflushd.out', 'qflushd.err'];
+        for (const f of commonFiles) {
+          const p = path.join(logsDir, f);
+          try { if (!fs.existsSync(p)) fs.writeFileSync(p, '', 'utf8'); } catch (e) { /* ignore */ }
+        }
+      } catch (e) { console.warn('[qflushd] failed to ensure .qflush/logs:', String(e)); }
+
       srv.listen(p, '0.0.0.0', () => {
         _server = srv;
         try {
