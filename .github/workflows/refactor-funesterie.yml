@@ -16,6 +16,7 @@ jobs:
     env:
       QFLUSHD_PORT: '43421'
       QFLUSH_SPYDER_ADMIN_PORT: '4022'
+      INSTALL_SPYDER: 'true'
 
     steps:
       - uses: actions/checkout@v4
