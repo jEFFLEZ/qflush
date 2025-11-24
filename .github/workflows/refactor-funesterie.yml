@@ -28,6 +28,25 @@ jobs:
       - name: Build TypeScript
         run: npx tsc -p .
 
+      - name: Install qflush globally on runner (from repo tgz)
+        shell: pwsh
+        run: |
+          Write-Host 'Packing qflush and installing globally for this runner session'
+          # create tgz from repo
+          npm pack
+          $tgz = Get-ChildItem -Path . -Filter '*.tgz' -File | Sort-Object LastWriteTime -Descending | Select-Object -First 1
+          if ($tgz) {
+            Write-Host "Found tgz: $($tgz.FullName) - installing globally"
+            npm install -g $tgz.FullName
+            # expose npm global bin to PATH for subsequent steps
+            $npmBin = (npm bin -g).Trim()
+            Write-Host "Global npm bin: $npmBin"
+            "$([String]::Format('PATH={0};{1}', $npmBin, $env:PATH))" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+            Write-Host 'qflush installed and PATH updated for job'
+          } else {
+            Write-Host 'No tgz produced by npm pack, skipping install'
+          }
+
       - name: Install Spyder (from npm, optional)
         shell: pwsh
         continue-on-error: true
