@@ -1,4 +1,4 @@
-name: CI (no supervisor)
+name: CI (with supervisor)
 
 on:
   push:
@@ -9,8 +9,8 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      # Pas de superviseur (ou bien il est ignoré)
-      QFLUSH_DISABLE_SUPERVISOR: '1'
+      # Supervisor enabled
+      QFLUSH_DISABLE_SUPERVISOR: '0'
       QFLUSH_ENABLE_REDIS: '0'
       QFLUSH_DISABLE_COPILOT: '1'
       QFLUSH_TELEMETRY: '0'
