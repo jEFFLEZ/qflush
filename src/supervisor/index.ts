@@ -4,7 +4,25 @@ import { spawn, ChildProcess } from 'child_process';
 import { writeFileSync, existsSync, mkdirSync, readFileSync, unlinkSync, createWriteStream, WriteStream } from 'fs';
 import { join } from 'path';
 import alias from '../utils/alias';
-const logger = alias.importUtil('@utils/logger') || alias.importUtil('../utils/logger') || console;
+// Prefer aliased util when available, fallback to local logger or console.
+let _aliasedLogger: any = undefined;
+try {
+  _aliasedLogger = alias.importUtil('@utils/logger') || alias.importUtil('../utils/logger');
+} catch (e) {
+  _aliasedLogger = undefined;
+}
+let logger: any;
+try {
+  if (_aliasedLogger && typeof _aliasedLogger.info === 'function') logger = _aliasedLogger;
+  else {
+    // direct local import fallback ensures we have the expected API
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const local = require('../utils/logger');
+    logger = (local && local.default) || local || console;
+  }
+} catch (e) {
+  logger = console;
+}
 
 type ProcRecord = {
   name: string;
@@ -190,7 +208,26 @@ export function startProcess(name: string, cmd: string, args: string[] = [], opt
 
   managed.set(name, { name, child: null, info: { name, pid: null, cmd, args, cwd: opts.cwd, log: logFile, detached: !!spawnOpts.detached }, outStream });
 
-  const child = spawn(cmd, args, spawnOpts);
+    // If cmd looks like a JS/CJS/MJS file path, run it with the current node executable
+    let execCmd = cmd;
+    let execArgs = args;
+    try {
+      const lower = String(cmd || '').toLowerCase();
+      if (lower.endsWith('.js') || lower.endsWith('.cjs') || lower.endsWith('.mjs')) {
+        // prefer running explicit node to avoid permission/executable issues
+        // put the script path as first arg
+        execCmd = process.execPath;
+        execArgs = [cmd].concat(args || []);
+        // avoid using a shell when running node directly
+        spawnOpts.shell = false;
+      }
+    } catch (e) {
+      // fallback to original cmd
+      execCmd = cmd;
+      execArgs = args;
+    }
+
+    const child = spawn(execCmd, execArgs, spawnOpts);
 
   if (child.stdout) child.stdout.pipe(outStream);
   if (child.stderr) child.stderr.pipe(outStream);
