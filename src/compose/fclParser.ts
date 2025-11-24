@@ -1,6 +1,6 @@
 // ROME-TAG: 0x5D80DC
 
-import fs from 'fs';
+import * as fs from 'fs';
 
 function parseValue(raw: string): any {
   const v = raw.trim();
@@ -24,7 +24,7 @@ export function readFCL(file = 'funesterie.fcl') {
       line = line.trim();
       if (!line || line.startsWith('#') || line.startsWith('//')) continue;
       if (line.startsWith('@')) {
-        const parts = line.split(/	|\s+/).filter(Boolean);
+        const parts = line.split(/\t|\s+/).filter(Boolean);
         const sec = parts[0].slice(1);
         const name = parts[1] || undefined;
         current = { section: sec, name };
