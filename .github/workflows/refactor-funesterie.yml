@@ -28,23 +28,21 @@ jobs:
       - name: Build TypeScript
         run: npx tsc -p .
 
-      - name: Install Spyder (optional)
+      - name: Install Spyder (safe, optional)
         shell: pwsh
         continue-on-error: true
+        env:
+          QFLUSH_SKIP_GLOBAL_INSTALLS: '1'
+          QFLUSH_EMBED_SERVICES: '0'
+          SPYDER_SKIP_START: '1'
         run: |
-          # try install spyder package from npm; fallback to GitHub if registry package unavailable
-          Write-Host 'Attempting to install @funeste38/spyder from npm (optional)'
-          npm i @funeste38/spyder --no-audit --no-fund
-          if ($LASTEXITCODE -ne 0) {
-            Write-Host 'npm registry install failed (maybe package not published). Trying GitHub repo fallback...'
-            npm i git+https://github.com/jEFFLEZ/spyder.git --no-audit --no-fund
-            if ($LASTEXITCODE -ne 0) {
-              Write-Host 'GitHub install also failed. Continuing without spyder.'
-            } else {
-              Write-Host 'Installed spyder from GitHub.'
-            }
+          Write-Host 'Installing @funeste38/spyder safely (ignore scripts)'
+          npm i @funeste38/spyder --no-audit --no-fund --ignore-scripts || npm i git+https://github.com/jEFFLEZ/spyder.git --no-audit --no-fund --ignore-scripts
+          if (Test-Path 'spyder') {
+            Write-Host 'Attempting to build spyder package (safe)'
+            npm --prefix spyder run build --if-present || Write-Host 'spyder build failed, continuing'
           } else {
-            Write-Host 'Installed spyder from npm registry.'
+            Write-Host 'No spyder folder found, skipping build'
           }
 
       - name: Ensure Funesterie rules file
@@ -83,10 +81,7 @@ jobs:
         run: npx ts-node --prefer-ts-exts scripts/refactor-funesterie.ts .qflush/funesterie.rules.json
 
       - name: Run tests
-        # Use explicit vitest invocation with ESM config; set NODE_OPTIONS to assist ESM loading on Windows
-        env:
-          NODE_OPTIONS: "--experimental-specifier-resolution=node --enable-source-maps"
-        run: npx vitest --config vitest.config.mjs --run
+        run: npm test
 
       - name: Create PR
         uses: peter-evans/create-pull-request@v6
