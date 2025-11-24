@@ -524,6 +524,18 @@ export async function startModule(mod: string, opts: qflushOptions | undefined, 
 export async function runStart(opts?: qflushOptions) {
   logger.info("qflush: starting modules...");
 
+  // Ensure .qflush/logs exist early to avoid ENOENT when tests change cwd
+  try {
+    const qflushDir = path.join(process.cwd(), '.qflush');
+    if (!fs.existsSync(qflushDir)) fs.mkdirSync(qflushDir, { recursive: true });
+    const logsDir = path.join(qflushDir, 'logs');
+    if (!fs.existsSync(logsDir)) fs.mkdirSync(logsDir, { recursive: true });
+    const spyLog = path.join(logsDir, 'spyder.log');
+    if (!fs.existsSync(spyLog)) fs.writeFileSync(spyLog, '', 'utf8');
+  } catch (e) {
+    logger.warn('Failed to ensure .qflush/logs at runStart: ' + String(e));
+  }
+
   // Respect CI/dev flag to disable supervisor starting external services
   const disableSupervisor = process.env.QFLUSH_DISABLE_SUPERVISOR === '1' || String(process.env.QFLUSH_DISABLE_SUPERVISOR).toLowerCase() === 'true';
   if (disableSupervisor) {
