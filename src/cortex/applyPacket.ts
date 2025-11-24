@@ -260,15 +260,38 @@ async function applyEnableSpyder(packet: CortexPacket) {
     : {};
 
   const payload: any = packet.payload ?? {};
+  const spyderPayload = payload.spyder || {};
+
+  // merge existing config with payload
   const spyderConfig = {
     ...current,
-    ...(payload.spyder || {})
+    ...spyderPayload
   };
+
+  // Ensure spyder is enabled when an enable-spyder packet is applied
+  if (typeof spyderConfig.enabled === 'undefined') spyderConfig.enabled = true;
+
+  // Determine admin port: payload -> env override -> default 4001
+  let adminPort: number | string = (spyderConfig.adminPort !== undefined) ? spyderConfig.adminPort : (process.env.QFLUSH_SPYDER_ADMIN_PORT || 4001);
+  // normalize to number when possible
+  const ap = Number(adminPort);
+  if (!Number.isNaN(ap) && ap > 0) adminPort = ap;
 
   if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
   fs.writeFileSync(file, JSON.stringify(spyderConfig, null, 2), 'utf8');
   console.log('[APPLY] SPYDER mis à jour via packet enable-spyder');
   appendPatchAudit({ id: packet.id || null, type: packet.type, action: 'enable-spyder', when: new Date().toISOString() });
+
+  // Also write a simple env file so CI/runner steps can read the admin port reliably
+  try {
+    const envPath = path.join(dir, 'spyder.env');
+    const content = `SPYDER_ADMIN_PORT=${adminPort}\n`;
+    fs.writeFileSync(envPath, content, 'utf8');
+    console.log(`[APPLY] Wrote ${envPath} with SPYDER_ADMIN_PORT=${adminPort}`);
+    appendPatchAudit({ id: packet.id || null, type: packet.type, action: 'write-spyder-env', file: envPath, when: new Date().toISOString() });
+  } catch (e) {
+    console.warn('[APPLY] failed to write spyder.env', String(e));
+  }
 }
 
 async function applyCortexRoutes(packet: CortexPacket) {
