@@ -128,3 +128,38 @@ jobs:
           branch: auto/refactor-funesterie
           commit-message: "refactor: applied Funesterie Rules via A11 Engine"
           title: "Auto-refactor (Funesterie Engine)"
+
+      - name: Optional: Install Spyder (from npm)
+        if: env.INSTALL_SPYDER == 'true'
+        shell: pwsh
+        env:
+          TAR: 'C:/Windows/System32/tar.exe'
+        run: |
+          Write-Host 'Installing @funeste38/spyder (optional)'
+          try { npm cache clean --force; Write-Host 'npm cache cleaned' } catch { Write-Host 'npm cache clean failed, continuing' }
+          $pkg = '@funeste38/spyder'
+          $max = 3
+          $installed = $false
+          for ($i = 1; $i -le $max; $i++) {
+            Write-Host "Attempt $i to install $pkg"
+            try {
+              npm i $pkg --no-audit --no-fund
+              Write-Host "$pkg installed successfully"
+              $installed = $true
+              break
+            } catch {
+              Write-Host "Install attempt $i failed: $_"
+              Start-Sleep -Seconds (2 * $i)
+            }
+          }
+          if (-not $installed) {
+            Write-Host 'Primary npm install failed — attempting GitHub fallback'
+            try {
+              npm i git+https://github.com/jEFFLEZ/spyder.git --no-audit --no-fund
+              Write-Host 'Installed spyder from GitHub'
+              $installed = $true
+            } catch {
+              Write-Host 'GitHub fallback failed: ' $_
+            }
+          }
+          if (-not $installed) { Write-Host 'Spyder not installed; tests may skip spyder-related behavior' }
