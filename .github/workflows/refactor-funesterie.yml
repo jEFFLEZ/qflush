@@ -38,11 +38,21 @@ jobs:
           if ($tgz) {
             Write-Host "Found tgz: $($tgz.FullName) - installing globally"
             npm install -g $tgz.FullName
-            # robustly determine npm global bin for Windows runners
+            # robustly determine npm global bin for Windows runners (avoid `npm bin -g` which may not exist)
             try {
-              $npmBin = (npm bin -g 2>$null).Trim()
+              $npmPrefix = (npm config get prefix 2>$null).Trim()
+              if ($npmPrefix -and $npmPrefix -ne '') {
+                # try common locations relative to prefix
+                $candidate1 = Join-Path $npmPrefix 'node_modules' 'npm' 'bin'
+                $candidate2 = Join-Path $npmPrefix 'bin'
+                if (Test-Path $candidate1) { $npmBin = $candidate1 } 
+                elseif (Test-Path $candidate2) { $npmBin = $candidate2 } 
+                else { $npmBin = $npmPrefix }
+              } else {
+                $npmBin = $null
+              }
             } catch {
-              try { $npmBin = (npm config get prefix 2>$null).Trim() } catch { $npmBin = $null }
+              $npmBin = $null
             }
             if (-not $npmBin -or $npmBin -eq '') {
               # fallback to APPDATA npm folder which is common on Windows
