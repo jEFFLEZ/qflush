@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { CortexPacket } from './types';
-import { executeAction } from '../rome/executor';
+import { CortexPacket } from './types.js';
+import { executeAction } from '../rome/executor.js';
 
 const QFLUSH_DIR = path.join(process.cwd(), '.qflush');
 const CACHE_PATH = path.join(QFLUSH_DIR, 'spyder.cache.json');
