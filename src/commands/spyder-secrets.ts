@@ -1,6 +1,11 @@
 import path from 'path';
+<<<<<<< HEAD
 import { loadSecretScanner } from '../spyder/loaders/loadScanner.js';
 import type { SecretFinding } from '../spyder/types.js';
+=======
+import { loadSecretScanner } from '../spyder/decoders/loadSecretsScanner.js';
+import type { SecretFinding } from '../spyder/decoders/types.js';
+>>>>>>> 157fec621fe402aec0b935b6009dbe4559b8616e
 
 export async function spyderSecretsCommand(dumpPath?: string): Promise<number> {
   const file = dumpPath ?? path.join(process.cwd(), 'parts', 'qflush-code-dump.txt');
@@ -25,7 +30,11 @@ export async function spyderSecretsCommand(dumpPath?: string): Promise<number> {
 }
 
 // allow running directly
+<<<<<<< HEAD
 if (typeof require !== 'undefined' && require.main === module) {
+=======
+if (require && require.main === module) {
+>>>>>>> 157fec621fe402aec0b935b6009dbe4559b8616e
   const arg = process.argv[2];
   spyderSecretsCommand(arg).then(code => process.exit(code));
 }
