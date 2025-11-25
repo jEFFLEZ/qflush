@@ -198,3 +198,24 @@ export async function jokerWipe() {
     try { process.exit(137); } catch (err) { logger.warn('[services] process.exit failed: ' + String(err)); }
   }, 300);
 }
+
+// Add a small client-facing services provider so cortex/other modules can call non-blocking adapters
+export function getServiceClients() {
+  const clients: any = {};
+  try {
+    const a11Adapter = require('../cortex/a11-adapter');
+    if (a11Adapter) {
+      clients.a11 = {
+        ask: async (prompt: string, opts?: any) => {
+          return a11Adapter.askA11(prompt, opts);
+        },
+        health: async () => {
+          return a11Adapter.isA11Available();
+        }
+      };
+    }
+  } catch (e) {
+    logger.info('[SERVICES] no A-11 adapter available: ' + String(e));
+  }
+  return clients;
+}

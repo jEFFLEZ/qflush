@@ -2,7 +2,7 @@
 import type { CortexPacket } from "./types";
 import alias from '../utils/alias';
 
-export type CortexRouteHandler = (packet: CortexPacket) => Promise<any> | any;
+export type CortexRouteHandler = (packet: CortexPacket, services?: any) => Promise<any> | any;
 
 const noopHandler: CortexRouteHandler = async () => { return; };
 
@@ -121,6 +121,16 @@ const handlers: Record<string, CortexRouteHandler> = {
   'vision': async (pkt) => {
     return await safeProcessVision(pkt.payload);
   },
+  'cortex:a11-suggest': async (pkt, services) => {
+    try {
+      if (!services || !services.a11) return { ok: false, error: 'a11_service_missing' };
+      const prompt = pkt.payload && pkt.payload.prompt ? pkt.payload.prompt : 'Provide a short refactor plan.';
+      const resp = await services.a11.ask(prompt);
+      return { ok: true, suggestion: resp };
+    } catch (e) {
+      return { ok: false, error: String(e) };
+    }
+  },
   // apply-related handlers
   'cortex:apply': async (pkt) => {
     return await safeApplyPacket(pkt);
@@ -169,10 +179,10 @@ function findHandler(pkt: CortexPacket): CortexRouteHandler {
   return noopHandler;
 }
 
-export async function routeCortexPacket(packet: CortexPacket): Promise<any> {
+export async function routeCortexPacket(packet: CortexPacket, services?: any): Promise<any> {
   const h = findHandler(packet);
   try {
-    return await h(packet);
+    return await h(packet, services);
   } catch (e) {
     return { ok: false, error: String(e) };
   }
