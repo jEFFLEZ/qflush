@@ -2,8 +2,8 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
-import { RomeIndex } from './rome-tag';
-import { emitRomeIndexUpdated, startIndexWatcher, getEmitter } from './events';
+import { RomeIndex } from './rome-tag.js';
+import { emitRomeIndexUpdated, startIndexWatcher, getEmitter } from './events.js';
 
 const INDEX_PATH = path.join(process.cwd(), '.qflush', 'rome-index.json');
 let cachedIndex: RomeIndex = {};

@@ -1,6 +1,20 @@
 import fs from 'fs';
 import path from 'path';
-import fetch from 'node-fetch';
+
+async function resolveFetch() {
+  if (typeof (globalThis as any).fetch === 'function') return (globalThis as any).fetch;
+  try {
+    const m = await import('node-fetch');
+    return (m && (m as any).default) || m;
+  } catch (e) {
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const undici = require('undici');
+      if (undici && typeof undici.fetch === 'function') return undici.fetch;
+    } catch (_) {}
+  }
+  throw new Error('No fetch implementation available (install node-fetch or undici)');
+}
 
 const CFG = path.join(process.cwd(), '.qflush', 'a11.config.json');
 
@@ -15,6 +29,7 @@ async function fetchWithTimeout(url: string, opts: any = {}, timeoutMs: number =
   const controller = new AbortController();
   const id = setTimeout(() => controller.abort(), timeoutMs);
   try {
+    const fetch = await resolveFetch();
     const res = await fetch(url, { ...opts, signal: controller.signal });
     return res;
   } finally {

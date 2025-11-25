@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import * as fs from 'fs';
 import * as path from 'path';
-import { startCortexListener } from './listener';
+import { startCortexListener } from './listener.js';
 
 // Sketch: simulate placing a decoded JSON packet file (already extracted) into canal
 

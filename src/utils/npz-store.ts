@@ -2,8 +2,8 @@
 
 import fs from 'fs';
 import path from 'path';
-import { createRecord as redisCreate, getRecord as redisGet, updateRecord as redisUpdate } from './npz-store-redis';
-import { getNpzNamespace } from './npz-config';
+import { createRecord as redisCreate, getRecord as redisGet, updateRecord as redisUpdate } from './npz-store-redis.js';
+import { getNpzNamespace } from './npz-config.js';
 
 const NS = getNpzNamespace();
 // Use .qflush as canonical state directory (was .qflush)

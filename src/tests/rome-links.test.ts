@@ -1,5 +1,5 @@
 /// <reference types="vitest" />
-import { resolveRomeToken, computeRomeLinksForFiles, mergeAndWrite, readExistingLinks, romeLinksEmitter } from '../rome/linker';
+import { resolveRomeToken, computeRomeLinksForFiles, mergeAndWrite, readExistingLinks, romeLinksEmitter } from '../rome/linker.js';
 import { describe, it, expect } from 'vitest';
 
 const projectRoot = process.cwd();

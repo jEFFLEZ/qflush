@@ -1,6 +1,6 @@
 // ROME-TAG: 0xA9DB4C
 
-import { buildPipeline } from "../chain/smartChain";
+import { buildPipeline } from "../chain/smartChain.js";
 import { describe, it, expect } from 'vitest';
 
 function assertEqual(a: any, b: any, msg?: string) {

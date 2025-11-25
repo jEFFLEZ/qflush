@@ -2,7 +2,7 @@
 
 // Redis implementation removed - use in-memory fallback to avoid external dependency.
 import { v4 as uuidv4 } from 'uuid';
-import { getNpzNamespace } from './npz-config';
+import { getNpzNamespace } from './npz-config.js';
 
 // NOTE: this module intentionally does NOT depend on ioredis anymore.
 // It exposes the same async API but stores data in memory with TTL semantics.

@@ -1,9 +1,9 @@
 // Cortex listener: watch a folder for PNG packets and dispatch decoded JSON to router
 import * as fs from 'fs';
 import * as path from 'path';
-import { decodePNGsToPacket, parseCortexPacket } from './codec';
-import { routeCortexPacket } from './router';
-import { getServiceClients } from '../services';
+import { decodePNGsToPacket, parseCortexPacket } from './codec.js';
+import { routeCortexPacket } from './router.js';
+import { getServiceClients } from '../services.js';
 
 const WATCH_DIR = path.join(process.cwd(), 'canal');
 

@@ -4,8 +4,20 @@ import { spawn } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
 
-let fetch: any;
-try { fetch = require('node-fetch'); } catch (e) { fetch = undefined; }
+async function resolveFetch() {
+  if (typeof (globalThis as any).fetch === 'function') return (globalThis as any).fetch;
+  try {
+    const m = await import('node-fetch');
+    return (m && (m as any).default) || m;
+  } catch (e) {
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const undici = require('undici');
+      if (undici && typeof undici.fetch === 'function') return undici.fetch;
+    } catch (_) {}
+  }
+  return undefined;
+}
 
 const CFG_PATH = path.join(process.cwd(), '.qflush', 'a11.config.json');
 
@@ -56,6 +68,8 @@ export default async function runA11(argv: string[] = []) {
   // status
   if (cfg.healthUrl) {
     try {
+      const fetch = await resolveFetch();
+      if (!fetch) throw new Error('fetch not available');
       const res = await fetch(cfg.healthUrl, { method: 'GET' });
       if (res.ok) { console.log('A-11 healthy'); return 0; }
       console.log('A-11 unhealthy, status', res.status);

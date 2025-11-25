@@ -131,7 +131,7 @@ jobs:
           title: "Auto-refactor (Funesterie Engine)"
 
       - name: Optional: Install Spyder (from npm)
-        if: env.INSTALL_SPYDER == 'true'
+        if: ${{ env.INSTALL_SPYDER == 'true' }}
         shell: pwsh
         env:
           TAR: 'C:/Windows/System32/tar.exe'

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import vision from './vision';
+import vision from './vision.js';
 import * as fs from 'fs';
 import * as path from 'path';
 

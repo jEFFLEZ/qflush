@@ -2,7 +2,7 @@
 
 import fs from 'fs';
 import yaml from 'js-yaml';
-import { readFCL } from './fclParser';
+import { readFCL } from './fclParser.js';
 
 export type ModuleDef = {
   path?: string;

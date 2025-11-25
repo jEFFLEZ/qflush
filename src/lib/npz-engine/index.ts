@@ -1,6 +1,6 @@
 // ROME-TAG: 0x1D49C5
 
-import engine from '../../utils/npz-engine';
+import engine from '../../utils/npz-engine.js';
 
 export type ScoreRecord = {
   laneId: number;

@@ -1,7 +1,7 @@
 // ROME-TAG: 0xDEC58D
 
-import { parseLogicFile } from '../rome/logic-parser';
-import { loadLogicRules } from '../rome/logic-loader';
+import { parseLogicFile } from '../rome/logic-parser.js';
+import { loadLogicRules } from '../rome/logic-loader.js';
 import { describe, it, expect } from 'vitest';
 
 export async function runTests() {

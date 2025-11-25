@@ -1,6 +1,6 @@
 // ROME-TAG: 0xE77814
 
-import { buildConditionAst, evaluateConditionExprAST } from '../rome/logic-parser';
+import { buildConditionAst, evaluateConditionExprAST } from '../rome/logic-parser.js';
 import { describe, it, expect } from 'vitest';
 
 function testExpr(expr: string, ctx: any, expected: boolean) {

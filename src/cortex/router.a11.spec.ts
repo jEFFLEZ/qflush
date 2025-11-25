@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { routeCortexPacket } from './router';
+import { routeCortexPacket } from './router.js';
 
 describe('cortex:a11-suggest handler', () => {
   it('returns suggestion from services.a11', async () => {

@@ -1,12 +1,12 @@
 ﻿// ROME-TAG: 0x8CD4FC
 
-import { logger } from "../utils/logger";
-import { runDetect } from "../commands/detect";
-import { runConfig } from "../commands/config";
-import { runPurge } from "../commands/purge";
-import { runKill } from "../commands/kill";
-import { runStart } from "../commands/start";
-import { runExodia } from "../commands/exodia";
+import { logger } from "../utils/logger.js";
+import { runDetect } from "../commands/detect.js";
+import { runConfig } from "../commands/config.js";
+import { runPurge } from "../commands/purge.js";
+import { runKill } from "../commands/kill.js";
+import { runStart } from "../commands/start.js";
+import { runExodia } from "../commands/exodia.js";
 
 const ORDER = ["detect", "config", "purge", "kill", "start", "exodia"];
 

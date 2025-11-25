@@ -2,7 +2,7 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
-import fetch from 'node-fetch';
+// do not statically import node-fetch (may be ESM); use dynamic import when needed
 
 const STORE = path.join(process.cwd(), '.qflush', 'license.json');
 
@@ -47,7 +47,27 @@ async function verifyWithGumroad(key: string, productId?: string) {
   body.append('product_permalink', productId || '');
   body.append('license_key', key);
 
-  const res = await fetch(url, { method: 'POST', body, headers: { Authorization: `Bearer ${token}` } });
+  // Dynamic import to support both CJS and ESM environments
+  let fetchFn: any = undefined;
+  try {
+    const m = await import('node-fetch');
+    fetchFn = (m && (m as any).default) || m;
+  } catch (e) {
+    // node-fetch not available or cannot be imported; try global fetch / undici fallback handled by caller
+    try {
+      // try undici dynamic require as fallback
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const undici = require('undici');
+      if (undici && typeof undici.fetch === 'function') fetchFn = undici.fetch;
+    } catch (_) {
+      // ignore
+    }
+  }
+
+  if (!fetchFn && typeof (globalThis as any).fetch === 'function') fetchFn = (globalThis as any).fetch;
+  if (!fetchFn) throw new Error('No fetch implementation available (install node-fetch or undici)');
+
+  const res = await fetchFn(url, { method: 'POST', body, headers: { Authorization: `Bearer ${token}` } });
   const json: any = await res.json();
   return json;
 }

@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 // ROME-TAG: 0x66F831
 
-import { loadLogicRules } from '../rome/logic-loader';
-import { loadRomeIndexFromDisk } from '../rome/index-loader';
-import { evaluateRulesForRecord } from '../rome/logic-loader';
+import { loadLogicRules } from '../rome/logic-loader.js';
+import { loadRomeIndexFromDisk } from '../rome/index-loader.js';
+import { evaluateRulesForRecord } from '../rome/logic-loader.js';
 
 export default async function runLogic(args: string[]) {
   const rules = loadLogicRules();

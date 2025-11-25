@@ -38,6 +38,14 @@ export function resolvePaths(detected: any = {}) {
       out[key] = detected[key].path;
       continue;
     }
+
+    // allow environment override for spyder
+    if (key === 'spyder' && process.env.SPYDER_ROOT) {
+      out[key] = process.env.SPYDER_ROOT;
+      continue;
+    }
   }
   return out;
 }
+
+export default { SERVICE_MAP, resolvePaths };

@@ -29,7 +29,7 @@ describe('spyder admin port persistence', () => {
 
     process.env.QFLUSH_SPYDER_ADMIN_PORT = '51234';
 
-    const { runStart } = await import('../../src/commands/start');
+    const { runStart } = await import('../../src/commands/start.js');
 
     // Call runStart asking only for spyder to avoid other modules
     await runStart({ services: ['spyder'] as any, flags: {} as any } as any);

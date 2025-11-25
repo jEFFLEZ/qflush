@@ -1,0 +1,1 @@
+src/commands/spyder-secrets.ts(44,32): error TS2307: Cannot find module '@funeste38/spyder/decoders/secrets' or its corresponding type declarations.

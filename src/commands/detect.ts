@@ -1,8 +1,8 @@
 ﻿// ROME-TAG: 0x9C32F0
 
-import { detectModules } from "../utils/detect";
-import { logger } from "../utils/logger";
-import { qflushOptions } from "../chain/smartChain";
+import { detectModules } from "../utils/detect.js";
+import { logger } from "../utils/logger.js";
+import { qflushOptions } from "../chain/smartChain.js";
 
 export async function runDetect(_opts?: qflushOptions) {
   logger.info("qflush: detecting modules...");

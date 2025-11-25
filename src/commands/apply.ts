@@ -1,11 +1,11 @@
 // src/commands/apply.ts
 import * as fs from 'fs';
 import * as path from 'path';
-import logger from '../utils/logger';
-import { decodeCortexPacketFromPng } from '../cortex/pngCodec';
-import { CortexPacket } from '../cortex/types';
-import { applyCortexPacket } from '../cortex/applyPacket';
-import { safeWriteFileSync, safeAppendFileSync } from '../utils/safe-fs';
+import logger from '../utils/logger.js';
+import { decodeCortexPacketFromPng } from '../cortex/pngCodec.js';
+import { CortexPacket } from '../cortex/types.js';
+import { applyCortexPacket } from '../cortex/applyPacket.js';
+import { safeWriteFileSync, safeAppendFileSync } from '../utils/safe-fs.js';
 
 declare const require: any;
 

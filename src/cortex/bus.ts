@@ -1,8 +1,8 @@
 import fs from 'fs';
 import path from 'path';
-import { decodeCortexPNG } from './decoder';
-import { encodeCortexCommand } from './encoder';
-import { execCommand } from '../rome/executor';
+import { decodeCortexPNG } from './decoder.js';
+import { encodeCortexCommand } from './encoder.js';
+import { execCommand } from '../rome/executor.js';
 
 const inbox = path.join('.qflush', 'cortex', 'inbox');
 const outbox = path.join('.qflush', 'cortex', 'outbox');
