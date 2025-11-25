@@ -26,12 +26,12 @@ beforeAll(async () => {
   process.env.QFLUSH_TOKEN = 'test-token';
   process.env.QFLUSH_SAFE_CI = '1';
   fetch = await resolveFetch();
-  // ensure server started
-  startServer(4500);
+  // ensure server started and ready
+  await startServer(4500);
 });
 
-afterAll(() => {
-  try { stopServer(); } catch (e) {}
+afterAll(async () => {
+  try { await stopServer(); } catch (e) {}
 });
 
 describe('NPZ BAT control endpoints (embedded)', () => {
