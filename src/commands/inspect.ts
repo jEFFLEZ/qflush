@@ -1,9 +1,9 @@
 ﻿// ROME-TAG: 0xEA570C
 
-import { logger } from "../utils/logger";
-import { detectModules } from "../utils/detect";
-import { listRunning } from "../supervisor";
-import { qflushOptions } from "../chain/smartChain";
+import { logger } from "../utils/logger.js";
+import { detectModules } from "../utils/detect.js";
+import { listRunning } from "../supervisor.js";
+import { qflushOptions } from "../chain/smartChain.js";
 
 export async function runInspect(opts?: qflushOptions) {
   logger.info("qflush: inspecting ecosystem...");

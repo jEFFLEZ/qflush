@@ -1,0 +1,11 @@
+[
+  "node-fetch",
+  "openai",
+  "@openai",
+  "esbuild",
+  "esbuild-wasm",
+  "@vercel",
+  "@netlify",
+  "@azure",
+  "@aws-sdk"
+]

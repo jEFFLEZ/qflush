@@ -1,7 +1,7 @@
 // auto-generated linker for Rome index references
 import { readFileSync, writeFileSync, readdirSync, statSync, existsSync } from 'fs';
 import { join, relative } from 'path';
-import { loadRomeIndexFromDisk } from './index-loader';
+import { loadRomeIndexFromDisk } from './index-loader.js';
 import { EventEmitter } from 'events';
 
 export type LinkRef = {

@@ -2,10 +2,24 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
-import fetch from 'node-fetch';
 import { EventEmitter } from 'events';
-import { CopilotConfig, TelemetryEvent, EngineState, RuleEvent, Diagnostic } from './copilot-types';
-import { saveTelemetryEvent } from './storage';
+import { CopilotConfig, TelemetryEvent, EngineState, RuleEvent, Diagnostic } from './copilot-types.js';
+import { saveTelemetryEvent } from './storage.js';
+
+async function resolveFetch() {
+  if (typeof (globalThis as any).fetch === 'function') return (globalThis as any).fetch;
+  try {
+    const m = await import('node-fetch');
+    return (m && (m as any).default) || m;
+  } catch (e) {
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const undici = require('undici');
+      if (undici && typeof undici.fetch === 'function') return undici.fetch;
+    } catch (_) {}
+  }
+  return undefined;
+}
 
 const DEFAULT_CONFIG: CopilotConfig = {
   enabled: false,
@@ -50,6 +64,8 @@ async function sendWebhook(event: TelemetryEvent) {
   try {
     const payload = JSON.stringify(event);
     const headers: any = { 'Content-Type': 'application/json' };
+    const fetch = await resolveFetch();
+    if (!fetch) return;
     await fetch(cfg.webhookUrl, { method: 'POST', body: payload, headers });
   } catch (e) {
     // best-effort

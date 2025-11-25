@@ -2,7 +2,7 @@
 
 import http from 'http';
 import net from 'net';
-import { logger } from './logger';
+import { logger } from './logger.js';
 
 export async function httpProbe(url: string, timeout = 2000): Promise<boolean> {
   return new Promise((resolve) => {

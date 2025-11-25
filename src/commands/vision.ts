@@ -1,4 +1,4 @@
-import vision from '../cortex/vision';
+import vision from '../cortex/vision.js';
 
 export default async function runVision(argv: string[] = []) {
   const file = argv[0];

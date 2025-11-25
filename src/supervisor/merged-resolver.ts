@@ -1,6 +1,6 @@
 
-import { listRunning } from './index';
-import { npzResolve, ResolveResult } from '../utils/npz';
+import { listRunning } from './index.js';
+import { npzResolve, ResolveResult } from '../utils/npz.js';
 
 function mergeResults(
   sup: ResolveResult,

@@ -1,10 +1,10 @@
 // ROME-TAG: 0x29A73C
 
 import { exec } from "child_process";
-import alias from './alias';
+import alias from './alias.js';
 const logger = alias.importUtil('@utils/logger') || alias.importUtil('./logger') || console;
-import { SERVICE_MAP } from "./paths";
-import { resolvePackagePath } from "./package";
+import { SERVICE_MAP } from "./paths.js";
+import { resolvePackagePath } from "./package.js";
 
 export async function detectModules() {
   const out: Record<string, any> = {};

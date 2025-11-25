@@ -1,9 +1,9 @@
 ﻿// ROME-TAG: 0x3AB4E4
 
-import { logger } from "../utils/logger";
-import { findAndKill } from "../utils/detect";
-import { stopAll } from "../supervisor";
-import { qflushOptions } from "../chain/smartChain";
+import { logger } from "../utils/logger.js";
+import { findAndKill } from "../utils/detect.js";
+import { stopAll } from "../supervisor.js";
+import { qflushOptions } from "../chain/smartChain.js";
 
 export async function runKill(_opts?: qflushOptions) {
   logger.info("qflush: killing modules...");

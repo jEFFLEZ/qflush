@@ -36,3 +36,15 @@ declare module '../daemon/qflushd.js' {
   const qflushd: any;
   export = qflushd;
 }
+
+// Optional spyder decoder shim to avoid TS errors when package not installed
+declare module "@funeste38/spyder/decoders/secrets" {
+  export type SecretMatch = any;
+  export function scanFileForSecrets(path: string): Promise<SecretMatch[]> | SecretMatch[];
+}
+
+// Local fallback module (when @funeste38/spyder not installed), provide same API
+declare module 'src/spyder/decoders/secrets' {
+  export type SecretMatch = any;
+  export function scanFileForSecrets(path: string): Promise<SecretMatch[]> | SecretMatch[];
+}

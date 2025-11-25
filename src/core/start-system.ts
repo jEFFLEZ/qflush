@@ -1,4 +1,4 @@
-import { QFLUSH_MODE } from './qflush-mode';
+import { QFLUSH_MODE } from './qflush-mode.js';
 
 export async function startQflushSystem() {
   if (QFLUSH_MODE !== 'daemon') {

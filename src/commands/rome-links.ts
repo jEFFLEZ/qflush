@@ -1,4 +1,4 @@
-import { computeRomeLinks, writeRomeLinks } from '../rome/linker';
+import { computeRomeLinks, writeRomeLinks } from '../rome/linker.js';
 
 export async function runRomeLinks(argv?: string[]) {
   const projectRoot = process.cwd();

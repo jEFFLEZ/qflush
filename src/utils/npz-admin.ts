@@ -1,11 +1,11 @@
 // ROME-TAG: 0x332555
 
 import express from 'express';
-import npzStore from './npz-store';
-import npzRouter from './npz-router';
-import engine from './npz-engine';
+import npzStore from './npz-store.js';
+import npzRouter from './npz-router.js';
+import engine from './npz-engine.js';
 import { stringify } from 'csv-stringify/sync';
-import { isAdminAuthorized } from './auth';
+import { isAdminAuthorized } from './auth.js';
 
 const router = express.Router();
 

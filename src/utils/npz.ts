@@ -3,8 +3,8 @@
 import { spawnSync } from 'child_process';
 import { existsSync } from 'fs';
 import * as path from 'path';
-import logger from './logger';
-import { SERVICE_MAP } from './paths';
+import logger from './logger.js';
+import { SERVICE_MAP } from './paths.js';
 
 export type ResolveResult = { gate: 'green' | 'yellow' | 'dlx' | 'fail'; cmd?: string; args?: string[]; cwd?: string };
 

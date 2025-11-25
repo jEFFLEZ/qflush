@@ -34,24 +34,24 @@ if (_argv.includes('--upgrade')) {
   process.exit(res.status ?? 0);
 }
 
-import { buildPipeline, executePipeline } from "./chain/smartChain";
-import { showHelp } from "./cli/help";
-import { runCompose } from "./commands/compose";
-import { runDoctor } from "./commands/doctor";
-import runNpzInspect from "./commands/npz-inspect";
-import runNpzScores from "./commands/npz-scores";
-import { runLicense } from "./commands/license";
-import runChecksum from "./commands/checksum";
-import runEngine from "./commands/engine";
-import runLogic from "./commands/logic";
-import runCopilot from "./commands/copilot";
-import runCopilotBridge from "./commands/copilot-bridge";
-import runRomeLinks from "./commands/rome-links";
-import runA11 from "./commands/a11";
-import runSpyder from "./commands/spyder";
+import { buildPipeline, executePipeline } from "./chain/smartChain.js";
+import { showHelp } from "./cli/help.js";
+import { runCompose } from "./commands/compose.js";
+import { runDoctor } from "./commands/doctor.js";
+import runNpzInspect from "./commands/npz-inspect.js";
+import runNpzScores from "./commands/npz-scores.js";
+import { runLicense } from "./commands/license.js";
+import runChecksum from "./commands/checksum.js";
+import runEngine from "./commands/engine.js";
+import runLogic from "./commands/logic.js";
+import runCopilot from "./commands/copilot.js";
+import runCopilotBridge from "./commands/copilot-bridge.js";
+import runRomeLinks from "./commands/rome-links.js";
+import runA11 from "./commands/a11.js";
+import runSpyder from "./commands/spyder.js";
 import { spawn } from 'child_process';
-import { enterSleepMode, exitSleepMode, jokerWipe } from './services';
-import { startQflushSystem } from './core/start-system';
+import { enterSleepMode, exitSleepMode, jokerWipe } from './services.js';
+import { startQflushSystem } from './core/start-system.js';
 
 // Only run the CLI dispatch when this module is the entrypoint
 declare const require: any;

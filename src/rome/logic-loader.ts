@@ -2,8 +2,8 @@
 
 import * as path from 'path';
 import * as fs from 'fs';
-import { parseLogicFile, LogicRule, evaluateConditionExpr, buildConditionAst, evaluateConditionExprAST } from './logic-parser';
-import { RomeIndex, RomeTagRecord } from './rome-tag';
+import { parseLogicFile, LogicRule, evaluateConditionExpr, buildConditionAst, evaluateConditionExprAST } from './logic-parser.js';
+import { RomeIndex, RomeTagRecord } from './rome-tag.js';
 
 const LOGIC_PATH = path.join(process.cwd(), '.qflush', 'logic.qfl');
 const VARS_PATH = path.join(process.cwd(), '.qflush', 'logic-vars.json');

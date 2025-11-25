@@ -1,6 +1,6 @@
 // ROME-TAG: 0xC7D834
 
-import { setReloadHandler, callReload } from '../rome/daemon-control';
+import { setReloadHandler, callReload } from '../rome/daemon-control.js';
 import { describe, it, expect } from 'vitest';
 
 describe('daemon-control (stub)', () => {

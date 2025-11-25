@@ -1,6 +1,6 @@
 // ROME-TAG: 0x0E71A8
 
-import colors from './colors';
+import colors from './colors.js';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -27,7 +27,13 @@ function appendSafe(filename: string, msg: string) {
     try {
       fs.appendFileSync(p, msg + '\n', 'utf8');
     } catch (e) {
-      // silent fail to avoid throwing during tests
+      // If append fails (race/ENOENT), try to create the file and retry once
+      try {
+        try { fs.writeFileSync(p, '', 'utf8'); } catch (_) {}
+        try { fs.appendFileSync(p, msg + '\n', 'utf8'); } catch (_) {}
+      } catch (e2) {
+        // silent fail to avoid throwing during tests
+      }
     }
   } catch (e) {
     // ignore
@@ -60,4 +66,12 @@ export const logger = {
   neutral: (title: string, msg: string) => colors.styledLog(title, msg, { accent: 'neutral' }),
 };
 
-export default logger;
+export function log(...args: any[]) { console.log('[QFLUSH]', ...args); }
+export function info(...args: any[]) { console.info('[QFLUSH]', ...args); }
+export function warn(...args: any[]) { console.warn('[QFLUSH]', ...args); }
+export function error(...args: any[]) { console.error('[QFLUSH]', ...args); }
+export function success(...args: any[]) { console.log('[QFLUSH][OK]', ...args); }
+export function nez(tag: string, msg: string) { console.log(`[${tag}]`, msg); }
+export function joker(tag: string, msg: string) { console.log(`[JOKER] ${tag}:`, msg); }
+
+export default { log, info, warn, error, success, nez, joker };
