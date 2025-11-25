@@ -1,6 +1,14 @@
 import { defineConfig } from 'vitest/config';
+import path from 'path';
 
 export default defineConfig({
+  resolve: {
+    alias: {
+      '@utils': path.resolve(__dirname, 'src/utils'),
+      '@rome': path.resolve(__dirname, 'src/rome'),
+      '@cortex': path.resolve(__dirname, 'src/cortex'),
+    }
+  },
   test: {
     include: [
       'src/tests/legacy-runner.spec.ts',
