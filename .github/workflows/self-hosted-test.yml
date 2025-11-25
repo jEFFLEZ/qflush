@@ -6,7 +6,7 @@ on:
 jobs:
   self-hosted-tests:
     name: Run tests on self-hosted Windows runner
-    runs-on: [self-hosted, Windows, X64, funesterie]
+    runs-on: [self-hosted, Windows, X64, funesterie, DJEFF]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
