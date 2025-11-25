@@ -1,5 +1,8 @@
 import * as fs from 'fs';
 import * as path from 'path';
+import { createRequire } from 'module';
+
+const require = createRequire(import.meta.url);
 
 const ALIAS_DEBUG = process.env.ALIAS_DEBUG === '1';
 function aliasWarn(isAlias: boolean, ...args: any[]) {
@@ -11,7 +14,6 @@ let resolvePaths: any = undefined;
 try {
   // require at runtime; if not available, leave undefined
   // use dynamic path to avoid TypeScript module resolution of literal './paths'
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
   const p = require(path.join(__dirname, 'paths'));
   resolvePaths = p && p.resolvePaths;
 } catch (e) {

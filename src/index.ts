@@ -1,3 +1,6 @@
+import { createRequire } from 'module';
+const require = createRequire(import.meta.url);
+
 // ROME-TAG: 0x2A0018
 
 // Register global error handlers early to avoid the CLI crashing on unhandled errors (redis, etc.)
@@ -12,7 +15,6 @@ process.on('uncaughtException', (err) => {
 const _argv = process.argv.slice(2);
 if (_argv.includes('--version') || _argv.includes('-v')) {
   try {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
     const pkg = require('../package.json');
     if (pkg && pkg.version) console.log(pkg.version);
     else console.log('unknown');
@@ -54,7 +56,6 @@ import { enterSleepMode, exitSleepMode, jokerWipe } from './services.js';
 import { startQflushSystem } from './core/start-system.js';
 
 // Only run the CLI dispatch when this module is the entrypoint
-declare const require: any;
 if (typeof require !== 'undefined' && require.main === module) {
   const argv = process.argv.slice(2);
   let cliHandled = false;
