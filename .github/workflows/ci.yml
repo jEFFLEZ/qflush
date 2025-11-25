@@ -16,6 +16,7 @@ permissions:
 
 jobs:
   build-and-test:
+    if: ${{ secrets.ALLOW_GH_RUNNERS == '1' }}
     runs-on: ubuntu-latest
     env:
       QFLUSH_SKIP_GLOBAL_INSTALLS: '1'
@@ -126,6 +127,7 @@ jobs:
 
   integration-dry-run:
     needs: build-and-test
+    if: ${{ secrets.ALLOW_GH_RUNNERS == '1' }}
     runs-on: ubuntu-latest
     timeout-minutes: 60
     env:
@@ -152,6 +154,7 @@ jobs:
 
   engine-dry-run:
     needs: build-and-test
+    if: ${{ secrets.ALLOW_GH_RUNNERS == '1' }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
     env:

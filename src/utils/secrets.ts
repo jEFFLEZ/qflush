@@ -1,4 +1,4 @@
-import fs from 'fs';
+import * as fs from 'fs';
 
 export type SecretOpts = {
   fileEnv?: string; // env var that points to a file containing the secret

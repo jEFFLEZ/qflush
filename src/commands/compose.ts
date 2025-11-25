@@ -6,7 +6,7 @@ import { readCompose } from '../compose/parser.js';
 import { runStart } from './start.js';
 import { startProcess, listRunning, stopProcess } from '../supervisor.js';
 import { runPurge } from './purge.js';
-import fs from 'fs';
+import * as fs from 'fs';
 import { Tail } from 'tail';
 
 export async function runCompose(argv: string[]) {

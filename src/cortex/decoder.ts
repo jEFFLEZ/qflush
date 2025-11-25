@@ -1,7 +1,7 @@
-import fs from 'fs';
+import * as fs from 'fs';
 import zlib from 'zlib';
 import { PNG } from 'pngjs';
-import crypto from 'crypto';
+import * as crypto from 'crypto';
 
 const seenIds = new Set<string>();
 

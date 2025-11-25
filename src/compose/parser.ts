@@ -1,6 +1,6 @@
 // ROME-TAG: 0x15FDE1
 
-import fs from 'fs';
+import * as fs from 'fs';
 import yaml from 'js-yaml';
 import { readFCL } from './fclParser.js';
 

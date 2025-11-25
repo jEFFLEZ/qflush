@@ -1,7 +1,7 @@
 /// <reference types="vitest" />
 // ROME-TAG: 0x1EC911
 
-import fs from 'fs';
+import * as fs from 'fs';
 import * as path from 'path';
 
 const TEST_DIR = path.join(__dirname);

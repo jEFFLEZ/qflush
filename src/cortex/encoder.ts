@@ -1,8 +1,8 @@
-import fs from 'fs';
+import * as fs from 'fs';
 import * as path from 'path';
 import zlib from 'zlib';
 import { PNG } from 'pngjs';
-import crypto from 'crypto';
+import * as crypto from 'crypto';
 
 export function encodeCortexCommand(ner: any, outPath: string) {
   const json = Buffer.from(JSON.stringify(ner), 'utf8');

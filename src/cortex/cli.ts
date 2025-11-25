@@ -1,6 +1,6 @@
 import * as path from 'path';
 import { encodeCortexCommand } from './encoder.js';
-import fs from 'fs';
+import * as fs from 'fs';
 
 export function cortexSend(cmd: string, args: any[] = []) {
   const id = 'cortex-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8);

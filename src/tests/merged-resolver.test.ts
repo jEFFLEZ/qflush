@@ -15,10 +15,10 @@ describe('merged resolver', () => {
     const res = await merged.resolveMerged('foo');
     if (process.env.QFLUSH_DISABLE_SUPERVISOR === '1' || process.env.QFLUSH_SAFE_CI === '1' || process.env.NODE_ENV === 'test') {
       // En CI/test, le superviseur est ignoré
-      expect(['dlx', 'yellow']).toContain(res.gate);
+      expect(['dlx', 'yellow']).toContain(res!.gate);
     } else {
-      expect(res.gate).toBe('green');
-      expect(res.cmd).toBe('node foo');
+      expect(res!.gate).toBe('green');
+      expect(res!.cmd).toBe('node foo');
     }
   });
 
@@ -26,16 +26,16 @@ describe('merged resolver', () => {
     vi.spyOn(sup as any, 'listRunning').mockImplementation(() => []);
     vi.spyOn(npz, 'npzResolve').mockImplementation(() => ({ gate: 'yellow', cmd: process.execPath, args: ['-e'], cwd: process.cwd() } as any));
     const res = await merged.resolveMerged('bar');
-    expect(res.gate).toBe('yellow');
-    expect(res.cmd).toBe(process.execPath);
+    expect(res!.gate).toBe('yellow');
+    expect(res!.cmd).toBe(process.execPath);
   });
 
   it('merges supervisor and default: fill missing fields from default', async () => {
     vi.spyOn(sup as any, 'listRunning').mockImplementation(() => [{ name: 'baz', pid: 234, cmd: '', args: [], cwd: '' }]);
     vi.spyOn(npz, 'npzResolve').mockImplementation(() => ({ gate: 'green', cmd: 'node /pkg/baz', args: ['run'], cwd: '/pkg' } as any));
     const res = await merged.resolveMerged('baz');
-    expect(res.gate).toBe('green');
-    expect(res.cmd).toBe('node /pkg/baz');
-    expect(res.args && res.args[0]).toBe('run');
+    expect(res!.gate).toBe('green');
+    expect(res!.cmd).toBe('node /pkg/baz');
+    expect(res!.args && res!.args[0]).toBe('run');
   });
 });

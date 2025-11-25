@@ -2,6 +2,14 @@ name: Self-hosted CI (Windows)
 
 on:
   workflow_dispatch: {}
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+concurrency:
+  group: self-hosted-tests-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   self-hosted-tests:
@@ -22,8 +30,124 @@ jobs:
       - name: Build
         run: npm run build
 
+      - name: Ensure qflush daemon is running (no destructive actions)
+        shell: pwsh
+        run: |
+          $port = 43421
+          $ready = $false
+
+          function Probe-Endpoints {
+            param($port)
+            try {
+              $h = Invoke-RestMethod -Uri "http://127.0.0.1:$port/health" -TimeoutSec 2 -ErrorAction Stop
+              return $true
+            } catch {}
+            try {
+              $r = Invoke-RestMethod -Uri "http://127.0.0.1:$port/npz/rome-index" -TimeoutSec 2 -ErrorAction Stop
+              return $true
+            } catch {}
+            return $false
+          }
+
+          # If something already listens on the port, check endpoints and reuse it.
+          $listening = $false
+          try {
+            $nc = Test-NetConnection -ComputerName 127.0.0.1 -Port $port -WarningAction SilentlyContinue
+            if ($nc.TcpTestSucceeded -eq $true) { $listening = $true }
+          } catch {
+            # fallback to netstat
+            $ns = (netstat -ano | Select-String ":$port").ToString()
+            if ($ns) { $listening = $true }
+          }
+
+          if ($listening) {
+            Write-Host "Port $port is already in use — probing endpoints. Will NOT kill existing processes."
+            if (Probe-Endpoints -port $port) {
+              Write-Host "Existing service on port $port responds — reusing it."
+              $ready = $true
+            } else {
+              Write-Error "Port $port is in use but service did not respond on expected endpoints. Aborting to avoid killing unrelated processes."
+              exit 1
+            }
+          }
+
+          if (-not $ready) {
+            Write-Host "No service on port $port — starting qflushd (non-destructive)."
+            $out = Join-Path $PWD 'qflushd.out.log'
+            $err = Join-Path $PWD 'qflushd.err.log'
+
+            # Start daemon and capture stdout/stderr in background jobs
+            $si = New-Object System.Diagnostics.ProcessStartInfo
+            $si.FileName = 'node'
+            $si.Arguments = 'dist/daemon/qflushd.js'
+            $si.WorkingDirectory = $PWD
+            $si.UseShellExecute = $false
+            $si.RedirectStandardOutput = $true
+            $si.RedirectStandardError = $true
+
+            $p = New-Object System.Diagnostics.Process
+            $p.StartInfo = $si
+            $p.Start() | Out-Null
+
+            $p.StandardOutput.BeginReadLine()
+            $p.StandardError.BeginReadLine()
+
+            # Pipe streams to files without killing other node processes
+            Start-Job -ScriptBlock {
+              param($s, $path)
+              while (-not $s.EndOfStream) { $line = $s.ReadLine(); Add-Content -Path $path -Value $line }
+            } -ArgumentList $p.StandardOutput, $out | Out-Null
+
+            Start-Job -ScriptBlock {
+              param($s, $path)
+              while (-not $s.EndOfStream) { $line = $s.ReadLine(); Add-Content -Path $path -Value $line }
+            } -ArgumentList $p.StandardError, $err | Out-Null
+
+            $p.Id | Out-File qflushd.pid
+
+            for ($i=0; $i -lt 60; $i++) {
+              if (Probe-Endpoints -port $port) { $ready = $true; break }
+              Start-Sleep -Seconds 1
+            }
+
+            if (-not $ready) {
+              Write-Host '--- qflushd stdout (tail) ---'
+              Get-Content $out -Tail 200 -ErrorAction SilentlyContinue
+              Write-Host '--- qflushd stderr (tail) ---'
+              Get-Content $err -Tail 200 -ErrorAction SilentlyContinue
+              Write-Error 'qflushd not ready after timeout'; exit 1
+            }
+          }
+
       - name: Run tests
-        run: npm test
+        env:
+          VITEST: "1"
+          QFLUSHD_PORT: '43421'
+          QFLUSH_ENABLE_REDIS: '0'
+          QFLUSH_SKIP_GLOBAL_INSTALLS: '1'
+        run: |
+          npm test
+
+      - name: Teardown qflush daemon
+        if: always()
+        shell: pwsh
+        run: |
+          if (Test-Path qflushd.pid) {
+            $pid = Get-Content qflushd.pid
+            Try { Stop-Process -Id $pid -Force -ErrorAction SilentlyContinue } Catch {}
+            Remove-Item qflushd.pid -Force -ErrorAction SilentlyContinue
+          }
+
+      - name: Upload qflushd logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qflushd-logs
+          path: |
+            qflushd.out.log
+            qflushd.err.log
+            .qflush/logs/qflushd.out
+            .qflush/logs/qflushd.err
 
       - name: Upload vitest logs (if any)
         if: always()

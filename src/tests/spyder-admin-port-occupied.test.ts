@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import * as fs from 'node:fs';
 import * as path from 'path';
 import * as net from 'node:net';
-import os from 'node:os';
+import * as os from 'os';
 
 describe('spyder admin port occupied behavior', () => {
   let tmpDir: string;
