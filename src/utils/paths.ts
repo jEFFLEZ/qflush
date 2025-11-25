@@ -20,7 +20,7 @@ export function resolvePaths(detected: any = {}) {
   const out: Record<string, string | undefined> = {};
   for (const key of Object.keys(SERVICE_MAP)) {
     // Prefer local candidate folders when present in the workspace
-    const tries = SERVICE_MAP[key].candidates;
+    const tries = SERVICE_MAP[key].candidates || [];
     let found: string | undefined;
     for (const t of tries) {
       const p = join(process.cwd(), t);

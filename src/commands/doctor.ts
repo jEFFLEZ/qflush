@@ -33,6 +33,10 @@ export async function runDoctor(argv: string[] = []) {
       const pkg = SERVICE_MAP[name].pkg;
       const detectedInfo = detected[name];
       if (!detectedInfo || !detectedInfo.installed) {
+        if (!pkg) {
+          logger.warn(`No package name configured for service ${name}, skipping install`);
+          continue;
+        }
         logger.info(`Installing ${pkg} for service ${name}...`);
         const ok = ensurePackageInstalled(pkg);
         if (ok) logger.success(`Installed ${pkg}`);
