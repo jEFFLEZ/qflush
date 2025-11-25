@@ -19,6 +19,9 @@ export type qflushOptions = {
   services?: string[];
 };
 
+// Backwards-compatible alias: some code or external types may still reference the old QFlash/Qflush naming.
+export type QflushOptions = qflushOptions;
+
 function parseArgs(argv: string[]) {
   const cmds: string[] = [];
   const flags: Record<string, boolean | string> = {};

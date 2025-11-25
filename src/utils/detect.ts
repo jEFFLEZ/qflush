@@ -13,7 +13,9 @@ export async function detectModules() {
 
   for (const name of Object.keys(SERVICE_MAP)) {
     try {
-      const pkgPath = resolvePackagePath(SERVICE_MAP[name].pkg);
+      const pkgName = SERVICE_MAP[name].pkg;
+      if (!pkgName) continue;
+      const pkgPath = resolvePackagePath(pkgName);
       if (pkgPath) {
         out[name].installed = true;
         out[name].path = pkgPath;
