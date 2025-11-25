@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { startServer, stopServer } from '../daemon/qflushd.js';
-import * as fs from 'fs';
+import fs from 'fs';
 import * as path from 'path';
 
 const URL = 'http://127.0.0.1:4500';

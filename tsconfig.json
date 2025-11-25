@@ -15,7 +15,7 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
 
-    "types": ["node"],
+    "types": ["node", "vitest"],
 
     "allowJs": false,
     "checkJs": false,
@@ -28,11 +28,9 @@
       "@rome/*": ["src/rome/*"],
       "@supervisor/*": ["src/supervisor/*"],
       "@cortex/*": ["src/cortex/*"]
-    },
-
-    "typeRoots": ["./src/types", "./node_modules/@types"]
+    }
   },
 
-  "include": ["src/**/*", "src/cortex/**/*", "src/types/**/*"],
+  "include": ["src/**/*", "src/cortex/**/*"],
   "exclude": ["dist", "node_modules", "tests", "src/tests"]
 }

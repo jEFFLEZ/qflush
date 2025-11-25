@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import * as fs from 'node:fs';
 import * as path from 'path';
-import * as os from 'os';
+import os from 'node:os';
 
 describe('spyder admin port persistence', () => {
   let tmpDir: string;
