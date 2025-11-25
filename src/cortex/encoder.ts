@@ -1,5 +1,5 @@
 import fs from 'fs';
-import path from 'path';
+import * as path from 'path';
 import zlib from 'zlib';
 import { PNG } from 'pngjs';
 import crypto from 'crypto';

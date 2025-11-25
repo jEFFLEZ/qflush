@@ -1,5 +1,5 @@
 import fs from 'fs';
-import path from 'path';
+import * as path from 'path';
 
 async function resolveFetch() {
   if (typeof (globalThis as any).fetch === 'function') return (globalThis as any).fetch;

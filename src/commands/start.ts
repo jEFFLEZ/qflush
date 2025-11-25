@@ -12,9 +12,9 @@ import { waitForService } from "../utils/health.js";
 import { runCustomsCheck, hasBlockingIssues, ModuleDescriptor } from "../utils/npz-customs.js";
 import * as fs from 'node:fs';
 import { spawnSync } from 'node:child_process';
-import path from 'node:path';
+import * as path from 'path';
 import { startService } from '../services.js';
-import net from 'node:net';
+import * as net from 'node:net';
 import { safeWriteFileSync } from '../utils/safe-fs.js';
 
 // Read SPYDER admin port from config/env with sensible fallback
@@ -550,9 +550,9 @@ export async function runStart(opts?: qflushOptions) {
    } catch (e) {
      logger.warn('Failed to ensure .qflush/logs at runStart: ' + String(e));
    }
-+
-+  // Log after ensuring directories/files exist to avoid write races
-+  logger.info("qflush: starting modules...");
+
+  // Log after ensuring directories/files exist to avoid write races
+  logger.info("qflush: starting modules...");
 
    // Respect CI/dev flag to disable supervisor starting external services
    const disableSupervisor = process.env.QFLUSH_DISABLE_SUPERVISOR === '1' || String(process.env.QFLUSH_DISABLE_SUPERVISOR).toLowerCase() === 'true';

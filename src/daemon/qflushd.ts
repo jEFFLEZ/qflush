@@ -39,7 +39,7 @@ async function computeFlexibleChecksumForPath(relPath: string) {
     // dynamic import to be compatible with ESM
     let fc: any = null;
     try {
-      const mod = await import('../utils/fileChecksum.js');
+      const mod: any = await import('../utils/fileChecksum.js');
       fc = (mod && (mod.default || mod));
     } catch (_e) {
       fc = null;
@@ -119,7 +119,7 @@ export async function startServer(port?: number) {
                   // dynamic import to avoid circulars in ESM
                   let loader: any = null;
                   try {
-                    const mod = await import('../rome/index-loader.js');
+                    const mod: any = await import('../rome/index-loader.js');
                     loader = (mod && (mod.default || mod));
                   } catch (_e) {
                     loader = null;

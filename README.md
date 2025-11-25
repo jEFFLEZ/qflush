@@ -5,6 +5,8 @@
 Résumé rapide
 - qflush est l'orchestrateur (CLI + daemon) principal du projet Funesterie. Le coeur se trouve dans `src/` et la sortie build dans `dist/`.
 
+> Note: The `dist/` build artifacts should not be committed to the repository. If you have a local `dist/` directory, prefer adding it to `.gitignore` and removing it from the index (e.g. `git rm -r --cached dist/`). This repository already lists `dist/` in `.gitignore`.
+
 Architecture (big picture)
 - Entrées principales:
   - `src/daemon/qflushd.ts` : serveur HTTP (endpoints admin & NPZ).
@@ -22,6 +24,7 @@ Commandes utiles
 - Builder : `npm run build` (exécute `tsc -p .`).
 - Lancer le daemon compilé : `node dist/daemon/qflushd.js` ou `npm start`.
 - Tests : `npm test` (Vitest). En CI/Vitest le bootstrap démarre automatiquement la version compilée du daemon via `vitest.setup.js`.
+- Quick API examples are available in `docs/quick-start.md` and below.
 
 Comportements runtime & variables d'environnement importants
 - `QFLUSHD_PORT` : port du daemon (défaut 4500 ou 43421 selon scripts). Tests/CI attendent parfois `4500`.
@@ -46,48 +49,16 @@ Où regarder en priorité
 - `package.json` — scripts exposés (build, test, start, daemon:spawn, etc.).
 
 Proposition pour la suite
-- Voulez-vous que je :
-  1) Nettoie le repo pour retirer `dist/` du commit (si vous préférez éviter d'avoir des artefacts de build dans la PR),
-  2) Ajoute des extraits d'exemples d'API pour `/npz/*` dans `docs/quick-start.md`,
-  3) Ou merge la PR maintenant et continuer l'amélioration de la documentation ?
+- J'ai appliqué les changements suivants en local:
+  1) Vérifié que `dist/` est ignoré via `.gitignore` et supprimé les artefacts compilés suivis (`dist/daemon/qflushd.js`) pour éviter d'avoir des artefacts de build dans le commit.
+  2) Ajouté des exemples d'API rapides dans `docs/quick-start.md`.
+
+Si tu veux que je :
+  - retire complètement tous les fichiers `dist/` du dépôt ou crée une PR automatique, dis‑le et je m'en occupe.
+  - ajoute d'autres extraits d'exemples d'API pour `/npz/*` ou des scripts d'installation, je peux les ajouter.
 
 ---
 Pour feedback ou détails supplémentaires, dites-moi quelle partie vous voulez développer en priorité.
-# QFLUSH — Funesterie Orchestrator ⚡
-
-QFLUSH est l'orchestrateur local de la Funesterie : un CLI + daemon pour démarrer, arrêter, purger, inspecter et synchroniser des modules et flux de travail dans un workspace. Il fournit des endpoints NPZ pour checksum, index Rome et liens, des utilitaires de build et des scripts d'intégration.
-
-Principales capacités
-- Orchestration de services (detect → config → start/kill)
-- Store NPZ checksum (store/verify/list/clear)
-- Intégration Rome (index / liens / SSE)
-- CLI ergonomique (`qflush`) et daemon `qflushd`
-- Mode développement sans dépendances externes (Redis/Copilot désactivés par défaut)
-
-Pourquoi utiliser QFLUSH ?
-- Démarrage rapide d'une stack locale sans surprises
-- Outils pour tester et valider les artefacts NPZ
-- Scripts sécurisés pour gérer secrets localement (DPAPI sur Windows)
-
-Quickstart (rapide)
-1) Copier l'exemple d'env :
-   - PowerShell: `Copy-Item .env.example .env; notepad .env`
-   - Bash: `cp .env.example .env && ${EDITOR:-nano} .env`
-2) Installer et builder :
-   `npm ci --no-audit --no-fund && npm run build`
-3) Lancer les tests :
-   `npm test`
-4) Lancer le daemon en dev :
-   `qflush daemon` (ou `qflush safe-run --detach daemon`)
-
-Où aller ensuite
-- Voir `docs/quick-start.md` pour plus de détails.
-- Scripts utiles : `scripts/import-env-to-secrets.ps1` (Windows DPAPI), `scripts/set-secrets.ps1`.
-
-Si tu veux, je peux :
-- enrichir ce README avec des exemples d'API (curl),
-- ajouter des badges CI/coverage,
-- ou pousser ces changements et ouvrir une PR (`push+pr`).
 
 Exemples d'API (endpoints NPZ)
 

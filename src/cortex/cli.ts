@@ -1,4 +1,4 @@
-import path from 'path';
+import * as path from 'path';
 import { encodeCortexCommand } from './encoder.js';
 import fs from 'fs';
 

@@ -1,7 +1,7 @@
 ﻿// ROME-TAG: 0x11D9FC
 
 import fs from 'fs';
-import path from 'path';
+import * as path from 'path';
 import { createRecord as redisCreate, getRecord as redisGet, updateRecord as redisUpdate } from './npz-store-redis.js';
 import { getNpzNamespace } from './npz-config.js';
 

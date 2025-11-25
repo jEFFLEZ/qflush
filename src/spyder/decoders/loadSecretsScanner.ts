@@ -2,24 +2,18 @@ import type { SecretScanner } from './types.js';
 import { localSecretScanner } from './secrets-local.js';
 
 export async function loadSecretScanner(): Promise<SecretScanner> {
+  // Prefer local scanner shipped in this repo. If an external spyder package is installed,
+  // attempt to load it at runtime but don't keep a static reference that TypeScript must resolve.
   try {
-    const external: any = await import('@funeste38/spyder/decoders/secrets');
-    if (external && typeof external.scanFileForSecrets === 'function') {
-      const scanner: SecretScanner = {
-        // normalize possible sync or async implementations and accept options
-        scanFileForSecrets: async (filePath: string, options?: any) => {
-          try {
-            const res = external.scanFileForSecrets(filePath, options);
-            return Array.isArray(res) ? (res as any[]) : await Promise.resolve(res);
-          } catch (e) {
-            return [];
-          }
-        },
-      };
-      return scanner;
+    // dynamic require via eval to avoid TypeScript resolving this module name at compile time
+    // eslint-disable-next-line no-eval
+    const maybe = eval("typeof require !== 'undefined' ? require('@funeste38/spyder/decoders/secrets') : undefined");
+    if (maybe && typeof maybe.scanFileForSecrets === 'function') {
+      return { scanFileForSecrets: (filePath: string, options?: any) => Promise.resolve(maybe.scanFileForSecrets(filePath, options)) } as SecretScanner;
     }
   } catch {
-    // optional
+    // ignore any errors and fall back to local scanner
   }
+
   return localSecretScanner;
 }
