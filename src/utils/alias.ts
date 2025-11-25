@@ -13,11 +13,14 @@ try {
   resolvePaths = undefined;
 }
 
+const isTest = process.env.NODE_ENV === 'test';
+function warn(...args: any[]) { if (!isTest) console.warn(...args); }
+
 function tryRequire(filePath: string) {
   try {
     if (fs.existsSync(filePath)) return require(filePath);
   } catch (e) {
-    try { return require(filePath); } catch (e) { console.warn('[alias] tryRequire fallback require failed', String(e)); }
+    try { return require(filePath); } catch (e) { warn('[alias] tryRequire fallback require failed', String(e)); }
   }
   return undefined;
 }
@@ -61,11 +64,11 @@ export function importUtil(name: string): any {
           const resolved = require.resolve(localName, { paths: [spy] });
           const m = require(resolved);
           if (m) return (m && m.default) || m;
-        } catch (e) { console.warn('[alias] require.resolve from spyder failed', String(e)); }
+        } catch (e) { warn('[alias] require.resolve from spyder failed', String(e)); }
       }
     }
   } catch (e) {
-    console.warn('[alias] resolvePaths check failed', String(e));
+    warn('[alias] resolvePaths check failed', String(e));
   }
 
   // If name was an alias like @utils/foo, try local src/utils/<foo>
@@ -88,6 +91,12 @@ export function importUtil(name: string): any {
     const m = require(name);
     return (m && m.default) || m;
   } catch (e) { console.warn('[alias] final require failed', String(e)); }
+
+  // try to return a local minimal logger fallback to reduce noisy warnings
+  try {
+    const fallback = tryRequireVariants(path.join(__dirname, 'logger'));
+    if (fallback) return fallback;
+  } catch (e) { warn('[alias] fallback logger require failed', String(e)); }
 
   return undefined;
 }

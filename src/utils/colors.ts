@@ -1,5 +1,3 @@
-// ROME-TAG: 0xBAEB58
-
 // Utilities for Nezlephant color palette and helpers
 // Base color shorthand '0c8' -> #00cc88
 
@@ -18,14 +16,14 @@ function clamp(v: number, a = 0, b = 255) {
 export function hexToRgb(hex: string): { r: number; g: number; b: number } {
   const h = hex.replace('#', '');
   if (h.length === 3) {
-    const r = parseInt(h[0] + h[0], 16);
-    const g = parseInt(h[1] + h[1], 16);
-    const b = parseInt(h[2] + h[2], 16);
+    const r = Number.parseInt(h[0] + h[0], 16);
+    const g = Number.parseInt(h[1] + h[1], 16);
+    const b = Number.parseInt(h[2] + h[2], 16);
     return { r, g, b };
   }
-  const r = parseInt(h.slice(0, 2), 16);
-  const g = parseInt(h.slice(2, 4), 16);
-  const b = parseInt(h.slice(4, 6), 16);
+  const r = Number.parseInt(h.slice(0, 2), 16);
+  const g = Number.parseInt(h.slice(2, 4), 16);
+  const b = Number.parseInt(h.slice(4, 6), 16);
   return { r, g, b };
 }
 
@@ -92,7 +90,10 @@ export const ansiReset = '\x1b[0m';
 
 // Preset styled log helpers for Joker + Nezlephant
 export function styledLog(title: string, msg: string, opts?: { accent?: 'joker' | 'base' | 'neutral' }) {
-  const accent = opts?.accent === 'joker' ? NEZLEPHANT.jokerHex : opts?.accent === 'neutral' ? NEZLEPHANT.neutralHex : NEZLEPHANT.baseHex;
+  let accent = NEZLEPHANT.baseHex;
+  if (opts?.accent === 'joker') accent = NEZLEPHANT.jokerHex;
+  else if (opts?.accent === 'neutral') accent = NEZLEPHANT.neutralHex;
+
   const bg = ansiBg(darken(accent, 0.15));
   const fg = ansiFg(readableTextColor(darken(accent, 0.15)));
   const accentFg = ansiFg(accent);
