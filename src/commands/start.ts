@@ -1,19 +1,19 @@
 ﻿// ROME-TAG: 0xF73710
 
-import { detectModules } from "../utils/detect";
-import logger from "../utils/logger";
-import { ensurePackageInstalled, pathExists, rebuildInstructionsFor } from "../utils/exec";
-import { resolvePaths, SERVICE_MAP } from "../utils/paths";
-import { qflushOptions } from "../chain/smartChain";
-import { resolvePackagePath, readPackageJson } from "../utils/package";
-import { startProcess } from "../supervisor";
-import { waitForService } from "../utils/health";
-import { runCustomsCheck, hasBlockingIssues, ModuleDescriptor } from "../utils/npz-customs";
-import { resolveMerged } from "../supervisor/merged-resolver";
+import { detectModules } from "../utils/detect.js";
+import logger from "../utils/logger.js";
+import { ensurePackageInstalled, pathExists, rebuildInstructionsFor } from "../utils/exec.js";
+import { resolvePaths, SERVICE_MAP } from "../utils/paths.js";
+import { qflushOptions } from "../chain/smartChain.js";
+import { resolvePackagePath, readPackageJson } from "../utils/package.js";
+import { startProcess } from "../supervisor/index.js";
+import { waitForService } from "../utils/health.js";
+import { runCustomsCheck, hasBlockingIssues, ModuleDescriptor } from "../utils/npz-customs.js";
+import { resolveMerged } from "../supervisor/merged-resolver.js";
 import * as fs from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import path from 'node:path';
-import { startService } from '../services';
+import { startService } from '../services/index.js';
 import net from 'node:net';
 
 // Read SPYDER admin port from config/env with sensible fallback

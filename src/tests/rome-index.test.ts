@@ -2,7 +2,7 @@
 
 import * as http from 'http';
 import { spawn, ChildProcess } from 'child_process';
-import fetch from '../utils/fetch';
+import fetch from '../utils/fetch.js';
 
 const PORT = process.env.QFLUSHD_PORT ? Number(process.env.QFLUSHD_PORT) : 4500;
 const BASE = `http://127.0.0.1:${PORT}`;

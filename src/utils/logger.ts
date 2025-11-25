@@ -1,4 +1,4 @@
-import colors from './colors';
+import colors from './colors.js';
 
 const isProd = process.env.NODE_ENV === 'production';
 
