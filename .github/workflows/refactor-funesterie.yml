@@ -130,7 +130,7 @@ jobs:
           commit-message: "refactor: applied Funesterie Rules via A11 Engine"
           title: "Auto-refactor (Funesterie Engine)"
 
-      - name: Optional: Install Spyder (from npm)
+      - name: "Optional: Install Spyder (from npm)"
         if: ${{ env.INSTALL_SPYDER == 'true' }}
         shell: pwsh
         env:
