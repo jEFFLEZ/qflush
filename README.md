@@ -202,3 +202,20 @@ env:
 ```
 
 This mirrors `docs/quick-start.md` recommendations and the `.env.example` in the repo.
+
+## Module system strategy (ESM + CJS fallbacks)
+
+This repository primarily uses ECMAScript modules (ESM) and Node's `NodeNext` resolution. To maintain compatibility with older CommonJS-only packages and optional runtime fallbacks, the project follows a dual-mode approach:
+
+- Source files are authored as ESM (`import`/`export`) and compiled to `dist/` with `.js` extensions in imports.
+- Where necessary we keep selective `require()` fallbacks or small `*.js` wrappers (for example `src/services.js`) to support runtime resolution of CJS modules or optional packages.
+- For ESM-only third-party packages (for example `node-fetch`), prefer using dynamic `import()` with fallbacks to `undici` or `globalThis.fetch`.
+
+Why this approach?
+- Ensures the CLI and daemon run in modern Node.js (ESM) while remaining resilient to modules that are still published as CommonJS.
+- Keeps tests and CI stable because some runtime resolution paths intentionally use `require()` as a safe fallback.
+
+Contribution guidance
+- Avoid adding static default imports of known ESM-only packages (e.g. `import fetch from 'node-fetch'`). Use the project's pattern: dynamic `import('node-fetch')` with fallback to `undici` or `globalThis.fetch`.
+- Run `npm run check-esm-imports` before opening PRs to detect static imports of known ESM-only packages.
+- If you need to remove CJS fallbacks, open a PR and test thoroughly in CI — this is a breaking, repo-wide change.

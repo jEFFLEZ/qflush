@@ -1,8 +1,8 @@
 /// <reference types="vitest" />
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import * as merged from '../supervisor/merged-resolver';
-import * as npz from '../utils/npz';
-import * as sup from '../supervisor/index';
+import * as merged from '../supervisor/merged-resolver.js';
+import * as npz from '../utils/npz.js';
+import * as sup from '../supervisor/index.js';
 
 describe('merged resolver', () => {
   beforeEach(() => {

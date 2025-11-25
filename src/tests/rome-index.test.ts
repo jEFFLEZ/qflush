@@ -2,7 +2,7 @@
 
 import * as http from 'http';
 import { spawn, ChildProcess } from 'child_process';
-import fetch from '../utils/fetch';
+import fetch from '../utils/fetch.js';
 
 const PORT = process.env.QFLUSHD_PORT ? Number(process.env.QFLUSHD_PORT) : 4500;
 const BASE = `http://127.0.0.1:${PORT}`;
@@ -43,7 +43,7 @@ export async function runTests() {
         // ensure daemon token available when starting in-process or spawning
         if (!process.env.QFLUSH_TOKEN) process.env.QFLUSH_TOKEN = 'test-token';
         // prefer importing the TS module (no .js) so Vitest can resolve it
-        serverMod = await import('../daemon/qflushd');
+        serverMod = await import('../daemon/qflushd.js');
         // start server programmatically on test port
         if (serverMod && typeof serverMod.startServer === 'function') {
           console.log('[rome-index] Démarrage du daemon via startServer');

@@ -1,6 +1,6 @@
 // ROME-TAG: 0x1DEEBD
 
-import alias from '../utils/alias';
+import alias from '../utils/alias.js';
 const logger = alias.importUtil('@utils/logger') || alias.importUtil('../utils/logger') || console;
 
 export function showHelp() {

@@ -1,6 +1,6 @@
 // ROME-TAG: 0xA0F9B4
 
-import alias from '../utils/alias';
+import alias from '../utils/alias.js';
 const fetch = alias.importUtil('../utils/fetch') || alias.importUtil('@utils/fetch') || (globalThis as any).fetch;
 const logger = alias.importUtil('@utils/logger') || alias.importUtil('../utils/logger') || console;
 

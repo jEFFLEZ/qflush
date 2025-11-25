@@ -1,6 +1,6 @@
 // ROME-TAG: 0x025858
 
-import npzStore from '../utils/npz-store';
+import npzStore from '../utils/npz-store.js';
 
 export async function runNpzInspect(id: string) {
   const rec = await npzStore.getRequestRecord(id);

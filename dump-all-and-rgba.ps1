@@ -3,51 +3,44 @@ param(
   [string]$OutText = 'D:\qflush-code-dump.txt',
   [string]$OutRaw = 'D:\qflush-code-dump.raw',
   [string]$OutPng = 'D:\qflush-code-dump.png',
-  [int]$ImageWidth = 1024
+  [int]$ImageWidth = 1024,
+  [int]$MaxFileSizeMB = 0  # 0 = no size limit (was 5)
 )
 
 Write-Host "=== QFLUSH DUMP START ==="
-Write-Host "Root          : $Root"
-Write-Host "OutText       : $OutText"
-Write-Host "OutRaw        : $OutRaw"
-Write-Host "OutPng        : $OutPng"
-Write-Host "ImageWidth    : $ImageWidth"
+Write-Host ("Root          : " + $Root)
+Write-Host ("OutText       : " + $OutText)
+Write-Host ("OutRaw        : " + $OutRaw)
+Write-Host ("OutPng        : " + $OutPng)
+Write-Host ("ImageWidth    : " + $ImageWidth)
+Write-Host ("MaxFileSizeMB : " + $MaxFileSizeMB)
 Write-Host ""
 
-# 1) Validation du root
 if (-not (Test-Path -Path $Root)) {
   Write-Error "Root path '$Root' not found."
   exit 2
 }
 
-# 2) Nettoyage des sorties précédentes
 foreach ($p in @($OutText, $OutRaw, $OutPng)) {
   if (Test-Path $p) {
-    Write-Host "Removing previous output: $p"
+    Write-Host ("Removing previous output: " + $p)
     Remove-Item $p -Force -ErrorAction SilentlyContinue
   }
 }
 
-# 3) Préparation writer UTF-8 sans BOM
 $utf8NoBOM = New-Object System.Text.UTF8Encoding($false)
-$fs = [System.IO.File]::Open(
-  $OutText,
-  [System.IO.FileMode]::Create,
-  [System.IO.FileAccess]::Write,
-  [System.IO.FileShare]::Read
-)
-$sw = New-Object System.IO.StreamWriter($fs, $utf8NoBOM)
+$fs = $null
+$sw = $null
 
-# Extensions considérées comme "texte"
 $textExtensions = @(
   '.ts', '.tsx', '.js', '.cjs', '.mjs',
-  '.json', '.yml', '.yaml', '.md',
+  '.json', '.json5', '.yml', '.yaml', '.toml', '.md',
   '.ps1', '.psm1', '.psd1',
   '.xml', '.txt', '.sh', '.bat',
-  '.c', '.cpp', '.h', '.hpp'
+  '.c', '.cpp', '.h', '.hpp',
+  '.map', '.lock'
 )
 
-# Dossiers à exclure
 $excludePatterns = @(
   '\node_modules\',
   '\dist\',
@@ -60,205 +53,236 @@ $excludePatterns = @(
   '\.qflush\cache\'
 )
 
+function Normalize-PathForMatch([string]$p) {
+  return ($p -replace '/','\').ToLowerInvariant()
+}
+
 function Test-ExcludedPath([string]$fullPath) {
+  $np = Normalize-PathForMatch $fullPath
   foreach ($pat in $excludePatterns) {
-    if ($fullPath -like "*$pat*") { return $true }
+    if ($np -like ("*" + ($pat -replace '/','\').ToLowerInvariant() + "*")) {
+      return $true
+    }
   }
   return $false
 }
 
 try {
-  # En-tête du dump
+  try {
+    $fs = [System.IO.File]::Open(
+      $OutText,
+      [System.IO.FileMode]::Create,
+      [System.IO.FileAccess]::Write,
+      [System.IO.FileShare]::Read
+    )
+    $sw = New-Object System.IO.StreamWriter($fs, $utf8NoBOM)
+  } catch {
+    Write-Error ("Failed to create output text stream: " + $_.Exception.Message)
+    throw
+  }
+
   $now = (Get-Date).ToString("o")
-  $sw.WriteLine("qflush code dump generated: $now")
+  $sw.WriteLine("qflush code dump generated: " + $now)
   $sw.WriteLine()
 
-  Write-Host "Scanning files under: $Root"
-  $files = Get-ChildItem -Path $Root -Recurse -File -Force -ErrorAction SilentlyContinue |
-    Where-Object { -not (Test-ExcludedPath $_.FullName) } |
-    Sort-Object FullName
+  Write-Host ("Scanning files under: " + $Root)
+  # Include only desired paths/files to reduce dump size (keep important sources and metadata)
+  $filesAll = Get-ChildItem -Path $Root -Recurse -File -Force -ErrorAction SilentlyContinue | Sort-Object FullName
 
-  Write-Host ("Found {0} files after exclusions." -f $files.Count)
+  $files = foreach ($f in $filesAll) {
+    $p = Normalize-PathForMatch $f.FullName
+    $ext = [System.IO.Path]::GetExtension($f.FullName).ToLowerInvariant()
+
+    # Keep rules (whitelist): src/**, package.json & locks, scripts/*.ps1, .github/workflows/**, .qflush/**/*.json, cortex/** or packets
+    if ($p -like "*\src\*") { $f; continue }
+    if ($p -like "*\.github\workflows\*") { $f; continue }
+    if ($p -like "*\\.qflush\\*" -and $ext -eq '.json') { $f; continue }
+    if ($p -like "*\cortex\*" -or $p -like "*\packets\*") { $f; continue }
+    if ($p -like "*\scripts\*" -and $ext -eq '.ps1') { $f; continue }
+    $name = [System.IO.Path]::GetFileName($f.FullName).ToLowerInvariant()
+    if ($name -in @('package.json','package-lock.json','yarn.lock','pnpm-lock.yaml')) { $f; continue }
+
+    # Otherwise skip (exclude logs, snapshots, vitest output, tsbuildinfo, maps, node cache, png, assets, binaries)
+    continue
+  }
+
+  Write-Host ("Found " + $files.Count + " files after whitelist filter.")
   Write-Host ""
 
   foreach ($f in $files) {
     try {
-      # Chemin relatif
       $rel = $f.FullName
       if ($rel.StartsWith($Root, [System.StringComparison]::InvariantCultureIgnoreCase)) {
         $rel = $rel.Substring($Root.Length).TrimStart('\','/')
       }
 
-      Write-Host "Dumping file: $rel"
+      # Skip PNG files: we don't include existing PNGs in the text dump
+      $ext = [System.IO.Path]::GetExtension($f.FullName).ToLowerInvariant()
+      if ($ext -eq '.png') {
+        Write-Host ("Skipping PNG file from text dump: " + $rel)
+        continue
+      }
+
+      Write-Host ("Dumping file: " + $rel)
 
       $sep = '=' * 28
       $sw.WriteLine($sep)
-      $sw.WriteLine("FILE: $rel")
+      $sw.WriteLine("FILE: " + $rel)
       $sw.WriteLine($sep)
       $sw.WriteLine($sep)
 
-      $ext = [System.IO.Path]::GetExtension($f.FullName).ToLowerInvariant()
-      $isTextExt = $textExtensions -contains $ext
+      $isDts = $f.Name -match '\.d\.ts$'
+      $isTextExt = $isDts -or ($textExtensions -contains $ext)
 
       if ($isTextExt) {
-        # Lecture texte
-        $raw = $null
+        $ln = 1
+        $readOK = $false
         try {
-          $raw = Get-Content -LiteralPath $f.FullName -Raw -Encoding UTF8 -ErrorAction Stop
-        } catch {
-          $raw = $null
-        }
-
-        if ($null -ne $raw) {
-          # Découper en lignes, écrire sans utiliser -f sur le contenu
-          $lines = $raw -split "`r?`n"
-          $ln = 1
-          foreach ($line in $lines) {
-            $prefix = "{0,6}: " -f $ln
+          foreach ($line in Get-Content -LiteralPath $f.FullName -Encoding UTF8 -ErrorAction Stop) {
+            $prefix = $ln.ToString().PadLeft(6) + ": "
             $sw.WriteLine($prefix + $line)
             $ln++
           }
-        } else {
-          # Fallback binaire
-          $bytes = [System.IO.File]::ReadAllBytes($f.FullName)
-          $sw.WriteLine("[BINARY CONTENT - {0} bytes] (text read failed)" -f $bytes.Length)
-          for ($i = 0; $i -lt $bytes.Length; $i += 16) {
-            $end = [Math]::Min($i + 15, $bytes.Length - 1)
-            $slice = $bytes[$i..$end]
-            $hex = ($slice | ForEach-Object { $_.ToString('x2') }) -join ' '
-            $sw.WriteLine('{0,6}: {1}' -f (($i / 16) + 1), $hex)
+          $readOK = $true
+        } catch {
+          try {
+            foreach ($line in Get-Content -LiteralPath $f.FullName -ErrorAction Stop) {
+              $prefix = $ln.ToString().PadLeft(6) + ": "
+              $sw.WriteLine($prefix + $line)
+              $ln++
+            }
+            $readOK = $true
+          } catch {
+            $readOK = $false
           }
         }
-      } else {
-        # Lecture binaire pure
-        $bytes = [System.IO.File]::ReadAllBytes($f.FullName)
-        $sw.WriteLine("[BINARY CONTENT - {0} bytes]" -f $bytes.Length)
-        for ($i = 0; $i -lt $bytes.Length; $i += 16) {
-          $end = [Math]::Min($i + 15, $bytes.Length - 1)
-          $slice = $bytes[$i..$end]
-          $hex = ($slice | ForEach-Object { $_.ToString('x2') }) -join ' '
-          $sw.WriteLine('{0,6}: {1}' -f (($i / 16) + 1), $hex)
+
+        if (-not $readOK) {
+          # replaced full binary dump with a short marker to keep dump small
+          $sw.WriteLine("[BINARY FILE SKIPPED - " + $f.Length + " bytes] (text read failed)")
         }
+      } else {
+        # skip binary file contents to reduce dump size
+        $sw.WriteLine("[BINARY FILE SKIPPED - " + $f.Length + " bytes]")
       }
 
       $sw.WriteLine()
       $sw.WriteLine()
       $sw.Flush()
     } catch {
-      # IMPORTANT : ne pas utiliser -f avec le message d'exception
-      $sw.WriteLine("[ERROR] Failed to include file: " + $f.FullName)
-      $sw.WriteLine("Reason: " + $_.Exception.Message)
-      $sw.WriteLine()
-      $sw.WriteLine()
-      $sw.Flush()
-
-      Write-Warning "Failed to dump file: $($f.FullName) -> $($_.Exception.Message)"
+      $err = $_.Exception.Message
+      if ($sw -ne $null) {
+        $sw.WriteLine("[ERROR] Failed to include file: " + $f.FullName)
+        $sw.WriteLine("Reason: " + $err)
+        $sw.WriteLine()
+        $sw.WriteLine()
+        $sw.Flush()
+      }
+      Write-Warning ("Failed to dump file: " + $f.FullName + " -> " + $err)
     }
   }
 
   $completed = (Get-Date -Format o)
-  $sw.WriteLine("Completed: $completed")
+  $sw.WriteLine("Completed: " + $completed)
   $sw.Flush()
-  Write-Host "Text dump completed at: $completed"
+  Write-Host ("Text dump completed at: " + $completed)
 }
 finally {
-  $sw.Close()
-  $fs.Close()
+  if ($sw -ne $null) { $sw.Close() }
+  if ($fs -ne $null) { $fs.Close() }
 }
 
-# 5) Conversion du texte → RAW RGBA → PNG (ImageMagick)
 Write-Host ""
-Write-Host "=== Building RAW / PNG from text dump ==="
+Write-Host "=== BUILD OC8-BROTLI PNG FROM TEXT DUMP ==="
 
 try {
   if (-not (Test-Path $OutText)) {
-    Write-Warning "Text dump not found at $OutText, aborting RAW/PNG generation."
+    Write-Warning ("Text dump not found at " + $OutText + ", aborting PNG generation.")
     return
   }
 
+  # Read text dump bytes (UTF8 no BOM)
   $textBytes = [System.IO.File]::ReadAllBytes($OutText)
-  $len = $textBytes.Length
-  Write-Host ("Text dump size: {0} bytes" -f $len)
 
-  # Padding à multiple de 4 (RGBA)
-  $pad = (4 - ($len % 4)) % 4
+  # Compress with Brotli
+  $msIn = New-Object System.IO.MemoryStream
+  $msIn.Write($textBytes, 0, $textBytes.Length)
+  $msIn.Seek(0, 'Begin') | Out-Null
+
+  $msOut = New-Object System.IO.MemoryStream
+  $brotli = New-Object System.IO.Compression.BrotliStream($msOut, [System.IO.Compression.CompressionLevel]::Optimal, $true)
+  $msIn.CopyTo($brotli)
+  $brotli.Close()
+  $compressed = $msOut.ToArray()
+  $msIn.Close()
+  $msOut.Close()
+
+  # Build OC8 header: ASCII "OC8" + version byte (1) + 4 bytes little-endian payload length
+  $hdr = [System.Text.Encoding]::ASCII.GetBytes("OC8")
+  $ver = [byte]1
+  $lenBytes = [System.BitConverter]::GetBytes([int]$compressed.Length)
+  if (-not [BitConverter]::IsLittleEndian) { [Array]::Reverse($lenBytes) }
+
+  $payload = New-Object System.Byte[] ($hdr.Length + 1 + $lenBytes.Length + $compressed.Length)
+  [Array]::Copy($hdr, 0, $payload, 0, $hdr.Length)
+  $payload[$hdr.Length] = $ver
+  [Array]::Copy($lenBytes, 0, $payload, $hdr.Length + 1, $lenBytes.Length)
+  [Array]::Copy($compressed, 0, $payload, $hdr.Length + 1 + $lenBytes.Length, $compressed.Length)
+
+  # Map payload bytes into RGBA pixels (4 bytes per pixel)
+  $pad = (4 - ($payload.Length % 4)) % 4
   if ($pad -gt 0) {
-    Write-Host ("Applying padding of {0} bytes to align to RGBA." -f $pad)
-    $new = New-Object byte[] ($len + $pad)
-    [System.Array]::Copy($textBytes, 0, $new, 0, $len)
-    $textBytes = $new
-    $len = $textBytes.Length
+    $payload = $payload + (New-Object byte[] $pad)
   }
 
-  [System.IO.File]::WriteAllBytes($OutRaw, $textBytes)
-  Write-Host "RAW RGBA bytes written to: $OutRaw (length=${len})"
-
-  $pixels = [int]($len / 4)
+  $pixelCount = [int]($payload.Length / 4)
   $width = [int]$ImageWidth
   if ($width -le 0) { $width = 1024 }
-  $height = [int][Math]::Ceiling($pixels / $width)
+  $height = [int][Math]::Ceiling($pixelCount / $width)
 
-  Write-Host ("Image logical size: {0}x{1} pixels (pixels={2})" -f $width, $height, $pixels)
+  Write-Host ("OC8 payload bytes: " + $payload.Length + " -> image " + $width + "x" + $height + " (pixels=" + $pixelCount + ")")
 
-  # Ensure raw length matches width*height*4 by padding with zeros if necessary
-  $requiredBytes = $width * $height * 4
-  if ($len -lt $requiredBytes) {
-    $padNeeded = $requiredBytes - $len
-    Write-Host ("Padding raw file to {0} bytes (adding {1} zeros) to match image size" -f $requiredBytes, $padNeeded)
-    $newArr = New-Object byte[] $requiredBytes
-    [System.Array]::Copy($textBytes, 0, $newArr, 0, $len)
-    [System.IO.File]::WriteAllBytes($OutRaw, $newArr)
-    $len = $newArr.Length
-  }
+  # Create a single PNG containing full OC8 payload
+  Add-Type -AssemblyName System.Drawing
+  $bmp = New-Object System.Drawing.Bitmap($width, $height, [System.Drawing.Imaging.PixelFormat]::Format32bppArgb)
+  try {
+    $rect = New-Object System.Drawing.Rectangle(0,0,$width,$height)
+    $bmpData = $bmp.LockBits($rect, [System.Drawing.Imaging.ImageLockMode]::WriteOnly, $bmp.PixelFormat)
+    $stride = $bmpData.Stride
+    $ptr = $bmpData.Scan0
 
-  # Detect ImageMagick executable reliably
-  $magickExe = $null
-  try { $magickExe = (Get-Command magick -ErrorAction SilentlyContinue).Source } catch {}
-  if (-not $magickExe) {
-    try { $magickExe = (Get-Command convert -ErrorAction SilentlyContinue).Source } catch {}
-  }
-
-  $useMagick = $false
-  $useConvert = $false
-  if ($magickExe) {
-    $exeName = (Split-Path $magickExe -Leaf).ToLower()
-    if ($exeName -eq 'magick' -or $exeName -eq 'magick.exe') {
-      $useMagick = $true
-    } else {
-      # candidate 'convert' found - ensure it's ImageMagick, not Windows convert
-      try {
-        $ver = & $magickExe -version 2>&1
-        if ($ver -and ($ver -join "`n") -match 'ImageMagick') { $useConvert = $true }
-      } catch {
-        $useConvert = $false
-      }
-    }
-  }
-
-  if ($useMagick -or $useConvert) {
-    if ($useMagick) {
-      Write-Host "Using ImageMagick (magick) at: $magickExe"
-      # magick v7: magick -size WxH -depth 8 rgba:in.raw out.png
-      & $magickExe '-size' "${width}x${height}" '-depth' '8' ('rgba:' + $OutRaw) $OutPng
-    } else {
-      Write-Host "Using ImageMagick (convert) at: $magickExe"
-      & $magickExe '-size' "${width}x${height}" '-depth' '8' ('rgba:' + $OutRaw) $OutPng
+    $totalBytes = $stride * $height
+    $raw = New-Object byte[] $totalBytes
+    for ($i = 0; $i -lt $pixelCount; $i++) {
+      $srcIndex = $i * 4
+      $dstIndex = $i * 4
+      $r = $payload[$srcIndex + 0]
+      $g = $payload[$srcIndex + 1]
+      $b = $payload[$srcIndex + 2]
+      $a = $payload[$srcIndex + 3]
+      $raw[$dstIndex + 0] = $b
+      $raw[$dstIndex + 1] = $g
+      $raw[$dstIndex + 2] = $r
+      $raw[$dstIndex + 3] = $a
     }
 
-    if (Test-Path $OutPng) {
-      Write-Host "✅ RGBA image written to: $OutPng (size=${width}x${height})"
-    } else {
-      Write-Warning "ImageMagick executed but $OutPng not found. Check logs above."
+    for ($row = 0; $row -lt $height; $row++) {
+      $srcOff = $row * $width * 4
+      $dstOff = $row * $stride
+      [System.Buffer]::BlockCopy($raw, $srcOff, $raw, $dstOff, $width * 4)
     }
-  } else {
-    Write-Warning "ImageMagick not found in PATH or 'convert' is the Windows tool. Skipping PNG generation."
-    Write-Host "RAW RGBA written to $OutRaw."
-    Write-Host "Install ImageMagick and run manually:"
-    Write-Host "  magick -size ${width}x${height} -depth 8 rgba:`"$OutRaw`" `"$OutPng`""
+
+    [System.Runtime.InteropServices.Marshal]::Copy($raw, 0, $ptr, $totalBytes)
+    $bmp.UnlockBits($bmpData)
+
+    $bmp.Save($OutPng, [System.Drawing.Imaging.ImageFormat]::Png)
+    Write-Host ("✅ OC8-Brotli PNG written to: " + $OutPng + " (" + $width + "x" + $height + ")")
+  } finally {
+    if ($bmp -ne $null) { $bmp.Dispose() }
   }
 } catch {
-  Write-Warning "Failed to create RGBA raw/png: $($_.Exception.Message)"
-}
+  Write-Warning ("Failed to create OC8 PNG: " + $_.Exception.Message)
+ }
 
-Write-Host "Text dump written to: $OutText"
-Write-Host "=== QFLUSH DUMP END ==="
+ Write-Host ("Text dump written to: " + $OutText)
+ Write-Host "=== QFLUSH DUMP END ==="

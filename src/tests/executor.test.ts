@@ -1,6 +1,6 @@
 // ROME-TAG: 0x34E4E4
 
-import { executeAction } from '../rome/executor';
+import { executeAction } from '../rome/executor.js';
 import * as http from 'http';
 import * as fs from 'fs';
 import * as path from 'path';

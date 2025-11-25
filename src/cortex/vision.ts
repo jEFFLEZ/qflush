@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { decodeCortexPacketFromPng } from './pngCodec';
+import { decodeCortexPacketFromPng } from './pngCodec.js';
 
 const OUT = path.join(process.cwd(), '.qflush', 'spyder-vision.json');
 

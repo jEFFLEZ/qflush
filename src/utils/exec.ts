@@ -1,7 +1,7 @@
 // ROME-TAG: 0xEB40C5
 
 import { spawn } from "child_process";
-import { logger } from "./logger";
+import { logger } from "./logger.js";
 import { unlinkSync, existsSync, rmSync } from "fs";
 import { execSync } from "child_process";
 

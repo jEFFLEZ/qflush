@@ -1,8 +1,8 @@
 // ROME-TAG: 0x8F4668
 
-import { loadLogicRules } from '../rome/logic-loader';
-import { loadRomeIndexFromDisk } from '../rome/index-loader';
-import { evaluateAllRules } from '../rome/logic-loader';
+import { loadLogicRules } from '../rome/logic-loader.js';
+import { loadRomeIndexFromDisk } from '../rome/index-loader.js';
+import { evaluateAllRules } from '../rome/logic-loader.js';
 import { describe, it, expect } from 'vitest';
 
 export async function runTests() {

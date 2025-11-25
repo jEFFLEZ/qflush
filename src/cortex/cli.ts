@@ -1,5 +1,5 @@
 import path from 'path';
-import { encodeCortexCommand } from './encoder';
+import { encodeCortexCommand } from './encoder.js';
 import fs from 'fs';
 
 export function cortexSend(cmd: string, args: any[] = []) {

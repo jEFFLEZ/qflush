@@ -1,7 +1,7 @@
 // ROME-TAG: 0x70150D
 
 import { describe, test, expect, beforeAll, afterAll } from 'vitest';
-import { saveLicense, loadLicense, clearLicense } from '../utils/gumroad-license';
+import { saveLicense, loadLicense, clearLicense } from '../utils/gumroad-license.js';
 
 describe('gumroad-license save/load/clear', () => {
   beforeAll(() => {

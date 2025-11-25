@@ -7,4 +7,4 @@ export * as Bat from "@funeste38/bat";
 export * as Envaptex from "@funeste38/envaptex";
 
 // expose local NPZ helper pourparler
-export * as Pourparler from "../utils/npz-pourparler";
+export * as Pourparler from "../utils/npz-pourparler.js";

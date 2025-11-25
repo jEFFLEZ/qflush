@@ -1,6 +1,6 @@
 // ROME-TAG: 0x9398B5
 
-import license from '../utils/license';
+import license from '../utils/license.js';
 
 export default async function runLicenseStatus() {
   const lic = license.readLicense();

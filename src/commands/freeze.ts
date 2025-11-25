@@ -1,4 +1,4 @@
-import { freezeAll } from '../supervisor';
+import { freezeAll } from '../supervisor.js';
 
 export default async function runFreeze(argv: string[] = []) {
   // parse --health=<url>

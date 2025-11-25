@@ -1,10 +1,10 @@
 ﻿// ROME-TAG: 0x263C6D
 
-import { logger } from "../utils/logger";
-import { resolvePaths } from "../utils/paths";
-import { rimrafSync } from "../utils/exec";
-import { clearState } from "../supervisor";
-import { qflushOptions } from "../chain/smartChain";
+import { logger } from "../utils/logger.js";
+import { resolvePaths } from "../utils/paths.js";
+import { rimrafSync } from "../utils/exec.js";
+import { clearState } from "../supervisor.js";
+import { qflushOptions } from "../chain/smartChain.js";
 
 export async function runPurge(opts?: qflushOptions) {
   logger.info("qflush: purging caches, logs, sessions and supervisor state...");

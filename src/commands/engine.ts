@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 // ROME-TAG: 0xE2F4A9
 
-import { loadRomeIndexFromDisk } from '../rome/index-loader';
-import { evaluateIndex } from '../rome/engine';
-import { executeAction } from '../rome/executor';
+import { loadRomeIndexFromDisk } from '../rome/index-loader.js';
+import { evaluateIndex } from '../rome/engine.js';
+import { executeAction } from '../rome/executor.js';
 
 export default async function runEngine(args: string[]) {
   const dry = args.includes('--dry-run') || args.includes('--dry');

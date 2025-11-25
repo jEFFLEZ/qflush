@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // ROME-TAG: 0x5293A0
 
-import fetch from '../utils/fetch';
+import fetch from '../utils/fetch.js';
 import * as readline from 'readline';
 
 async function postMessage(msg: string) {

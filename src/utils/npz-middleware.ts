@@ -2,12 +2,12 @@
 
 import { Request, Response, NextFunction } from 'express';
 import { v4 as uuidv4 } from 'uuid';
-import { npzRoute } from './npz-router';
-import npzStore from './npz-store';
-import npz from './npz';
-import logger from './logger';
+import { npzRoute } from './npz-router.js';
+import npzStore from './npz-store.js';
+import npz from './npz.js';
+import logger from './logger.js';
 import client from 'prom-client';
-import { getNpzNamespace } from './npz-config';
+import { getNpzNamespace } from './npz-config.js';
 
 const NS = getNpzNamespace();
 const requestDuration = new client.Histogram({

@@ -1,6 +1,11 @@
 import * as fs from 'fs';
 import * as path from 'path';
 
+const ALIAS_DEBUG = process.env.ALIAS_DEBUG === '1';
+function aliasWarn(isAlias: boolean, ...args: any[]) {
+  if (isAlias || ALIAS_DEBUG) console.warn('[alias]', ...args);
+}
+
 // avoid static import of './paths' to prevent TypeScript module resolution issues in some environments
 let resolvePaths: any = undefined;
 try {
@@ -35,7 +40,7 @@ function tryRequireVariants(basePath: string) {
 export function importUtil(name: string): any {
   // normalize alias forms such as '@utils/foo' or '#utils/foo' to a simple local name
   let localName = name;
-  const aliasMatch = name && (name.startsWith('@utils/') || name.startsWith('#utils/'));
+  const aliasMatch = !!(name && (name.startsWith('@utils/') || name.startsWith('#utils/')));
   if (aliasMatch) localName = name.replace(/^(@|#)?utils\//, '');
 
   // prefer spyder local workspace copy when present
@@ -61,11 +66,11 @@ export function importUtil(name: string): any {
           const resolved = require.resolve(localName, { paths: [spy] });
           const m = require(resolved);
           if (m) return (m && m.default) || m;
-        } catch (e) { console.warn('[alias] require.resolve from spyder failed', String(e)); }
+        } catch (e) { aliasWarn(aliasMatch, 'require.resolve from spyder failed', String(e)); }
       }
     }
   } catch (e) {
-    console.warn('[alias] resolvePaths check failed', String(e));
+    aliasWarn(aliasMatch, 'resolvePaths check failed', String(e));
   }
 
   // If name was an alias like @utils/foo, try local src/utils/<foo>
@@ -73,7 +78,7 @@ export function importUtil(name: string): any {
     try {
       const local = tryRequireVariants(path.join(__dirname, localName));
       if (local) return local;
-    } catch (e) { console.warn('[alias] tryRequireVariants local failed', String(e)); }
+    } catch (e) { aliasWarn(aliasMatch, 'tryRequireVariants local failed', String(e)); }
   }
 
   // fallback: if a relative path or module name was passed, try requiring directly
@@ -81,13 +86,13 @@ export function importUtil(name: string): any {
     // try direct file/module
     const m1 = tryRequire(name);
     if (m1) return (m1 && m1.default) || m1;
-  } catch (e) { console.warn('[alias] tryRequire direct failed', String(e)); }
+  } catch (e) { aliasWarn(aliasMatch, 'tryRequire direct failed', String(e)); }
 
   // last resort: require by name (could be from node_modules)
   try {
     const m = require(name);
     return (m && m.default) || m;
-  } catch (e) { console.warn('[alias] final require failed', String(e)); }
+  } catch (e) { aliasWarn(aliasMatch, 'final require failed', String(e)); }
 
   return undefined;
 }

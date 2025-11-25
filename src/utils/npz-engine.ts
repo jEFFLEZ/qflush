@@ -1,10 +1,10 @@
 ﻿// ROME-TAG: 0x043BA9
 
-import { getNpzNamespace } from './npz-config';
+import { getNpzNamespace } from './npz-config.js';
 import fs from 'fs';
 import path from 'path';
-import logger from './logger';
-import { Lane } from './npz-router';
+import logger from './logger.js';
+import { Lane } from './npz-router.js';
 
 const NS = getNpzNamespace();
 const ENGINE_FILE = path.join(process.cwd(), '.qflush', `${NS}-npz-engine.json`);

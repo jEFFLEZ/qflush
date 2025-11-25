@@ -1,6 +1,6 @@
 ﻿// ROME-TAG: 0xA65E04
 
-import license from '../utils/license';
+import license from '../utils/license.js';
 
 export default async function runLicenseActivate(args: string[]) {
   const key = args[0];

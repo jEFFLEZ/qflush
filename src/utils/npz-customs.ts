@@ -3,7 +3,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as net from 'net';
-import alias from './alias';
+import alias from './alias.js';
 const logger = alias.importUtil('@utils/logger') || alias.importUtil('./logger') || console;
 
 export type ModuleDescriptor = {
