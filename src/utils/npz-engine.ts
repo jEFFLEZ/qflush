@@ -2,7 +2,7 @@
 
 import { getNpzNamespace } from './npz-config.js';
 import fs from 'fs';
-import path from 'path';
+import * as path from 'path';
 import logger from './logger.js';
 import { Lane } from './npz-router.js';
 

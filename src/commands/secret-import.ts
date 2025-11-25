@@ -1,5 +1,5 @@
 import { spawnSync } from 'child_process';
-import path from 'path';
+import * as path from 'path';
 
 export default async function runSecretImport(argv: string[] = []) {
   // usage: qflush secret import [--env <path>] [--no-acl]

@@ -15,21 +15,13 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
 
-    "types": ["node", "vitest"],
+    "types": ["node"],
 
     "allowJs": false,
     "checkJs": false,
 
-    "baseUrl": "./",
-    "paths": {
-      "@utils/*": ["src/utils/*"],
-      "@daemon/*": ["src/daemon/*"],
-      "@commands/*": ["src/commands/*"],
-      "@rome/*": ["src/rome/*"],
-      "@supervisor/*": ["src/supervisor/*"]
-    }
+    "baseUrl": "./"
   },
-
-  "include": ["src/**/*", "src/cortex/**/*"],
-  "exclude": ["dist", "node_modules", "tests", "src/tests"]
+  "include": ["src/**/*"],
+  "exclude": ["dist", "node_modules"]
 }
