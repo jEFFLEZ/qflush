@@ -196,7 +196,7 @@ export async function jokerWipe() {
 
   setTimeout(() => {
     logger.warn('[JOKER] Exiting process (forced).');
-    try { process.exit(137); } catch { /* ignore */ }
+    try { process.exit(137); } catch (err) { logger.warn('[services] process.exit failed: ' + String(err)); }
   }, 300);
 }
 

@@ -12,9 +12,9 @@ export function cortexEmit(eventName: string, payload: any) {
     const line = JSON.stringify({ t: new Date().toISOString(), event: eventName, payload });
     fs.appendFileSync(DRIP_LOG, line + '\n', 'utf8');
   } catch (e) {
-    // ignore
+    console.warn('[cortex] drip log write failed', String(e));
   }
-  try { emitter.emit(eventName, payload); } catch (e) {}
+  try { emitter.emit(eventName, payload); } catch (e) { console.warn('[cortex] emitter.emit failed', String(e)); }
 }
 
 export function onCortexEvent(eventName: string, cb: (p: any) => void) {

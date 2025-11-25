@@ -13,7 +13,7 @@ let db: any = null;
 let useSqlite = false;
 
 function ensureDir() {
-  try { if (!fs.existsSync(DEFAULT_DIR)) fs.mkdirSync(DEFAULT_DIR, { recursive: true }); } catch (e) {}
+  try { if (!fs.existsSync(DEFAULT_DIR)) fs.mkdirSync(DEFAULT_DIR, { recursive: true }); } catch (e) { console.warn('[storage] ensureDir failed', String(e)); }
 }
 
 try {
@@ -30,6 +30,7 @@ try {
 } catch (e) {
   // fallback to JSON
   useSqlite = false;
+  console.warn('[storage] sqlite init failed', String(e));
 }
 
 function writeJsonFile(obj: any) {
@@ -37,7 +38,7 @@ function writeJsonFile(obj: any) {
   try {
     fs.writeFileSync(JSON_PATH + '.tmp', JSON.stringify(obj, null, 2), 'utf8');
     fs.renameSync(JSON_PATH + '.tmp', JSON_PATH);
-  } catch (e) {}
+  } catch (e) { console.warn('[storage] writeJsonFile failed', String(e)); }
 }
 
 function readJsonFile() {
@@ -46,6 +47,7 @@ function readJsonFile() {
     const raw = fs.readFileSync(JSON_PATH, 'utf8') || '{}';
     return JSON.parse(raw);
   } catch (e) {
+    console.warn('[storage] readJsonFile failed', String(e));
     return { telemetry: [], engine_history: [] };
   }
 }
@@ -56,7 +58,7 @@ export function saveTelemetryEvent(id: string, type: string, timestamp: number, 
       const stmt = db.prepare('INSERT OR REPLACE INTO telemetry (id,type,ts,payload) VALUES (?,?,?,?)');
       stmt.run(id, type, timestamp, JSON.stringify(payload));
       return true;
-    } catch (e) { return false; }
+    } catch (e) { console.warn('[storage] saveTelemetryEvent sqlite failed', String(e)); return false; }
   }
   // json fallback
   const obj = readJsonFile();
@@ -72,7 +74,7 @@ export function getRecentTelemetry(limit = 100) {
       const stmt = db.prepare('SELECT id,type,ts,payload FROM telemetry ORDER BY ts DESC LIMIT ?');
       const rows = stmt.all(limit);
       return rows.map((r: any) => ({ id: r.id, type: r.type, ts: r.ts, payload: JSON.parse(r.payload) }));
-    } catch (e) { return []; }
+    } catch (e) { console.warn('[storage] getRecentTelemetry sqlite failed', String(e)); return []; }
   }
   const obj = readJsonFile();
   const arr = obj.telemetry || [];
@@ -85,7 +87,7 @@ export function saveEngineHistory(id: string, timestamp: number, pathVal: string
       const stmt = db.prepare('INSERT OR REPLACE INTO engine_history (id,ts,path,action,result) VALUES (?,?,?,?,?)');
       stmt.run(id, timestamp, pathVal, action, JSON.stringify(result));
       return true;
-    } catch (e) { return false; }
+    } catch (e) { console.warn('[storage] saveEngineHistory sqlite failed', String(e)); return false; }
   }
   const obj = readJsonFile();
   obj.engine_history = obj.engine_history || [];
@@ -100,7 +102,7 @@ export function getEngineHistory(limit = 100) {
       const stmt = db.prepare('SELECT id,ts,path,action,result FROM engine_history ORDER BY ts DESC LIMIT ?');
       const rows = stmt.all(limit);
       return rows.map((r: any) => ({ id: r.id, ts: r.ts, path: r.path, action: r.action, result: JSON.parse(r.result) }));
-    } catch (e) { return []; }
+    } catch (e) { console.warn('[storage] getEngineHistory sqlite failed', String(e)); return []; }
   }
   const obj = readJsonFile();
   const arr = obj.engine_history || [];

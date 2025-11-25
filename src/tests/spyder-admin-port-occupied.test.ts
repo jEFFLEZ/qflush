@@ -17,11 +17,11 @@ describe('spyder admin port occupied behavior', () => {
   });
 
   afterEach(() => {
-    try { process.chdir(origCwd); } catch {}
-    try { fs.rmSync(tmpDir, { recursive: true, force: true }); } catch {}
+    try { process.chdir(origCwd); } catch (err) { /* ignore */ }
+    try { fs.rmSync(tmpDir, { recursive: true, force: true }); } catch (err) { /* ignore */ }
     process.env = { ...OLD_ENV };
     if (server) {
-      try { server.close(); } catch {}
+      try { server.close(); } catch (err) { /* ignore */ }
       server = null;
     }
     vi.restoreAllMocks();

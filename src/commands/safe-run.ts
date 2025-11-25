@@ -66,13 +66,15 @@ export default async function runSafeRun(argv: string[] = []) {
     const timer = setTimeout(() => {
       if (finished) return;
       console.warn(`[safe-run] timeout ${timeoutSec}s reached — sending SIGINT to pid=${child.pid}`);
-      try { child.kill('SIGINT'); } catch (e) { /* ignore */ }
+      try { child.kill('SIGINT'); } catch (err) { console.warn('[safe-run] SIGINT failed:', err); }
 
       // wait short then force kill
       setTimeout(() => {
         if (finished) return;
         console.warn(`[safe-run] still running — forcing kill pid=${child.pid}`);
-        try { child.kill('SIGTERM'); } catch (e) { try { child.kill(); } catch {} }
+        try { child.kill('SIGTERM'); } catch (err) {
+          try { child.kill(); } catch (err2) { console.warn('[safe-run] SIGTERM/SIGKILL fallback failed:', err2); }
+        }
       }, 2000);
     }, timeoutSec * 1000);
 

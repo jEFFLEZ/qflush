@@ -2,7 +2,7 @@
 
 import * as http from 'http';
 import { spawn, ChildProcess } from 'child_process';
-import fetch from '../utils/fetch.js';
+import fetch from '../utils/fetch';
 
 const PORT = process.env.QFLUSHD_PORT ? Number(process.env.QFLUSHD_PORT) : 4500;
 const BASE = `http://127.0.0.1:${PORT}`;
@@ -15,6 +15,7 @@ async function waitForJson(path: string, attempts = 20, delayMs = 250) {
       const j = await res.json();
       return j;
     } catch (e) {
+      console.warn('[rome-index test] waitForJson attempt failed', String(e));
       // wait and retry
       await new Promise((r) => setTimeout(r, delayMs));
     }
@@ -27,7 +28,7 @@ async function isReachable(attempts = 5, delayMs = 200) {
     try {
       const res = await fetch(`${BASE}/npz/rome-index`);
       if (res.ok) return true;
-    } catch (e) {}
+    } catch (e) { console.warn('[rome-index test] isReachable fetch failed', String(e)); }
     await new Promise((r) => setTimeout(r, delayMs));
   }
   return false;
@@ -43,6 +44,7 @@ export async function runTests() {
         // ensure daemon token available when starting in-process or spawning
         if (!process.env.QFLUSH_TOKEN) process.env.QFLUSH_TOKEN = 'test-token';
         // prefer importing the TS module (no .js) so Vitest can resolve it
+        // add explicit extension to satisfy Node ESM resolution in TS settings
         serverMod = await import('../daemon/qflushd.js');
         // start server programmatically on test port
         if (serverMod && typeof serverMod.startServer === 'function') {
@@ -112,9 +114,9 @@ export async function runTests() {
       throw new Error('invalid filtered response');
     }
     console.log('rome-index daemon count=', byDaemon.count);
-  } finally {
-    try { if (serverMod && typeof serverMod.stopServer === 'function') serverMod.stopServer(); } catch (e) {}
-    try { if (spawned && typeof spawned.kill === 'function') spawned.kill(); } catch (e) {}
+    } finally {
+    try { if (serverMod && typeof serverMod.stopServer === 'function') serverMod.stopServer(); } catch (e) { console.warn('[rome-index test] stopServer failed', String(e)); }
+    try { if (spawned && typeof spawned.kill === 'function') spawned.kill(); } catch (e) { console.warn('[rome-index test] kill spawned failed', String(e)); }
   }
 }
 

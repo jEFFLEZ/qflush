@@ -1,11 +1,10 @@
 // src/commands/apply.ts
 import * as fs from 'fs';
 import * as path from 'path';
-import logger from '../utils/logger.js';
-import { decodeCortexPacketFromPng } from '../cortex/pngCodec.js';
-import { CortexPacket } from '../cortex/types.js';
-import { applyCortexPacket } from '../cortex/applyPacket.js';
-import { safeWriteFileSync, safeAppendFileSync } from '../utils/safe-fs.js';
+import logger from '../utils/logger';
+import { decodeCortexPacketFromPng } from '../cortex/pngCodec';
+import { CortexPacket } from '../cortex/types';
+import { applyCortexPacket } from '../cortex/applyPacket';
 
 declare const require: any;
 
@@ -18,25 +17,11 @@ export default async function runApply(argv: string[] = []) {
     const qflushDir = path.join(process.cwd(), '.qflush');
     if (!fs.existsSync(qflushDir)) fs.mkdirSync(qflushDir, { recursive: true });
 
-    // Ensure logs directory and essential log files exist to avoid ENOENT in tests/runner
-    try {
-      const logsDir = path.join(qflushDir, 'logs');
-      if (!fs.existsSync(logsDir)) fs.mkdirSync(logsDir, { recursive: true });
-      const spyLog = path.join(logsDir, 'spyder.log');
-      if (!fs.existsSync(spyLog)) safeWriteFileSync(spyLog, '', 'utf8');
-      const qflushOut = path.join(logsDir, 'qflushd.out');
-      if (!fs.existsSync(qflushOut)) safeWriteFileSync(qflushOut, '', 'utf8');
-      const qflushErr = path.join(logsDir, 'qflushd.err');
-      if (!fs.existsSync(qflushErr)) safeWriteFileSync(qflushErr, '', 'utf8');
-    } catch (e) {
-      logger.warn('Failed to create .qflush/logs files: ' + String(e));
-    }
-
     // 1) Ensure spyder.config.json exists
     const spyCfgPath = path.join(qflushDir, 'spyder.config.json');
     if (!fs.existsSync(spyCfgPath)) {
       const defaultCfg = { enabled: false, frequency: 'passive', routes: [] };
-      safeWriteFileSync(spyCfgPath, JSON.stringify(defaultCfg, null, 2), 'utf8');
+      fs.writeFileSync(spyCfgPath, JSON.stringify(defaultCfg, null, 2), 'utf8');
       logger.info('Created default .qflush/spyder.config.json');
     } else {
       logger.info('.qflush/spyder.config.json already present');
@@ -55,7 +40,7 @@ export default async function runApply(argv: string[] = []) {
 
     const cortexRoutesPath = path.join(qflushDir, 'cortex.routes.json');
     try {
-      safeWriteFileSync(cortexRoutesPath, JSON.stringify({ cortexActions: cortexRoutes }, null, 2), 'utf8');
+      fs.writeFileSync(cortexRoutesPath, JSON.stringify({ cortexActions: cortexRoutes }, null, 2), 'utf8');
       logger.info('Wrote .qflush/cortex.routes.json');
     } catch (e) {
       logger.warn('Failed to write cortex.routes.json: ' + String(e));
@@ -64,8 +49,8 @@ export default async function runApply(argv: string[] = []) {
     // 3) Generate supporting files if missing
     const lastPath = path.join(qflushDir, 'cortex.last.json');
     const cachePath = path.join(qflushDir, 'spyder.cache.json');
-    try { if (!fs.existsSync(lastPath)) safeWriteFileSync(lastPath, JSON.stringify({ initializedAt: new Date().toISOString() }, null, 2), 'utf8'); } catch (e) {}
-    try { if (!fs.existsSync(cachePath)) safeWriteFileSync(cachePath, JSON.stringify({ createdAt: new Date().toISOString(), items: [] }, null, 2), 'utf8'); } catch (e) {}
+    try { if (!fs.existsSync(lastPath)) fs.writeFileSync(lastPath, JSON.stringify({ initializedAt: new Date().toISOString() }, null, 2), 'utf8'); } catch (e) { logger.warn('[apply] ensure lastPath write failed: ' + String(e)); }
+    try { if (!fs.existsSync(cachePath)) fs.writeFileSync(cachePath, JSON.stringify({ createdAt: new Date().toISOString(), items: [] }, null, 2), 'utf8'); } catch (e) { logger.warn('[apply] ensure cachePath write failed: ' + String(e)); }
 
     // 4) Scan incoming JSON and PNG packets
     const incomingJsonDir = path.join(qflushDir, 'incoming', 'json');
@@ -111,16 +96,16 @@ export default async function runApply(argv: string[] = []) {
       try {
         // if approve flags present, inject into packet payload when AUTO-PATCH
         if (approveAll) {
-          try { if (!pkt.payload) pkt.payload = {}; (pkt.payload as any).approve = true; } catch (e) {}
+          try { if (!pkt.payload) pkt.payload = {}; (pkt.payload as any).approve = true; } catch (e) { logger.warn('[apply] inject approve failed: ' + String(e)); }
         }
         if (approveId && pkt.id === approveId) {
-          try { if (!pkt.payload) pkt.payload = {}; (pkt.payload as any).approve = true; } catch (e) {}
+          try { if (!pkt.payload) pkt.payload = {}; (pkt.payload as any).approve = true; } catch (e) { logger.warn('[apply] inject approveId failed: ' + String(e)); }
         }
 
         logger.info('Applying packet: ' + pkt.type + ' ' + (pkt.id || ''));
         await applyCortexPacket(pkt);
         const last = { appliedAt: new Date().toISOString(), packet: pkt };
-        safeWriteFileSync(lastPath, JSON.stringify(last, null, 2), 'utf8');
+        fs.writeFileSync(lastPath, JSON.stringify(last, null, 2), 'utf8');
 
         // archive original source file into dated folder
         try {
@@ -132,16 +117,16 @@ export default async function runApply(argv: string[] = []) {
             if (!fs.existsSync(archiveDir)) fs.mkdirSync(archiveDir, { recursive: true });
             const base = path.basename(entry.src);
             const dest = path.join(archiveDir, `${Date.now()}-${base}`);
-            try { fs.renameSync(entry.src, dest); } catch (e) { fs.copyFileSync(entry.src, dest); try { fs.unlinkSync(entry.src); } catch(e){} }
+            try { fs.renameSync(entry.src, dest); } catch (e) { try { fs.copyFileSync(entry.src, dest); } catch (e2) { logger.warn('[apply] copy entry.src failed: ' + String(e2)); } try { fs.unlinkSync(entry.src); } catch(e){ logger.warn('[apply] unlink original failed: ' + String(e)); } }
             // write metadata
-            try { safeWriteFileSync(dest + '.applied.json', JSON.stringify({ appliedAt: new Date().toISOString(), packetId: pkt.id || null }, null, 2), 'utf8'); } catch (e) {}
+            try { fs.writeFileSync(dest + '.applied.json', JSON.stringify({ appliedAt: new Date().toISOString(), packetId: pkt.id || null }, null, 2), 'utf8'); } catch (e) { logger.warn('[apply] write applied metadata failed: ' + String(e)); }
           } else {
             // if no src, write packet copy
             const id = pkt.id || (`manual-${Date.now()}`);
             const target = path.join(processedDir, `${id}.json`);
-            safeWriteFileSync(target, JSON.stringify(pkt, null, 2), 'utf8');
+            fs.writeFileSync(target, JSON.stringify(pkt, null, 2), 'utf8');
           }
-        } catch (e) { /* ignore */ }
+        } catch (e) { logger.warn('[apply] archive step failed: ' + String(e)); }
       } catch (e) {
         logger.warn('Failed to apply packet: ' + String(e));
         // move to failed folder if source exists
@@ -156,9 +141,9 @@ export default async function runApply(argv: string[] = []) {
             const base = path.basename(entry.src);
             const dest = path.join(archiveDir, `${Date.now()}-${base}`);
             try { fs.renameSync(entry.src, dest); } catch (e) { fs.copyFileSync(entry.src, dest); try { fs.unlinkSync(entry.src); } catch(e){} }
-            try { safeWriteFileSync(dest + '.error.json', JSON.stringify({ error: String(e), when: new Date().toISOString() }, null, 2), 'utf8'); } catch (e) {}
+            try { fs.writeFileSync(dest + '.error.json', JSON.stringify({ error: String(e), when: new Date().toISOString() }, null, 2), 'utf8'); } catch (e) {}
           }
-        } catch (_) {}
+        } catch (_) { logger.warn('[apply] move to failed folder encountered an error'); }
       }
     }
 
@@ -167,7 +152,7 @@ export default async function runApply(argv: string[] = []) {
       const raw = fs.readFileSync(spyCfgPath, 'utf8');
       const spyCfg = JSON.parse(raw || '{}');
       spyCfg.routes = Object.keys(cortexRoutes);
-      safeWriteFileSync(spyCfgPath, JSON.stringify(spyCfg, null, 2), 'utf8');
+      fs.writeFileSync(spyCfgPath, JSON.stringify(spyCfg, null, 2), 'utf8');
       logger.info('Updated spyder.config.json routes');
     } catch (e) {
       logger.warn('Failed to update spyder.config.json routes: ' + String(e));
@@ -179,10 +164,10 @@ export default async function runApply(argv: string[] = []) {
       const keep = process.env.QFLUSH_ARCHIVE_KEEP_MONTHS ? Number(process.env.QFLUSH_ARCHIVE_KEEP_MONTHS) : 6;
       try {
         archiveUtils.cleanupDatedArchives(path.join(qflushDir, 'processed'), keep);
-      } catch (e) {}
+      } catch (e) { logger.warn('[apply] cleanup processed archives failed: ' + String(e)); }
       try {
         archiveUtils.cleanupDatedArchives(path.join(qflushDir, 'failed'), keep);
-      } catch (e) {}
+      } catch (e) { logger.warn('[apply] cleanup failed archives failed: ' + String(e)); }
     } catch (e) {}
 
     logger.success('qflush apply complete — SPYDER initialized and cortex routes synchronized');

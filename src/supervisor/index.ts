@@ -2,8 +2,8 @@
 
 import { spawn, ChildProcess } from 'child_process';
 import { writeFileSync, existsSync, mkdirSync, readFileSync, unlinkSync, createWriteStream, WriteStream } from 'fs';
-import { join } from 'path';
-import alias from '../utils/alias.js';
+import { join, dirname } from 'path';
+import alias from '../utils/alias';
 // Prefer aliased util when available, fallback to local logger or console.
 let _aliasedLogger: any = undefined;
 try {
@@ -82,10 +82,12 @@ export function listRunning() {
 function safeCloseStream(s?: WriteStream | null) {
   if (!s) return;
   try {
-    try { s.end(() => {}); } catch {
-      try { (s as any).destroy && (s as any).destroy(); } catch {}
+    try { s.end(() => {}); } catch (err) {
+      try { (s as any).destroy && (s as any).destroy(); } catch (err2) { logger.warn('[supervisor] safeCloseStream destroy failed:', err2); }
     }
-  } catch {}
+  } catch (err) {
+    logger.warn('[supervisor] safeCloseStream failed:', err);
+  }
 }
 
 function isAlive(mp?: ManagedProc): boolean {
@@ -93,7 +95,8 @@ function isAlive(mp?: ManagedProc): boolean {
   try {
     process.kill(mp.child.pid as number, 0);
     return true;
-  } catch {
+  } catch (err) {
+    logger.warn('[supervisor] isAlive check failed:', err);
     return false;
   }
 }
@@ -137,7 +140,7 @@ function startHealthWatch(url: string, onHealthy: () => void, intervalMs = 3000)
         });
       });
       req.on('error', () => { if (!stopped) setTimeout(tick, intervalMs); });
-      req.on('timeout', () => { try { req.abort(); } catch {} if (!stopped) setTimeout(tick, intervalMs); });
+      req.on('timeout', () => { try { req.abort(); } catch (err) { logger.warn('[supervisor] healthWatch req.abort failed:', err); } if (!stopped) setTimeout(tick, intervalMs); });
       req.end();
     } catch (e) {
       if (!stopped) setTimeout(tick, intervalMs);
@@ -159,7 +162,7 @@ function safeKillAsync(child: ChildProcess | null, timeoutMs = 3000) {
   };
 
   const onExit = () => done('process exited');
-  try { child.once && child.once('exit', onExit); } catch {}
+  try { child.once && child.once('exit', onExit); } catch (err) { logger.warn('[supervisor] safeKill child.once failed:', err); }
 
   // soft kill
   try {
@@ -194,7 +197,16 @@ export function startProcess(name: string, cmd: string, args: string[] = [], opt
   logger.info(`supervisor: starting ${name} -> ${cmd} ${args.join(' ')}`);
 
   const logFile = opts.logPath || join(LOGS_DIR, `${name}.log`);
-  const outStream = createWriteStream(logFile, { flags: 'a' });
+  let outStream: WriteStream | null = null;
+  try {
+    const parent = dirname(logFile);
+    if (!existsSync(parent)) mkdirSync(parent, { recursive: true });
+    outStream = createWriteStream(logFile, { flags: 'a' });
+    outStream.on('error', (err) => logger.warn(`[supervisor] log stream error for ${name}: ${err}`));
+  } catch (err) {
+    logger.warn(`[supervisor] failed to open log file ${logFile} for ${name}: ${err}`);
+    outStream = null;
+  }
 
   const spawnOpts: any = { cwd: opts.cwd || process.cwd(), shell: true };
   spawnOpts.stdio = ['ignore', 'pipe', 'pipe'];
@@ -229,8 +241,8 @@ export function startProcess(name: string, cmd: string, args: string[] = [], opt
 
     const child = spawn(execCmd, execArgs, spawnOpts);
 
-  if (child.stdout) child.stdout.pipe(outStream);
-  if (child.stderr) child.stderr.pipe(outStream);
+  if (child.stdout && outStream) child.stdout.pipe(outStream);
+  if (child.stderr && outStream) child.stderr.pipe(outStream);
 
   child.on('error', (err) => logger.error(`supervisor: ${name} process error ${err.message}`));
   child.on('exit', (code) => {
@@ -245,8 +257,8 @@ export function startProcess(name: string, cmd: string, args: string[] = [], opt
     persist();
   });
 
-  if (spawnOpts.detached) {
-    try { child.unref(); } catch {}
+    if (spawnOpts.detached) {
+    try { child.unref(); } catch (err) { logger.warn('[supervisor] child.unref failed:', err); }
   }
 
   const record: ProcRecord = { name, pid: child.pid || null, cmd, args, cwd: opts.cwd, log: logFile, detached: !!spawnOpts.detached };
@@ -267,7 +279,7 @@ export function stopProcess(name: string) {
       m.child = null;
     } else if (entry && entry.pid) {
       // best-effort taskkill for pid without managed child
-      try { spawn('taskkill', ['/PID', String(entry.pid), '/T', '/F'], { windowsHide: true }); } catch {}
+      try { spawn('taskkill', ['/PID', String(entry.pid), '/T', '/F'], { windowsHide: true }); } catch (err) { logger.warn('[supervisor] taskkill spawn failed:', err); }
     }
     safeCloseStream(m?.outStream ?? null);
     if (procs[name]) delete procs[name];
@@ -287,14 +299,14 @@ export function stopAll() {
   }
   try {
     if (existsSync(STATE_FILE)) unlinkSync(STATE_FILE);
-  } catch {}
+  } catch (err) { logger.warn('[supervisor] stopAll failed to remove state file:', err); }
 }
 
 export function clearState() {
   procs = {};
   for (const [, m] of managed) safeCloseStream(m.outStream);
   managed.clear();
-  try { if (existsSync(STATE_FILE)) unlinkSync(STATE_FILE); } catch {}
+  try { if (existsSync(STATE_FILE)) unlinkSync(STATE_FILE); } catch (err) { logger.warn('[supervisor] clearState failed to remove state file:', err); }
 }
 
 export function freezeAll(reason?: string, opts?: { autoResume?: boolean; resumeCheck?: { url?: string; intervalMs?: number; timeoutMs?: number } }) {
@@ -322,7 +334,7 @@ export function freezeAll(reason?: string, opts?: { autoResume?: boolean; resume
       stopWatch();
     }, intervalMs);
     // optional overall timeout to stop watcher
-    setTimeout(() => { try { stopWatch(); } catch {} }, timeoutMs);
+    setTimeout(() => { try { stopWatch(); } catch (err) { logger.warn('[supervisor] stopWatch failed:', err); } }, timeoutMs);
   }
 }
 

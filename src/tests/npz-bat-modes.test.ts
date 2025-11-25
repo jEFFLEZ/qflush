@@ -43,7 +43,7 @@ describe('NPZ BAT control endpoints (embedded)', () => {
     // with token
     const r2 = await fetch(`${URL}/npz/sleep`, { method: 'POST', headers: { 'x-qflush-token': 'test-token' } });
     expect(r2.status).toBe(200);
-    const body = await r2.json();
+    const body = await r2.json() as any;
     expect(body.success).toBe(true);
     expect(body.mode).toBe('sleep');
 
@@ -55,7 +55,7 @@ describe('NPZ BAT control endpoints (embedded)', () => {
   it('POST /npz/wake requires token and clears safe mode', async () => {
     const r = await fetch(`${URL}/npz/wake`, { method: 'POST', headers: { 'x-qflush-token': 'test-token' } });
     expect(r.status).toBe(200);
-    const body = await r.json();
+    const body = await r.json() as any;
     expect(body.success).toBe(true);
     expect(body.mode).toBe('normal');
   });
@@ -63,7 +63,7 @@ describe('NPZ BAT control endpoints (embedded)', () => {
   it('POST /npz/joker-wipe requires token and performs wipe (test mode skip exit)', async () => {
     const r = await fetch(`${URL}/npz/joker-wipe`, { method: 'POST', headers: { 'x-qflush-token': 'test-token' } });
     expect(r.status).toBe(200);
-    const body = await r.json();
+    const body = await r.json() as any;
     expect(body.success).toBe(true);
     expect(body.mode).toBe('joker');
   });

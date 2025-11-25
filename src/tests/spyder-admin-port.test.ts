@@ -17,8 +17,8 @@ describe('spyder admin port persistence', () => {
   afterEach(() => {
     try {
       process.chdir(origCwd);
-    } catch {};
-    try { fs.rmSync(tmpDir, { recursive: true, force: true }); } catch {};
+    } catch (error_) { console.warn('[tests] cleanup chdir failed: ' + String(error_)); };
+    try { fs.rmSync(tmpDir, { recursive: true, force: true }); } catch (error_) { console.warn('[tests] cleanup rmSync failed: ' + String(error_)); };
     process.env = { ...OLD_ENV };
     vi.restoreAllMocks();
   });

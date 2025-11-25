@@ -1,21 +1,20 @@
 ﻿// ROME-TAG: 0xF73710
 
-import { detectModules } from "../utils/detect.js";
-import logger from "../utils/logger.js";
-import { ensurePackageInstalled, pathExists, rebuildInstructionsFor } from "../utils/exec.js";
-import { resolvePaths, SERVICE_MAP } from "../utils/paths.js";
-import { qflushOptions } from "../chain/smartChain.js";
-import { resolvePackagePath, readPackageJson } from "../utils/package.js";
-import { startProcess } from "../supervisor.js";
-import { resolveMerged } from "../supervisor/merged-resolver.js";
-import { waitForService } from "../utils/health.js";
-import { runCustomsCheck, hasBlockingIssues, ModuleDescriptor } from "../utils/npz-customs.js";
+import { detectModules } from "../utils/detect";
+import logger from "../utils/logger";
+import { ensurePackageInstalled, pathExists, rebuildInstructionsFor } from "../utils/exec";
+import { resolvePaths, SERVICE_MAP } from "../utils/paths";
+import { qflushOptions } from "../chain/smartChain";
+import { resolvePackagePath, readPackageJson } from "../utils/package";
+import { startProcess } from "../supervisor";
+import { waitForService } from "../utils/health";
+import { runCustomsCheck, hasBlockingIssues, ModuleDescriptor } from "../utils/npz-customs";
+import { resolveMerged } from "../supervisor/merged-resolver";
 import * as fs from 'node:fs';
 import { spawnSync } from 'node:child_process';
-import * as path from 'path';
-import { startService } from '../services.js';
-import * as net from 'node:net';
-import { safeWriteFileSync } from '../utils/safe-fs.js';
+import path from 'node:path';
+import { startService } from '../services';
+import net from 'node:net';
 
 // Read SPYDER admin port from config/env with sensible fallback
 function getSpyderAdminPort(): number {
@@ -39,8 +38,8 @@ function getSpyderAdminPort(): number {
           if (!Number.isNaN(p) && p > 0) return p;
         }
       }
-    } catch (_) {
-      // ignore parsing errors
+    } catch (err) {
+      console.warn('[start] failed to read .qflush/spyder.config.json:', err);
     }
 
     // 3) .qflush/logic-config.json fallback (older config location)
@@ -55,7 +54,9 @@ function getSpyderAdminPort(): number {
           if (!Number.isNaN(p) && p > 0) return p;
         }
       }
-    } catch (_) {}
+    } catch (err) {
+      console.warn('[start] failed to read .qflush/logic-config.json:', err);
+    }
 
   } catch (_) {}
 
@@ -65,14 +66,14 @@ function getSpyderAdminPort(): number {
 
 // Check whether a TCP port on host is accepting connections
 async function isPortInUse(host: string, port: number, timeout = 400): Promise<boolean> {
-  return new Promise<boolean>((resolve) => {
+    return new Promise<boolean>((resolve) => {
     try {
       const s = net.createConnection({ host, port, timeout }, () => {
-        try { s.destroy(); } catch {};
+        try { s.destroy(); } catch (err) { console.warn('[start] isPortInUse destroy failed:', err); }
         resolve(true);
       });
       s.on('error', () => resolve(false));
-      s.on('timeout', () => { try { s.destroy(); } catch {} ; resolve(false); });
+      s.on('timeout', () => { try { s.destroy(); } catch (err) { console.warn('[start] isPortInUse destroy on timeout failed:', err); } ; resolve(false); });
     } catch (e) { resolve(false); }
   });
 }
@@ -82,6 +83,8 @@ function persistSpyderAdminPort(spyPort: number) {
   try {
     const qflushDir = path.join(process.cwd(), '.qflush');
     if (!fs.existsSync(qflushDir)) fs.mkdirSync(qflushDir, { recursive: true });
+    // ensure logs dir exists to avoid ENOENT when processes open log files
+    try { if (!fs.existsSync(path.join(qflushDir, 'logs'))) fs.mkdirSync(path.join(qflushDir, 'logs'), { recursive: true }); } catch (e) { /* ignore */ }
     const spyCfgPath = path.join(qflushDir, 'spyder.config.json');
     let needWrite = false;
     let spyCfg: any = {};
@@ -99,7 +102,7 @@ function persistSpyderAdminPort(spyPort: number) {
     }
     if (needWrite) {
       try {
-        safeWriteFileSync(spyCfgPath, JSON.stringify(spyCfg, null, 2), 'utf8');
+        fs.writeFileSync(spyCfgPath, JSON.stringify(spyCfg, null, 2), 'utf8');
         logger.info(`Wrote .qflush/spyder.config.json with adminPort ${spyPort}`);
       } catch (e) {
         logger.warn(`Failed to write .qflush/spyder.config.json: ${e}`);
@@ -108,7 +111,7 @@ function persistSpyderAdminPort(spyPort: number) {
     try {
       const spyEnvPath = path.join(qflushDir, 'spyder.env');
       const envContent = `SPYDER_ADMIN_PORT=${spyCfg.adminPort}\n`;
-      safeWriteFileSync(spyEnvPath, envContent, 'utf8');
+      fs.writeFileSync(spyEnvPath, envContent, 'utf8');
       logger.info(`Wrote .qflush/spyder.env with SPYDER_ADMIN_PORT=${spyCfg.adminPort}`);
     } catch (e) {
       logger.warn(`Failed to write .qflush/spyder.env: ${e}`);
@@ -178,69 +181,66 @@ export async function startWithCustoms(modName: string, optsParam?: qflushOption
   // if an explicit path is provided, prefer to run it directly
   if (p) {
     try {
-      const pkgJsonPath = path.join(p, 'package.json');
-      if (fs.existsSync(pkgJsonPath)) {
-        const pj = readPackageJson(p);
-        if (pj && pj.bin) {
-          const binEntry = typeof pj.bin === "string" ? pj.bin : Object.values(pj.bin)[0];
-          const binPath = path.join(p, binEntry);
+      const pkgJson = readPackageJson(p);
+      if (pkgJson && pkgJson.bin) {
+        const binEntry = typeof pkgJson.bin === "string" ? pkgJson.bin : Object.values(pkgJson.bin)[0];
+        const binPath = path.join(p, binEntry);
 
-          // if bin exists and is a JS file, run via node; otherwise try to run directly but fallback to node if not executable
-          let runCmd = null as any;
-          if (pathExists(binPath) && binPath.endsWith('.js')) {
+        // if bin exists and is a JS file, run via node; otherwise try to run directly but fallback to node if not executable
+        let runCmd = null as any;
+        if (pathExists(binPath) && binPath.endsWith('.js')) {
+          runCmd = { cmd: process.execPath, args: [binPath], cwd: p };
+        } else if (pathExists(binPath)) {
+          // check executable bit on POSIX; on Windows assume runnable
+          let isExec = true;
+          try {
+            if (process.platform !== 'win32') {
+              const st = fs.statSync(binPath);
+              isExec = !!(st.mode & 0o111);
+            }
+          } catch (e) { isExec = false; }
+
+          if (isExec) {
+            runCmd = { cmd: binPath, args: [], cwd: p };
+          } else {
+            // fallback: attempt to run with node
             runCmd = { cmd: process.execPath, args: [binPath], cwd: p };
-          } else if (pathExists(binPath)) {
-            // check executable bit on POSIX; on Windows assume runnable
-            let isExec = true;
+          }
+        }
+
+        // if no bin but there is a start script, prefer npm --prefix <p> run start
+        if (!runCmd && pkgJson && pkgJson.scripts && pkgJson.scripts.start) {
+          runCmd = { cmd: 'npm', args: ['--prefix', p, 'run', 'start'], cwd: p };
+        }
+
+        // If runCmd still not set or dist missing, try common subpackage locations
+        if (!runCmd) {
+          const subCandidates = ['spyder', 'apps/spyder-core'];
+          for (const sub of subCandidates) {
             try {
-              if (process.platform !== 'win32') {
-                const st = fs.statSync(binPath);
-                isExec = !!(st.mode & 0o111);
-              }
-            } catch (e) { isExec = false; }
-
-            if (isExec) {
-              runCmd = { cmd: binPath, args: [], cwd: p };
-            } else {
-              // fallback: attempt to run with node
-              runCmd = { cmd: process.execPath, args: [binPath], cwd: p };
-            }
-          }
-
-          // if no bin but there is a start script, prefer npm --prefix <p> run start
-          if (!runCmd && pj && pj.scripts && pj.scripts.start) {
-            runCmd = { cmd: 'npm', args: ['--prefix', p, 'run', 'start'], cwd: p };
-          }
-
-          // If runCmd still not set or dist missing, try common subpackage locations
-          if (!runCmd) {
-            const subCandidates = ['spyder', 'apps/spyder-core'];
-            for (const sub of subCandidates) {
-              try {
-                const subPkg = path.join(p, sub);
-                const subPkgJsonPath = path.join(subPkg, 'package.json');
-                if (fs.existsSync(subPkgJsonPath)) {
-                  const subPkgJson = readPackageJson(subPkg);
-                  if (subPkgJson && subPkgJson.scripts && subPkgJson.scripts.start) {
-                    runCmd = { cmd: 'npm', args: ['--prefix', subPkg, 'run', 'start'], cwd: subPkg };
-                    break;
-                  }
+              const subPkg = path.join(p, sub);
+              const subPkgJsonPath = path.join(subPkg, 'package.json');
+              if (fs.existsSync(subPkgJsonPath)) {
+                const subPkgJson = readPackageJson(subPkg);
+                if (subPkgJson && subPkgJson.scripts && subPkgJson.scripts.start) {
+                  runCmd = { cmd: 'npm', args: ['--prefix', subPkg, 'run', 'start'], cwd: subPkg };
+                  break;
                 }
-              } catch (_) {}
-            }
+              }
+            } catch (_) {}
+          }
+        }
+
+        if (runCmd) {
+          // if runCmd is npm start with prefix, ensure build exists
+          if (runCmd.cmd === 'npm' && runCmd.args.includes('run') && runCmd.args.includes('start')) {
+            const ok = await ensureBuiltIfNeeded(p);
+            if (!ok) return;
           }
 
-          if (runCmd) {
-            // if runCmd is npm start with prefix, ensure build exists
-            if (runCmd.cmd === 'npm' && runCmd.args.includes('run') && runCmd.args.includes('start')) {
-              const ok = await ensureBuiltIfNeeded(p);
-              if (!ok) return;
-            }
-
-            logger.info(`Launching ${modName} -> ${runCmd.cmd} ${runCmd.args.join(" ")}`);
-            startProcess(modName, runCmd.cmd, runCmd.args, { cwd: runCmd.cwd });
-            return;
-          }
+          logger.info(`Launching ${modName} -> ${runCmd.cmd} ${runCmd.args.join(" ")}`);
+          startProcess(modName, runCmd.cmd, runCmd.args, { cwd: runCmd.cwd });
+          return;
         }
       }
     } catch (e) {
@@ -493,95 +493,79 @@ async function startRunnable(mod: string, runCmd: { cmd: string; args: string[];
 
 // Start a single module (extracted from runStart to reduce complexity)
 export async function startModule(mod: string, opts: qflushOptions | undefined, paths: Record<string,string|undefined>, flags: any, waitForStart: boolean) {
-   // If embed mode is enabled, use startService
-   const embed = process.env.QFLUSH_EMBED_SERVICES === '1';
-   if (embed) {
-     try {
-       await startService(mod, { flags });
-       return;
-     } catch (e) {
-       logger.warn(`embedded start failed for ${mod}: ${e}`);
-       return;
-     }
-   }
+  // If embed mode is enabled, use startService
+  const embed = process.env.QFLUSH_EMBED_SERVICES === '1';
+  if (embed) {
+    try {
+      await startService(mod, { flags });
+      return;
+    } catch (e) {
+      logger.warn(`embedded start failed for ${mod}: ${e}`);
+      return;
+    }
+  }
 
-   // In test runs, avoid starting external services to prevent child process races and filesystem races.
-   if (process.env.VITEST) {
-     logger.info(`VITEST mode: skipping external start for module ${mod}`);
-     // still run spyder port probe/persist so tests that expect spyder config to be written will pass
-     if (mod === 'spyder') {
-       try {
-         await probeAndPersistSpyderPort();
-       } catch (e) { /* ignore */ }
-     }
-     return;
-   }
-
-   if (mod === 'spyder') {
-     const ok = await probeAndPersistSpyderPort();
-     if (!ok) return;
-   }
-   const resolved = await resolvePackagePathForModule(mod, opts, paths);
-   if (!resolved.pkgPath) {
-     // fallback to customs+merged-resolver flow
-     await startWithCustoms(mod, opts, paths);
-     return;
-   }
-   const { pkgPath, pkg: pkgName, pkgJson } = resolved;
-   const runCmd = await resolveOrMergedRunCmd(mod, pkgName, pkgPath, pkgJson);
-   if (!runCmd) {
-     logger.warn(`${mod} has no runnable entry, skipping`);
-     return;
-   }
+  if (mod === 'spyder') {
+    const ok = await probeAndPersistSpyderPort();
+    if (!ok) return;
+  }
+  const resolved = await resolvePackagePathForModule(mod, opts, paths);
+  if (!resolved.pkgPath) {
+    // fallback to customs+merged-resolver flow
+    await startWithCustoms(mod, opts, paths);
+    return;
+  }
+  const { pkgPath, pkg: pkgName, pkgJson } = resolved;
+  const runCmd = await resolveOrMergedRunCmd(mod, pkgName, pkgPath, pkgJson);
+  if (!runCmd) {
+    logger.warn(`${mod} has no runnable entry, skipping`);
+    return;
+  }
 
   await startRunnable(mod, runCmd, waitForStart, flags);
 }
 
 export async function runStart(opts?: qflushOptions) {
-
-   // Ensure .qflush/logs exist early to avoid ENOENT when tests change cwd
-   try {
-     const qflushDir = path.join(process.cwd(), '.qflush');
-     if (!fs.existsSync(qflushDir)) fs.mkdirSync(qflushDir, { recursive: true });
-     const logsDir = path.join(qflushDir, 'logs');
-     if (!fs.existsSync(logsDir)) fs.mkdirSync(logsDir, { recursive: true });
-     const spyLog = path.join(logsDir, 'spyder.log');
-     if (!fs.existsSync(spyLog)) safeWriteFileSync(spyLog, '', 'utf8');
-   } catch (e) {
-     logger.warn('Failed to ensure .qflush/logs at runStart: ' + String(e));
-   }
-
-  // Log after ensuring directories/files exist to avoid write races
   logger.info("qflush: starting modules...");
 
-   // Respect CI/dev flag to disable supervisor starting external services
-   const disableSupervisor = process.env.QFLUSH_DISABLE_SUPERVISOR === '1' || String(process.env.QFLUSH_DISABLE_SUPERVISOR).toLowerCase() === 'true';
-   if (disableSupervisor) {
-     logger.warn('QFLUSH supervisor disabled via QFLUSH_DISABLE_SUPERVISOR, skipping start of external modules');
-     return;
-   }
+  // ensure .qflush and logs dir exist early to avoid races when starting services
+  try {
+    const qflushDir = path.join(process.cwd(), '.qflush');
+    if (!fs.existsSync(qflushDir)) fs.mkdirSync(qflushDir, { recursive: true });
+    const logsDir = path.join(qflushDir, 'logs');
+    if (!fs.existsSync(logsDir)) fs.mkdirSync(logsDir, { recursive: true });
+  } catch (e) {
+    logger.warn(`Failed to ensure .qflush/logs before start: ${e}`);
+  }
 
-   const detected = opts?.detected || (await detectModules());
-   const paths = resolvePaths(detected);
+  // Respect CI/dev flag to disable supervisor starting external services
+  const disableSupervisor = process.env.QFLUSH_DISABLE_SUPERVISOR === '1' || String(process.env.QFLUSH_DISABLE_SUPERVISOR).toLowerCase() === 'true';
+  if (disableSupervisor) {
+    logger.warn('QFLUSH supervisor disabled via QFLUSH_DISABLE_SUPERVISOR, skipping start of external modules');
+    return;
+  }
 
-   const services = opts?.services?.length ? opts.services : Object.keys(SERVICE_MAP);
-   const flags = opts?.flags || {};
+  const detected = opts?.detected || (await detectModules());
+  const paths = resolvePaths(detected);
 
-   const waitForStart = Boolean(flags["wait"] || flags["--wait"] || false);
+  const services = opts?.services?.length ? opts.services : Object.keys(SERVICE_MAP);
+  const flags = opts?.flags || {};
 
-   const procs: Promise<void>[] = [];
+  const waitForStart = Boolean(flags["wait"] || flags["--wait"] || false);
 
-   // ensureBuiltIfNeeded moved to top-level export
+  const procs: Promise<void>[] = [];
 
-   // startWithCustoms moved to top-level export
+  // ensureBuiltIfNeeded moved to top-level export
 
-   for (const mod of services) {
-     procs.push(startModule(mod, opts, paths, flags, waitForStart));
-   }
+  // startWithCustoms moved to top-level export
 
-   await Promise.all(procs);
-   await startSpyderResonnanceIfConfigured();
+  for (const mod of services) {
+    procs.push(startModule(mod, opts, paths, flags, waitForStart));
+  }
 
-   logger.success("qflush: start sequence initiated for selected modules");
+  await Promise.all(procs);
+  await startSpyderResonnanceIfConfigured();
+
+  logger.success("qflush: start sequence initiated for selected modules");
 }
 

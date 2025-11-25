@@ -117,15 +117,15 @@ export function recordFailure(host: string, laneId: number, latencyMs?: number) 
     logger.warn(`npz-router: lane ${laneId} for ${host} tripped until ${new Date(st.trippedUntil)}`);
   }
   m.set(laneId, st);
-  try { laneFailure.inc({ host, lane: String(laneId), namespace: NS } as any); } catch {}
-  try { engine.scoreLane(laneId, 1, latencyMs); } catch {}
+  try { laneFailure.inc({ host, lane: String(laneId), namespace: NS } as any); } catch (err) { logger.warn(`npz-router: laneFailure.inc failed: ${err}`); }
+  try { engine.scoreLane(laneId, 1, latencyMs); } catch (err) { logger.warn(`npz-router: engine.scoreLane failed (failure): ${err}`); }
 }
 
 export function recordSuccess(host: string, laneId: number, latencyMs?: number) {
   const m = getCircuitMapForHost(host);
   m.delete(laneId);
-  try { laneSuccess.inc({ host, lane: String(laneId), namespace: NS } as any); } catch {}
-  try { engine.scoreLane(laneId, -1, latencyMs); } catch {}
+  try { laneSuccess.inc({ host, lane: String(laneId), namespace: NS } as any); } catch (err) { logger.warn(`npz-router: laneSuccess.inc failed: ${err}`); }
+  try { engine.scoreLane(laneId, -1, latencyMs); } catch (err) { logger.warn(`npz-router: engine.scoreLane failed (success): ${err}`); }
 }
 
 export function isLaneTripped(host: string, laneId: number): boolean {

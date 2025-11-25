@@ -19,6 +19,16 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Validate required secrets
+        run: |
+          if [ -z "${QFLUSH_TEST_TOKEN}" ] || [ -z "${QFLUSH_SPYDER_ADMIN_PORT}" ]; then
+            echo "Missing required secrets QFLUSH_TEST_TOKEN or QFLUSH_SPYDER_ADMIN_PORT" >&2
+            exit 1
+          fi
+        env:
+          QFLUSH_TEST_TOKEN: ${{ secrets.QFLUSH_TEST_TOKEN }}
+          QFLUSH_SPYDER_ADMIN_PORT: ${{ secrets.QFLUSH_SPYDER_ADMIN_PORT }}
+
       - name: Use Node.js 20
         uses: actions/setup-node@v4
         with:

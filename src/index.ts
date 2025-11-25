@@ -5,10 +5,18 @@ const require = createRequire(import.meta.url);
 
 // Register global error handlers early to avoid the CLI crashing on unhandled errors (redis, etc.)
 process.on('unhandledRejection', (reason) => {
-  try { console.warn('Unhandled Rejection:', reason && (reason as any).stack ? (reason as any).stack : String(reason)); } catch { /* ignore */ }
+  try {
+    console.warn('Unhandled Rejection:', reason && (reason as any).stack ? (reason as any).stack : String(reason));
+  } catch (err) {
+    console.warn('Failed to log unhandledRejection:', err);
+  }
 });
 process.on('uncaughtException', (err) => {
-  try { console.error('Uncaught Exception:', err && (err as any).stack ? (err as any).stack : String(err)); } catch { /* ignore */ }
+  try {
+    console.error('Uncaught Exception:', err && (err as any).stack ? (err as any).stack : String(err));
+  } catch (e) {
+    console.warn('Failed to log uncaughtException:', e);
+  }
 });
 
 // Early exit for version/about flags to avoid importing modules with side-effects.

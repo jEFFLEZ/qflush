@@ -20,7 +20,8 @@ function findLocalBin(moduleName: string, cwd: string): string | null {
   try {
     const pkgPath = require.resolve(moduleName, { paths: [cwd] });
     return pkgPath;
-  } catch {
+  } catch (error_) {
+    logger.warn && logger.warn(`[NPZ] findLocalBin.resolve failed for ${moduleName}: ${String(error_)}`);
     return null;
   }
 }
@@ -30,7 +31,8 @@ function resolveViaModuleGate(pkgName: string): { cmd: string; args: string[]; c
     const pkgPath = require.resolve(pkgName);
     // run via node <pkgPath>
     return { cmd: process.execPath, args: [pkgPath], cwd: path.dirname(pkgPath) };
-  } catch {
+  } catch (error_) {
+    logger.warn && logger.warn(`[NPZ] resolveViaModuleGate failed for ${pkgName}: ${String(error_)}`);
     return null;
   }
 }
@@ -62,19 +64,19 @@ export function npzResolve(nameOrPkg: string, opts: { cwd?: string } = {}): Reso
                   logger.nez && logger.nez('NPZ:JOKER', `${nameOrPkg} -> local start script at ${candidatePath}`);
                   return { gate: 'green', cmd: 'npm', args: ['--prefix', candidatePath, 'run', 'start'], cwd: candidatePath };
                 }
-              } catch (e) {
-                // ignore
+              } catch (error_) {
+                logger.warn && logger.warn(`[NPZ] failed to read package.json at ${pkgJsonPath}: ${String(error_)}`);
               }
             }
-          } catch (e) {
-            // ignore candidate
+          } catch (error_) {
+            logger.warn && logger.warn(`[NPZ] candidate check failed for ${candidatePath}: ${String(error_)}`);
           }
         }
         break;
       }
     }
-  } catch (e) {
-    // ignore
+  } catch (error_) {
+    logger.warn && logger.warn(`[NPZ] SERVICE_MAP gate failed: ${String(error_)}`);
   }
 
   // Gate 1: GREEN - local bin
@@ -97,13 +99,13 @@ export function npzResolve(nameOrPkg: string, opts: { cwd?: string } = {}): Reso
     // This will allow running installed or remote packages consistently.
     logger.joker && logger.joker('NPZ:JOKER', `${nameOrPkg} -> npm exec`);
     return { gate: 'dlx', cmd: 'npm', args: ['exec', '--', nameOrPkg], cwd };
-  } catch (err) {
+  } catch (error_) {
     // last-resort: npx
     try {
       logger.joker && logger.joker('NPZ:JOKER', `${nameOrPkg} -> npx`);
       return { gate: 'dlx', cmd: 'npx', args: [nameOrPkg], cwd };
-    } catch (e) {
-      logger.warn && logger.warn(`[NPZ:JOKER][FAIL] ${nameOrPkg} cannot be resolved`);
+    } catch (error2) {
+      logger.warn && logger.warn(`[NPZ:JOKER][FAIL] ${nameOrPkg} cannot be resolved: ${String(error2)}`);
       return { gate: 'fail' };
     }
   }
@@ -116,8 +118,8 @@ export function runResolved(res: ResolveResult): { ok: boolean; status?: number 
   try {
     const r = spawnSync(res.cmd, args, { stdio: 'inherit', cwd: res.cwd || process.cwd(), shell: false });
     return { ok: r.status === 0, status: r.status ?? undefined };
-  } catch (err) {
-    logger.error && logger.error(`[NPZ:JOKER] failed to run ${err}`);
+  } catch (error_) {
+    logger.error && logger.error(`[NPZ:JOKER] failed to run ${String(error_)}`);
     return { ok: false };
   }
 }
