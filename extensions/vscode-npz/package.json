@@ -27,6 +27,7 @@
     "url": "https://github.com/jEFFLEZ/qflush.git"
   },
   "license": "MIT",
+  "activationEvents": [],
   "contributes": {
     "commands": [
       {
