@@ -83,6 +83,8 @@ function persistSpyderAdminPort(spyPort: number) {
   try {
     const qflushDir = path.join(process.cwd(), '.qflush');
     if (!fs.existsSync(qflushDir)) fs.mkdirSync(qflushDir, { recursive: true });
+    // ensure logs dir exists to avoid ENOENT when processes open log files
+    try { if (!fs.existsSync(path.join(qflushDir, 'logs'))) fs.mkdirSync(path.join(qflushDir, 'logs'), { recursive: true }); } catch (e) { /* ignore */ }
     const spyCfgPath = path.join(qflushDir, 'spyder.config.json');
     let needWrite = false;
     let spyCfg: any = {};
@@ -525,6 +527,16 @@ export async function startModule(mod: string, opts: qflushOptions | undefined, 
 
 export async function runStart(opts?: qflushOptions) {
   logger.info("qflush: starting modules...");
+
+  // ensure .qflush and logs dir exist early to avoid races when starting services
+  try {
+    const qflushDir = path.join(process.cwd(), '.qflush');
+    if (!fs.existsSync(qflushDir)) fs.mkdirSync(qflushDir, { recursive: true });
+    const logsDir = path.join(qflushDir, 'logs');
+    if (!fs.existsSync(logsDir)) fs.mkdirSync(logsDir, { recursive: true });
+  } catch (e) {
+    logger.warn(`Failed to ensure .qflush/logs before start: ${e}`);
+  }
 
   // Respect CI/dev flag to disable supervisor starting external services
   const disableSupervisor = process.env.QFLUSH_DISABLE_SUPERVISOR === '1' || String(process.env.QFLUSH_DISABLE_SUPERVISOR).toLowerCase() === 'true';

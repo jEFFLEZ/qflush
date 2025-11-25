@@ -2,7 +2,7 @@
 
 import { spawn, ChildProcess } from 'child_process';
 import { writeFileSync, existsSync, mkdirSync, readFileSync, unlinkSync, createWriteStream, WriteStream } from 'fs';
-import { join } from 'path';
+import { join, dirname } from 'path';
 import alias from '../utils/alias';
 // Prefer aliased util when available, fallback to local logger or console.
 let _aliasedLogger: any = undefined;
@@ -197,7 +197,16 @@ export function startProcess(name: string, cmd: string, args: string[] = [], opt
   logger.info(`supervisor: starting ${name} -> ${cmd} ${args.join(' ')}`);
 
   const logFile = opts.logPath || join(LOGS_DIR, `${name}.log`);
-  const outStream = createWriteStream(logFile, { flags: 'a' });
+  let outStream: WriteStream | null = null;
+  try {
+    const parent = dirname(logFile);
+    if (!existsSync(parent)) mkdirSync(parent, { recursive: true });
+    outStream = createWriteStream(logFile, { flags: 'a' });
+    outStream.on('error', (err) => logger.warn(`[supervisor] log stream error for ${name}: ${err}`));
+  } catch (err) {
+    logger.warn(`[supervisor] failed to open log file ${logFile} for ${name}: ${err}`);
+    outStream = null;
+  }
 
   const spawnOpts: any = { cwd: opts.cwd || process.cwd(), shell: true };
   spawnOpts.stdio = ['ignore', 'pipe', 'pipe'];
@@ -232,8 +241,8 @@ export function startProcess(name: string, cmd: string, args: string[] = [], opt
 
     const child = spawn(execCmd, execArgs, spawnOpts);
 
-  if (child.stdout) child.stdout.pipe(outStream);
-  if (child.stderr) child.stderr.pipe(outStream);
+  if (child.stdout && outStream) child.stdout.pipe(outStream);
+  if (child.stderr && outStream) child.stderr.pipe(outStream);
 
   child.on('error', (err) => logger.error(`supervisor: ${name} process error ${err.message}`));
   child.on('exit', (code) => {
