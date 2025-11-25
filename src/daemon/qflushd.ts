@@ -6,6 +6,7 @@ import * as url from 'url';
 import * as fs from 'fs';
 import * as path from 'path';
 import { safeWriteFileSync, safeAppendFileSync, ensureParentDir } from '../utils/safe-fs.js';
+import { fileURLToPath } from 'url';
 
 let _server: http.Server | null = null;
 let _state: { safeMode: boolean; mode?: string } = { safeMode: false };
@@ -35,7 +36,14 @@ async function computeFlexibleChecksumForPath(relPath: string) {
   try {
     const filePath = path.isAbsolute(relPath) ? relPath : path.join(process.cwd(), relPath);
     if (!fs.existsSync(filePath)) throw new Error('file_not_found');
-    const fc = require('../utils/fileChecksum');
+    // dynamic import to be compatible with ESM
+    let fc: any = null;
+    try {
+      const mod = await import('../utils/fileChecksum.js');
+      fc = (mod && (mod.default || mod));
+    } catch (_e) {
+      fc = null;
+    }
     if (fc && typeof fc.flexibleChecksumFile === 'function') {
       const val = await fc.flexibleChecksumFile(filePath);
       return { success: true, checksum: String(val) };
@@ -108,8 +116,14 @@ export async function startServer(port?: number) {
               // rome-index endpoint (serve cached index from .qflush/rome-index.json)
               if (parsed.pathname === '/npz/rome-index') {
                 try {
-                  // lazy require to avoid circulars
-                  const loader = require('../rome/index-loader');
+                  // dynamic import to avoid circulars in ESM
+                  let loader: any = null;
+                  try {
+                    const mod = await import('../rome/index-loader.js');
+                    loader = (mod && (mod.default || mod));
+                  } catch (_e) {
+                    loader = null;
+                  }
                   const idx = (loader && typeof loader.getCachedRomeIndex === 'function') ? loader.getCachedRomeIndex() : {};
                   const items = Object.values(idx || {});
                   // optional type filter
@@ -371,7 +385,8 @@ export async function stopServer() {
 export default { startServer, stopServer };
 
 // If executed directly, start the server on provided port
-if (require?.main === module) {
+const __filename = fileURLToPath(import.meta.url);
+if (process.argv && process.argv[1] === __filename) {
   const port = process.env.QFLUSHD_PORT ? Number(process.env.QFLUSHD_PORT) : 43421;
   (async () => {
     try {
