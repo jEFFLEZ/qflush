@@ -94,7 +94,7 @@ async function saveRomeIndexRecord(record: { path: string; type: string; tag?: s
     const idxFile = path.join(dir, 'rome-index.json');
     let idx: RomeIndex = {};
     if (fs.existsSync(idxFile)) {
-      try { idx = JSON.parse(fs.readFileSync(idxFile, 'utf8') || '{}'); } catch { idx = {}; }
+      try { idx = JSON.parse(fs.readFileSync(idxFile, 'utf8') || '{}'); } catch (error_) { console.warn('[vscode-npz] failed to parse rome-index.json: ' + String(error_)); idx = {}; }
     }
 
     // normalize path and build canonical record using shared module

@@ -12,10 +12,10 @@ if (fetchMod) fetchFn = fetchMod.default || fetchMod;
 if (!fetchFn && typeof (globalThis as any).fetch === 'function') fetchFn = (globalThis as any).fetch.bind(globalThis);
 
 let saveEngineHistory: any;
-try { saveEngineHistory = require('./storage').saveEngineHistory; } catch (e) { saveEngineHistory = undefined; }
+try { saveEngineHistory = require('./storage').saveEngineHistory; } catch (e) { saveEngineHistory = undefined; console.warn('[executor] load storage failed', String(e)); }
 
 let callReload: any;
-try { callReload = require('./daemon-control').callReload; } catch (e) { callReload = undefined; }
+try { callReload = require('./daemon-control').callReload; } catch (e) { callReload = undefined; console.warn('[executor] load daemon-control failed', String(e)); }
 
 const DEFAULT_CFG = { allowedCommandSubstrings: ['npm','node','echo'], allowedCommands: ['echo hello','npm run build'], commandTimeoutMs: 15000, webhookUrl: '' };
 
@@ -26,6 +26,8 @@ function loadConfig() {
   } catch (e) {}
   return DEFAULT_CFG;
 }
+// report errors reading config
+function _loadConfigSafe() { try { return loadConfig(); } catch (e) { console.warn('[executor] loadConfig failed', String(e)); return DEFAULT_CFG; } }
 
 function safeExecFile(cmd: string, cwd: string, timeoutMs: number): Promise<{ code: number | null; stdout: string; stderr: string }> {
   return new Promise((resolve) => {
@@ -42,7 +44,7 @@ function safeExecFile(cmd: string, cwd: string, timeoutMs: number): Promise<{ co
           sh.stdout?.on('data', (d) => out += d.toString());
           sh.stderr?.on('data', (d) => er += d.toString());
           let finished = false;
-          const to = setTimeout(() => { try { sh.kill(); } catch(e){} }, timeoutMs);
+          const to = setTimeout(() => { try { sh.kill(); } catch(e){ console.warn('[executor] failed to kill fallback shell', String(e)); } }, timeoutMs);
           sh.on('close', (code) => { if (!finished) { finished = true; clearTimeout(to); resolve({ code, stdout: out, stderr: er }); } });
           sh.on('error', (e) => { if (!finished) { finished = true; clearTimeout(to); resolve({ code: 1, stdout: out, stderr: String(e) }); } });
           return;
@@ -64,7 +66,7 @@ function safeExecFile(cmd: string, cwd: string, timeoutMs: number): Promise<{ co
     child.stdout.on('data', (d) => out += d.toString());
     child.stderr.on('data', (d) => err += d.toString());
     let finished = false;
-    const to = setTimeout(() => { try { child.kill(); } catch(e){} }, timeoutMs);
+    const to = setTimeout(() => { try { child.kill(); } catch(e){ console.warn('[executor] failed to kill child', String(e)); } }, timeoutMs);
     child.on('close', (code) => { if (!finished) { finished = true; clearTimeout(to); resolve({ code, stdout: out, stderr: err }); } });
     child.on('error', (e) => { if (!finished) { finished = true; clearTimeout(to); resolve({ code: 1, stdout: out, stderr: String(e) }); } });
   });
@@ -76,18 +78,18 @@ function suspicious(cmd: string) {
 }
 
 function writeNpzMetadata(record: any) {
-  try {
+    try {
     const dir = path.join(process.cwd(), '.qflush', 'npz');
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
     const idxPath = path.join(dir, 'index.json');
     let idx: any = {};
     if (fs.existsSync(idxPath)) {
-      try { idx = JSON.parse(fs.readFileSync(idxPath, 'utf8') || '{}'); } catch { idx = {}; }
+      try { idx = JSON.parse(fs.readFileSync(idxPath, 'utf8') || '{}'); } catch (e) { idx = {}; console.warn('[executor] read npz index failed', String(e)); }
     }
     idx[record.id] = record;
     fs.writeFileSync(idxPath, JSON.stringify(idx, null, 2), 'utf8');
   } catch (e) {
-    // ignore
+    console.warn('[executor] writeNpzMetadata failed', String(e));
   }
 }
 
@@ -151,11 +153,11 @@ export async function executeAction(action: string, ctx: any = {}): Promise<any>
 
       // webhook notify
       if (cfg.webhookUrl && fetchFn) {
-        try { await fetchFn(cfg.webhookUrl, { method: 'POST', body: JSON.stringify({ action: cmd, path: ctx.path || null, result: res }), headers: { 'Content-Type': 'application/json' } }); } catch (e) {}
+        try { await fetchFn(cfg.webhookUrl, { method: 'POST', body: JSON.stringify({ action: cmd, path: ctx.path || null, result: res }), headers: { 'Content-Type': 'application/json' } }); } catch (e) { console.warn('[executor] webhook notify failed', String(e)); }
       }
 
       // persist execution history
-      try { if (saveEngineHistory) saveEngineHistory('exec-'+Date.now(), Date.now(), ctx.path || '', cmd, res); } catch (e) {}
+      try { if (saveEngineHistory) saveEngineHistory('exec-'+Date.now(), Date.now(), ctx.path || '', cmd, res); } catch (e) { console.warn('[executor] saveEngineHistory failed', String(e)); }
 
       return res;
     }
@@ -167,17 +169,17 @@ export async function executeAction(action: string, ctx: any = {}): Promise<any>
       }
       const id = 'npz-' + Math.random().toString(36).slice(2,10);
       const outDir = path.join(process.cwd(), '.qflush', 'npz');
-      try { if (!fs.existsSync(outDir)) fs.mkdirSync(outDir, { recursive: true }); } catch (e) {}
+      try { if (!fs.existsSync(outDir)) fs.mkdirSync(outDir, { recursive: true }); } catch (e) { console.warn('[executor] mkdir npz outDir failed', String(e)); }
       const outFile = path.join(outDir, id + '.bin');
       // write a simple placeholder binary (could be real encoding later)
-      try { fs.writeFileSync(outFile, Buffer.from(`encoded:${filePath}`)); } catch (e) {}
+      try { fs.writeFileSync(outFile, Buffer.from(`encoded:${filePath}`)); } catch (e) { console.warn('[executor] write npz outFile failed', String(e)); }
 
       const metadata = { id, source: filePath, createdAt: new Date().toISOString(), path: outFile };
       writeNpzMetadata(metadata);
 
       const res = { success: true, id, path: outFile, metadata };
-      if (cfg.webhookUrl && fetchFn) { try { await fetchFn(cfg.webhookUrl, { method: 'POST', body: JSON.stringify({ action: 'npz.encode', path: filePath, result: res }), headers: { 'Content-Type': 'application/json' } }); } catch (e) {} }
-      try { if (saveEngineHistory) saveEngineHistory('npz-'+Date.now(), Date.now(), filePath, 'npz.encode', res); } catch (e) {}
+      if (cfg.webhookUrl && fetchFn) { try { await fetchFn(cfg.webhookUrl, { method: 'POST', body: JSON.stringify({ action: 'npz.encode', path: filePath, result: res }), headers: { 'Content-Type': 'application/json' } }); } catch (e) { console.warn('[executor] webhook notify npz failed', String(e)); } }
+      try { if (saveEngineHistory) saveEngineHistory('npz-'+Date.now(), Date.now(), filePath, 'npz.encode', res); } catch (e) { console.warn('[executor] saveEngineHistory npz failed', String(e)); }
       return res;
     }
 

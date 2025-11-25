@@ -38,8 +38,8 @@ function getSpyderAdminPort(): number {
           if (!Number.isNaN(p) && p > 0) return p;
         }
       }
-    } catch (_) {
-      // ignore parsing errors
+    } catch (err) {
+      console.warn('[start] failed to read .qflush/spyder.config.json:', err);
     }
 
     // 3) .qflush/logic-config.json fallback (older config location)
@@ -54,7 +54,9 @@ function getSpyderAdminPort(): number {
           if (!Number.isNaN(p) && p > 0) return p;
         }
       }
-    } catch (_) {}
+    } catch (err) {
+      console.warn('[start] failed to read .qflush/logic-config.json:', err);
+    }
 
   } catch (_) {}
 
@@ -64,14 +66,14 @@ function getSpyderAdminPort(): number {
 
 // Check whether a TCP port on host is accepting connections
 async function isPortInUse(host: string, port: number, timeout = 400): Promise<boolean> {
-  return new Promise<boolean>((resolve) => {
+    return new Promise<boolean>((resolve) => {
     try {
       const s = net.createConnection({ host, port, timeout }, () => {
-        try { s.destroy(); } catch {};
+        try { s.destroy(); } catch (err) { console.warn('[start] isPortInUse destroy failed:', err); }
         resolve(true);
       });
       s.on('error', () => resolve(false));
-      s.on('timeout', () => { try { s.destroy(); } catch {} ; resolve(false); });
+      s.on('timeout', () => { try { s.destroy(); } catch (err) { console.warn('[start] isPortInUse destroy on timeout failed:', err); } ; resolve(false); });
     } catch (e) { resolve(false); }
   });
 }

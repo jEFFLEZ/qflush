@@ -17,11 +17,11 @@ describe('spyder admin port occupied behavior', () => {
   });
 
   afterEach(() => {
-    try { process.chdir(origCwd); } catch {}
-    try { fs.rmSync(tmpDir, { recursive: true, force: true }); } catch {}
+    try { process.chdir(origCwd); } catch (err) { /* ignore */ }
+    try { fs.rmSync(tmpDir, { recursive: true, force: true }); } catch (err) { /* ignore */ }
     process.env = { ...OLD_ENV };
     if (server) {
-      try { server.close(); } catch {}
+      try { server.close(); } catch (err) { /* ignore */ }
       server = null;
     }
     vi.restoreAllMocks();
@@ -42,7 +42,7 @@ describe('spyder admin port occupied behavior', () => {
     // mock startService to avoid side effects
     vi.mock('../../src/services', () => ({ startService: async () => { return; } }));
 
-    const { runStart } = await import('../../src/commands/start');
+    const { runStart } = await import('../../src/commands/start.js');
     await runStart({ services: ['spyder'] as any, flags: {} as any } as any);
 
     const cfgPath = path.join(process.cwd(), '.qflush', 'spyder.config.json');

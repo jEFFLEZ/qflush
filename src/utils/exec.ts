@@ -25,7 +25,7 @@ export function rimrafSync(path: string) {
     // fallback
     try {
       unlinkSync(path);
-    } catch {}
+    } catch (err2) { logger.warn(`[exec] rimrafSync fallback unlink failed: ${err2}`); }
   }
 }
 
@@ -33,7 +33,8 @@ export function isPackageInstalled(pkgName: string) {
   try {
     execSync(`npm ls ${pkgName} --depth=0`, { stdio: "ignore" });
     return true;
-  } catch {
+  } catch (error_) {
+    logger.warn && logger.warn(`[exec] isPackageInstalled check failed for ${pkgName}: ${String(error_)}`);
     return false;
   }
 }

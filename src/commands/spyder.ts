@@ -43,8 +43,8 @@ export default async function runSpyder(argv: string[] = []) {
     if (cfg.pidFile && fs.existsSync(cfg.pidFile)) {
       try {
         const pid = Number(fs.readFileSync(cfg.pidFile, 'utf8'));
-        try { process.kill(pid); } catch (e) {}
-        try { fs.unlinkSync(cfg.pidFile); } catch (e) {}
+        try { process.kill(pid); } catch (e) { console.warn('[spyder] process.kill failed', String(e)); }
+        try { fs.unlinkSync(cfg.pidFile); } catch (e) { console.warn('[spyder] unlink pidFile failed', String(e)); }
         console.log('Spyder stop requested (pid ' + pid + ').');
         return 0;
       } catch (e) { console.error('failed to stop Spyder', String(e)); return 1; }

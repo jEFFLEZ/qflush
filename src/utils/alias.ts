@@ -17,7 +17,7 @@ function tryRequire(filePath: string) {
   try {
     if (fs.existsSync(filePath)) return require(filePath);
   } catch (e) {
-    try { return require(filePath); } catch (e) {}
+    try { return require(filePath); } catch (e) { console.warn('[alias] tryRequire fallback require failed', String(e)); }
   }
   return undefined;
 }

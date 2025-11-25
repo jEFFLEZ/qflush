@@ -22,9 +22,9 @@ export async function detectModules() {
           if (pkgJson && pkgJson.bin) {
             out[name].bin = typeof pkgJson.bin === 'string' ? pkgJson.bin : Object.values(pkgJson.bin)[0];
           }
-        } catch {}
+        } catch (err) { /* ignore malformed or missing package.json */ }
       }
-    } catch {}
+    } catch (err) { /* ignore resolvePackagePath failures */ }
   }
 
   await new Promise<void>((resolve) => {
@@ -57,7 +57,7 @@ export async function findAndKill() {
         exec(`pkill -f ${n}`, (err) => {});
       }
     } catch (err) {
-      // ignore
+      /* ignore errors when attempting to spawn pkill/taskkill */
     }
   }
   return killed;

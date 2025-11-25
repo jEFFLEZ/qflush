@@ -43,8 +43,8 @@ export default async function runA11(argv: string[] = []) {
     if (cfg.pidFile && fs.existsSync(cfg.pidFile)) {
       try {
         const pid = Number(fs.readFileSync(cfg.pidFile, 'utf8'));
-        try { process.kill(pid); } catch (e) {}
-        try { fs.unlinkSync(cfg.pidFile); } catch (e) {}
+        try { process.kill(pid); } catch (e) { console.warn('[a11] process.kill failed', String(e)); }
+        try { fs.unlinkSync(cfg.pidFile); } catch (e) { console.warn('[a11] unlink pidFile failed', String(e)); }
         console.log('A-11 stop requested (pid ' + pid + ').');
         return 0;
       } catch (e) { console.error('failed to stop A-11', String(e)); return 1; }

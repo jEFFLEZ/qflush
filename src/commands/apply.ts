@@ -49,8 +49,8 @@ export default async function runApply(argv: string[] = []) {
     // 3) Generate supporting files if missing
     const lastPath = path.join(qflushDir, 'cortex.last.json');
     const cachePath = path.join(qflushDir, 'spyder.cache.json');
-    try { if (!fs.existsSync(lastPath)) fs.writeFileSync(lastPath, JSON.stringify({ initializedAt: new Date().toISOString() }, null, 2), 'utf8'); } catch (e) {}
-    try { if (!fs.existsSync(cachePath)) fs.writeFileSync(cachePath, JSON.stringify({ createdAt: new Date().toISOString(), items: [] }, null, 2), 'utf8'); } catch (e) {}
+    try { if (!fs.existsSync(lastPath)) fs.writeFileSync(lastPath, JSON.stringify({ initializedAt: new Date().toISOString() }, null, 2), 'utf8'); } catch (e) { logger.warn('[apply] ensure lastPath write failed: ' + String(e)); }
+    try { if (!fs.existsSync(cachePath)) fs.writeFileSync(cachePath, JSON.stringify({ createdAt: new Date().toISOString(), items: [] }, null, 2), 'utf8'); } catch (e) { logger.warn('[apply] ensure cachePath write failed: ' + String(e)); }
 
     // 4) Scan incoming JSON and PNG packets
     const incomingJsonDir = path.join(qflushDir, 'incoming', 'json');
@@ -96,10 +96,10 @@ export default async function runApply(argv: string[] = []) {
       try {
         // if approve flags present, inject into packet payload when AUTO-PATCH
         if (approveAll) {
-          try { if (!pkt.payload) pkt.payload = {}; (pkt.payload as any).approve = true; } catch (e) {}
+          try { if (!pkt.payload) pkt.payload = {}; (pkt.payload as any).approve = true; } catch (e) { logger.warn('[apply] inject approve failed: ' + String(e)); }
         }
         if (approveId && pkt.id === approveId) {
-          try { if (!pkt.payload) pkt.payload = {}; (pkt.payload as any).approve = true; } catch (e) {}
+          try { if (!pkt.payload) pkt.payload = {}; (pkt.payload as any).approve = true; } catch (e) { logger.warn('[apply] inject approveId failed: ' + String(e)); }
         }
 
         logger.info('Applying packet: ' + pkt.type + ' ' + (pkt.id || ''));
@@ -117,16 +117,16 @@ export default async function runApply(argv: string[] = []) {
             if (!fs.existsSync(archiveDir)) fs.mkdirSync(archiveDir, { recursive: true });
             const base = path.basename(entry.src);
             const dest = path.join(archiveDir, `${Date.now()}-${base}`);
-            try { fs.renameSync(entry.src, dest); } catch (e) { fs.copyFileSync(entry.src, dest); try { fs.unlinkSync(entry.src); } catch(e){} }
+            try { fs.renameSync(entry.src, dest); } catch (e) { try { fs.copyFileSync(entry.src, dest); } catch (e2) { logger.warn('[apply] copy entry.src failed: ' + String(e2)); } try { fs.unlinkSync(entry.src); } catch(e){ logger.warn('[apply] unlink original failed: ' + String(e)); } }
             // write metadata
-            try { fs.writeFileSync(dest + '.applied.json', JSON.stringify({ appliedAt: new Date().toISOString(), packetId: pkt.id || null }, null, 2), 'utf8'); } catch (e) {}
+            try { fs.writeFileSync(dest + '.applied.json', JSON.stringify({ appliedAt: new Date().toISOString(), packetId: pkt.id || null }, null, 2), 'utf8'); } catch (e) { logger.warn('[apply] write applied metadata failed: ' + String(e)); }
           } else {
             // if no src, write packet copy
             const id = pkt.id || (`manual-${Date.now()}`);
             const target = path.join(processedDir, `${id}.json`);
             fs.writeFileSync(target, JSON.stringify(pkt, null, 2), 'utf8');
           }
-        } catch (e) { /* ignore */ }
+        } catch (e) { logger.warn('[apply] archive step failed: ' + String(e)); }
       } catch (e) {
         logger.warn('Failed to apply packet: ' + String(e));
         // move to failed folder if source exists
@@ -143,7 +143,7 @@ export default async function runApply(argv: string[] = []) {
             try { fs.renameSync(entry.src, dest); } catch (e) { fs.copyFileSync(entry.src, dest); try { fs.unlinkSync(entry.src); } catch(e){} }
             try { fs.writeFileSync(dest + '.error.json', JSON.stringify({ error: String(e), when: new Date().toISOString() }, null, 2), 'utf8'); } catch (e) {}
           }
-        } catch (_) {}
+        } catch (_) { logger.warn('[apply] move to failed folder encountered an error'); }
       }
     }
 
@@ -164,10 +164,10 @@ export default async function runApply(argv: string[] = []) {
       const keep = process.env.QFLUSH_ARCHIVE_KEEP_MONTHS ? Number(process.env.QFLUSH_ARCHIVE_KEEP_MONTHS) : 6;
       try {
         archiveUtils.cleanupDatedArchives(path.join(qflushDir, 'processed'), keep);
-      } catch (e) {}
+      } catch (e) { logger.warn('[apply] cleanup processed archives failed: ' + String(e)); }
       try {
         archiveUtils.cleanupDatedArchives(path.join(qflushDir, 'failed'), keep);
-      } catch (e) {}
+      } catch (e) { logger.warn('[apply] cleanup failed archives failed: ' + String(e)); }
     } catch (e) {}
 
     logger.success('qflush apply complete — SPYDER initialized and cortex routes synchronized');

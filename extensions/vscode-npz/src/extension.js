@@ -138,7 +138,8 @@ async function saveRomeIndexRecord(record) {
             try {
                 idx = JSON.parse(fs.readFileSync(idxFile, 'utf8') || '{}');
             }
-            catch {
+            catch (error_) {
+                console.warn('[vscode-npz] failed to parse rome-index.json: ' + String(error_));
                 idx = {};
             }
         }

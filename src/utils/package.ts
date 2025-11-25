@@ -15,7 +15,7 @@ export function resolvePackagePath(pkgName: string) {
       dir = p;
     }
     if (existsSync(join(dir, "package.json"))) return dir;
-  } catch {}
+  } catch (err) { console.warn('[package] resolvePackagePath failed:', err); }
   // fallback: node_modules path
   const guess = join(process.cwd(), "node_modules", pkgName);
   if (existsSync(join(guess, "package.json"))) return guess;
@@ -26,7 +26,8 @@ export function readPackageJson(pkgPath: string) {
   try {
     const content = readFileSync(join(pkgPath, "package.json"), "utf8");
     return JSON.parse(content);
-  } catch {
+  } catch (err) {
+    console.warn('[package] readPackageJson failed:', err);
     return null;
   }
 }

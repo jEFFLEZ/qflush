@@ -70,7 +70,7 @@ export function computeEngineActionsSafe(index?: RomeIndex): EngineAction[] {
     return evaluateIndex(idx);
   } catch (e) {
     // don't throw in daemon context; return empty actions and let caller log
-    try { console.warn('computeEngineActionsSafe failed', String(e)); } catch {}
+    try { console.warn('computeEngineActionsSafe failed', String(e)); } catch (err) { console.warn('computeEngineActionsSafe failed to log:', err); }
     return [];
   }
 }

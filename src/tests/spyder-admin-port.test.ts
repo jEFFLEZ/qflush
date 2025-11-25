@@ -17,8 +17,8 @@ describe('spyder admin port persistence', () => {
   afterEach(() => {
     try {
       process.chdir(origCwd);
-    } catch {};
-    try { fs.rmSync(tmpDir, { recursive: true, force: true }); } catch {};
+    } catch (error_) { console.warn('[tests] cleanup chdir failed: ' + String(error_)); };
+    try { fs.rmSync(tmpDir, { recursive: true, force: true }); } catch (error_) { console.warn('[tests] cleanup rmSync failed: ' + String(error_)); };
     process.env = { ...OLD_ENV };
     vi.restoreAllMocks();
   });
@@ -29,7 +29,7 @@ describe('spyder admin port persistence', () => {
 
     process.env.QFLUSH_SPYDER_ADMIN_PORT = '51234';
 
-    const { runStart } = await import('../../src/commands/start');
+    const { runStart } = await import('../../src/commands/start.js');
 
     // Call runStart asking only for spyder to avoid other modules
     await runStart({ services: ['spyder'] as any, flags: {} as any } as any);

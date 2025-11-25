@@ -16,7 +16,7 @@ export async function runConfig(opts?: qflushOptions) {
     try {
       await fs.access(envFile);
       logger.info(`${key}: .env already exists`);
-    } catch {
+    } catch (err) {
       const content = `# ${key} default env\nPORT=3000\nTOKEN=changeme\n`;
       await fs.mkdir(p, { recursive: true });
       await fs.writeFile(envFile, content, { encoding: "utf8" });
