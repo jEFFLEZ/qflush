@@ -1,6 +1,6 @@
 // ROME-TAG: 0xF933B3
 
-import engine from '../utils/npz-engine';
+import engine from '../utils/npz-engine.js';
 import { stringify } from 'csv-stringify/sync';
 
 export async function runNpzScores(args: string[] = []) {

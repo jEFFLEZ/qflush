@@ -15,7 +15,7 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
 
-    "types": ["node"],
+    "types": ["node", "vitest"],
 
     "allowJs": false,
     "checkJs": false,
@@ -26,7 +26,8 @@
       "@daemon/*": ["src/daemon/*"],
       "@commands/*": ["src/commands/*"],
       "@rome/*": ["src/rome/*"],
-      "@supervisor/*": ["src/supervisor/*"]
+      "@supervisor/*": ["src/supervisor/*"],
+      "@cortex/*": ["src/cortex/*"]
     }
   },
 

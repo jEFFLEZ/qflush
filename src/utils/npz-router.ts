@@ -1,12 +1,12 @@
 // ROME-TAG: 0xB3686C
 
-import fs from 'fs';
-import path from 'path';
+import * as fs from 'fs';
+import * as path from 'path';
 import { performance } from 'perf_hooks';
-import logger from './logger';
+import logger from './logger.js';
 import client from 'prom-client';
-import { getNpzNamespace } from './npz-config';
-import engine from './npz-engine';
+import { getNpzNamespace } from './npz-config.js';
+import engine from './npz-engine.js';
 
 const NS = getNpzNamespace();
 

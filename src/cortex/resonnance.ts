@@ -1,5 +1,5 @@
 // src/cortex/resonnance.ts
-import { startCortexListener } from './listener';
+import { startCortexListener } from './listener.js';
 
 export async function resonnance() {
   // Tu peux logger un petit rituel SPYDER ici 😈

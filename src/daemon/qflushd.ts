@@ -5,6 +5,8 @@ import * as http from 'http';
 import * as url from 'url';
 import * as fs from 'fs';
 import * as path from 'path';
+import { safeWriteFileSync, safeAppendFileSync, ensureParentDir } from '../utils/safe-fs.js';
+import { fileURLToPath } from 'url';
 
 let _server: http.Server | null = null;
 let _state: { safeMode: boolean; mode?: string } = { safeMode: false };
@@ -24,7 +26,8 @@ function writeSafeModes(mode: string) {
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
     const p = path.join(dir, 'safe-modes.json');
     const obj = { mode, updatedAt: new Date().toISOString() };
-    fs.writeFileSync(p, JSON.stringify(obj, null, 2), 'utf8');
+    // use safe write
+    safeWriteFileSync(p, JSON.stringify(obj, null, 2), 'utf8');
   } catch (e) { console.warn('[qflushd] writeSafeModes failed:', String(e)); }
 }
 
@@ -33,7 +36,14 @@ async function computeFlexibleChecksumForPath(relPath: string) {
   try {
     const filePath = path.isAbsolute(relPath) ? relPath : path.join(process.cwd(), relPath);
     if (!fs.existsSync(filePath)) throw new Error('file_not_found');
-    const fc = require('../utils/fileChecksum');
+    // dynamic import to be compatible with ESM
+    let fc: any = null;
+    try {
+      const mod: any = await import('../utils/fileChecksum.js');
+      fc = (mod && (mod.default || mod));
+    } catch (_e) {
+      fc = null;
+    }
     if (fc && typeof fc.flexibleChecksumFile === 'function') {
       const val = await fc.flexibleChecksumFile(filePath);
       return { success: true, checksum: String(val) };
@@ -51,7 +61,7 @@ export async function startServer(port?: number) {
         return resolve({ ok: true, port: (port || process.env.QFLUSHD_PORT || 4500) });
       }
 
-      const p = port || (process.env.QFLUSHD_PORT ? Number(process.env.QFLUSHD_PORT) : 4500);
+      const p = port || (process.env.QFLUSHD_PORT ? Number(process.env.QFLUSHD_PORT) : 43421);
       const srv = http.createServer(async (req, res) => {
         try {
           const parsed = url.parse(req.url || '', true);
@@ -106,8 +116,14 @@ export async function startServer(port?: number) {
               // rome-index endpoint (serve cached index from .qflush/rome-index.json)
               if (parsed.pathname === '/npz/rome-index') {
                 try {
-                  // lazy require to avoid circulars
-                  const loader = require('../rome/index-loader');
+                  // dynamic import to avoid circulars in ESM
+                  let loader: any = null;
+                  try {
+                    const mod: any = await import('../rome/index-loader.js');
+                    loader = (mod && (mod.default || mod));
+                  } catch (_e) {
+                    loader = null;
+                  }
                   const idx = (loader && typeof loader.getCachedRomeIndex === 'function') ? loader.getCachedRomeIndex() : {};
                   const items = Object.values(idx || {});
                   // optional type filter
@@ -171,7 +187,7 @@ export async function startServer(port?: number) {
                     const rec: any = { id, checksum, storedAt: Date.now() };
                     if (ttlMs) rec.expiresAt = Date.now() + Number(ttlMs);
                     db[id] = rec;
-                    try { fs.writeFileSync(dbFile, JSON.stringify(db, null, 2), 'utf8'); } catch (e) { console.warn('[qflushd] failed writing checksums db:', String(e)); }
+                    try { safeWriteFileSync(dbFile, JSON.stringify(db, null, 2), 'utf8'); } catch (e) { console.warn('[qflushd] failed writing checksums db:', String(e)); }
                     res.writeHead(200, { 'Content-Type': 'application/json' });
                     res.end(JSON.stringify({ success: true, id, checksum }));
                     return;
@@ -228,7 +244,7 @@ export async function startServer(port?: number) {
                     }
                     if (rec.expiresAt && Date.now() > rec.expiresAt) {
                       delete db[id];
-                      try { fs.writeFileSync(dbFile, JSON.stringify(db, null, 2), 'utf8'); } catch (e) { console.warn('[qflushd] failed writing checksums db:', String(e)); }
+                      try { safeWriteFileSync(dbFile, JSON.stringify(db, null, 2), 'utf8'); } catch (e) { console.warn('[qflushd] failed writing checksums db:', String(e)); }
                       res.writeHead(404, { 'Content-Type': 'application/json' });
                       res.end(JSON.stringify({ success: false, error: 'expired' }));
                       return;
@@ -268,7 +284,7 @@ export async function startServer(port?: number) {
                   for (const k of Object.keys(db)) {
                     if (db[k] && db[k].expiresAt && now > db[k].expiresAt) delete db[k];
                   }
-                  try { fs.writeFileSync(dbFile, JSON.stringify(db, null, 2), 'utf8'); } catch (e) { console.warn('[qflushd] failed writing checksums db:', String(e)); }
+                  try { safeWriteFileSync(dbFile, JSON.stringify(db, null, 2), 'utf8'); } catch (e) { console.warn('[qflushd] failed writing checksums db:', String(e)); }
                   const items = Object.values(db);
                   res.writeHead(200, { 'Content-Type': 'application/json' });
                   res.end(JSON.stringify({ success: true, count: items.length, items }));
@@ -278,7 +294,7 @@ export async function startServer(port?: number) {
                 // DELETE /npz/checksum/clear
                 if (method === 'DELETE' && parsed.pathname === '/npz/checksum/clear') {
                   db = {};
-                  try { fs.writeFileSync(dbFile, JSON.stringify(db, null, 2), 'utf8'); } catch (e) { console.warn('[qflushd] failed writing checksums db:', String(e)); }
+                  try { safeWriteFileSync(dbFile, JSON.stringify(db, null, 2), 'utf8'); } catch (e) { console.warn('[qflushd] failed writing checksums db:', String(e)); }
                   res.writeHead(200, { 'Content-Type': 'application/json' });
                   res.end(JSON.stringify({ success: true }));
                   return;
@@ -299,6 +315,20 @@ export async function startServer(port?: number) {
 
       // listen on all interfaces to avoid localhost IPv6/IPv4 resolution issues in CI
       // bind explicitly to 0.0.0.0 to ensure IPv4 localhost connects reliably
+
+      // Ensure .qflush and logs directory exist and create common log files to avoid ENOENT in tests
+      try {
+        const baseDir = path.join(process.cwd(), '.qflush');
+        if (!fs.existsSync(baseDir)) fs.mkdirSync(baseDir, { recursive: true });
+        const logsDir = path.join(baseDir, 'logs');
+        if (!fs.existsSync(logsDir)) fs.mkdirSync(logsDir, { recursive: true });
+        const commonFiles = ['spyder.log', 'qflushd.out', 'qflushd.err'];
+        for (const f of commonFiles) {
+          const p = path.join(logsDir, f);
+          try { if (!fs.existsSync(p)) safeWriteFileSync(p, '', 'utf8'); } catch (e) { /* ignore */ }
+        }
+      } catch (e) { console.warn('[qflushd] failed to ensure .qflush/logs:', String(e)); }
+
       srv.listen(p, '0.0.0.0', () => {
         _server = srv;
         try {
@@ -355,8 +385,9 @@ export async function stopServer() {
 export default { startServer, stopServer };
 
 // If executed directly, start the server on provided port
-if (require?.main === module) {
-  const port = process.env.QFLUSHD_PORT ? Number(process.env.QFLUSHD_PORT) : 4500;
+const __filename = fileURLToPath(import.meta.url);
+if (process.argv && process.argv[1] === __filename) {
+  const port = process.env.QFLUSHD_PORT ? Number(process.env.QFLUSHD_PORT) : 43421;
   (async () => {
     try {
       await startServer(port);

@@ -1,9 +1,9 @@
 ﻿// ROME-TAG: 0x130555
 
 import { promises as fs } from "fs";
-import { logger } from "../utils/logger";
-import { resolvePaths } from "../utils/paths";
-import { qflushOptions } from "../chain/smartChain";
+import { logger } from "../utils/logger.js";
+import { resolvePaths } from "../utils/paths.js";
+import { qflushOptions } from "../chain/smartChain.js";
 
 export async function runConfig(opts?: qflushOptions) {
   logger.info("qflush: generating default configs...");

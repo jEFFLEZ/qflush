@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { loadRoutesConfig, pickBestRoute, isRouteEnabled } from './routesConfig';
+import { loadRoutesConfig, pickBestRoute, isRouteEnabled } from './routesConfig.js';
 import * as fs from 'fs';
 import * as path from 'path';
 

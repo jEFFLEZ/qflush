@@ -1,6 +1,6 @@
 // ROME-TAG: 0x925520
 
-import crypto from 'crypto';
+import * as crypto from 'crypto';
 
 export function getNpzNamespace(): string {
   // allow override

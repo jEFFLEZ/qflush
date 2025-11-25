@@ -1,5 +1,0 @@
-{
-  "root": true,
-  "formatter": { "enabled": true },
-  "linter": { "enabled": true }
-}

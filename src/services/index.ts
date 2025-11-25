@@ -1,6 +1,8 @@
 import { join } from 'path';
-import fs from 'fs';
-import logger from '../utils/logger';
+import * as fs from 'fs';
+import logger from '../utils/logger.js';
+import { createRequire } from 'module';
+const require = createRequire(import.meta.url);
 
 export type ServiceEntry = {
   start: (opts?: any) => Promise<void>;
@@ -20,7 +22,6 @@ function tryRequireService(modulePath: string): any | null {
   try {
     if (fs.existsSync(modulePath)) {
       // require cache-safe
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
       const mod = require(modulePath);
       return mod;
     }

@@ -1,4 +1,4 @@
-import { CortexPacket } from './types';
+import { CortexPacket } from './types.js';
 import { PNG } from 'pngjs';
 import * as fs from 'fs';
 import * as zlib from 'zlib';

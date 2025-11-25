@@ -4,7 +4,7 @@ import { spawn, execFile } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
 
-import { importUtil } from '../utils/alias';
+import { importUtil } from '../utils/alias.js';
 
 let fetchFn: any = undefined;
 const fetchMod = importUtil('../utils/fetch') || importUtil('node-fetch');

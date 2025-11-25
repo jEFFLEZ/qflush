@@ -1,6 +1,6 @@
 // src/cortex/router.ts
-import type { CortexPacket } from "./types";
-import alias from '../utils/alias';
+import type { CortexPacket } from "./types.js";
+import alias from '../utils/alias.js';
 
 export type CortexRouteHandler = (packet: CortexPacket, services?: any) => Promise<any> | any;
 

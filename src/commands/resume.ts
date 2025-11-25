@@ -1,4 +1,4 @@
-import { resumeAll } from '../supervisor';
+import { resumeAll } from '../supervisor.js';
 
 export default async function runResume(_argv: string[] = []) {
   resumeAll();

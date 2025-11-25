@@ -1,8 +1,8 @@
 // ROME-TAG: 0x1CA919
 
-import http from 'http';
-import net from 'net';
-import { logger } from './logger';
+import * as http from 'http';
+import * as net from 'net';
+import { logger } from './logger.js';
 
 export async function httpProbe(url: string, timeout = 2000): Promise<boolean> {
   return new Promise((resolve) => {

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { encodeCortexPacketToPng, decodeCortexPacketFromPng } from './pngCodec';
+import { encodeCortexPacketToPng, decodeCortexPacketFromPng } from './pngCodec.js';
 import * as fs from 'fs';
 import * as path from 'path';
 

@@ -1,8 +1,8 @@
 /* ROME-TAG: 0xF45330 */
-import alias from '../utils/alias';
+import alias from '../utils/alias.js';
 const logger = alias.importUtil('@utils/logger') || alias.importUtil('../utils/logger') || console;
-import gumroad from '../utils/gumroad-license';
-import { getSecret } from '../utils/secrets';
+import gumroad from '../utils/gumroad-license.js';
+import { getSecret } from '../utils/secrets.js';
 
 export async function runLicense(argv: string[] = []) {
   const sub = argv[0];

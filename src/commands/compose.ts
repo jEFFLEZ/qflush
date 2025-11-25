@@ -1,12 +1,12 @@
 // ROME-TAG: 0xD0CF40
 
-import alias from '../utils/alias';
+import alias from '../utils/alias.js';
 const logger = alias.importUtil('@utils/logger') || alias.importUtil('../utils/logger') || console;
-import { readCompose } from '../compose/parser';
-import { runStart } from './start';
-import { startProcess, listRunning, stopProcess } from '../supervisor';
-import { runPurge } from './purge';
-import fs from 'fs';
+import { readCompose } from '../compose/parser.js';
+import { runStart } from './start.js';
+import { startProcess, listRunning, stopProcess } from '../supervisor.js';
+import { runPurge } from './purge.js';
+import * as fs from 'fs';
 import { Tail } from 'tail';
 
 export async function runCompose(argv: string[]) {

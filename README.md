@@ -1,7 +1,11 @@
+[![Activate CI](https://github.com/jEFFLEZ/qflush/actions/workflows/activate-ci.yml/badge.svg)](https://github.com/jEFFLEZ/qflush/actions/workflows/activate-ci.yml)
+
 # qflush — Aperçu et guide développeur
 
 Résumé rapide
 - qflush est l'orchestrateur (CLI + daemon) principal du projet Funesterie. Le coeur se trouve dans `src/` et la sortie build dans `dist/`.
+
+> Note: The `dist/` build artifacts should not be committed to the repository. If you have a local `dist/` directory, prefer adding it to `.gitignore` and removing it from the index (e.g. `git rm -r --cached dist/`). This repository already lists `dist/` in `.gitignore`.
 
 Architecture (big picture)
 - Entrées principales:
@@ -10,7 +14,7 @@ Architecture (big picture)
   - `src/commands/*` : implémentation des commandes CLI exposées dans `package.json`.
   - `src/utils/*` : helpers (redis, secrets, fetch, hmac, etc.).
 
-- Flux de données : le daemon expose des endpoints `/npz/*` pour checksum, rome-index et rome-links ; le moteur Rome parcourt et évalue des règles qui déclenchent des actions (ex : `daemon.reload`, `start-service`).
+- Flux de données : le daemon expose des endpoints `/npz/*` pour checksum, rome-index et liens ; le moteur Rome parcourt et évalue des règles qui déclenchent des actions (ex : `daemon.reload`, `start-service`).
 
 Convention de build / piège courant
 - TypeScript : `tsconfig.json` doit avoir `rootDir: "src"` et `include: ["src/**/*"]` — cela permet à `tsc` de générer `dist/daemon/qflushd.js` (les scripts CI s'attendent à `dist/daemon/*`).
@@ -20,6 +24,7 @@ Commandes utiles
 - Builder : `npm run build` (exécute `tsc -p .`).
 - Lancer le daemon compilé : `node dist/daemon/qflushd.js` ou `npm start`.
 - Tests : `npm test` (Vitest). En CI/Vitest le bootstrap démarre automatiquement la version compilée du daemon via `vitest.setup.js`.
+- Quick API examples are available in `docs/quick-start.md` and below.
 
 Comportements runtime & variables d'environnement importants
 - `QFLUSHD_PORT` : port du daemon (défaut 4500 ou 43421 selon scripts). Tests/CI attendent parfois `4500`.
@@ -44,48 +49,16 @@ Où regarder en priorité
 - `package.json` — scripts exposés (build, test, start, daemon:spawn, etc.).
 
 Proposition pour la suite
-- Voulez-vous que je :
-  1) Nettoie le repo pour retirer `dist/` du commit (si vous préférez éviter d'avoir des artefacts de build dans la PR),
-  2) Ajoute des extraits d'exemples d'API pour `/npz/*` dans `docs/quick-start.md`,
-  3) Ou merge la PR maintenant et continuer l'amélioration de la documentation ?
+- J'ai appliqué les changements suivants en local:
+  1) Vérifié que `dist/` est ignoré via `.gitignore` et supprimé les artefacts compilés suivis (`dist/daemon/qflushd.js`) pour éviter d'avoir des artefacts de build dans le commit.
+  2) Ajouté des exemples d'API rapides dans `docs/quick-start.md`.
+
+Si tu veux que je :
+  - retire complètement tous les fichiers `dist/` du dépôt ou crée une PR automatique, dis‑le et je m'en occupe.
+  - ajoute d'autres extraits d'exemples d'API pour `/npz/*` ou des scripts d'installation, je peux les ajouter.
 
 ---
 Pour feedback ou détails supplémentaires, dites-moi quelle partie vous voulez développer en priorité.
-# QFLUSH — Funesterie Orchestrator ⚡
-
-QFLUSH est l'orchestrateur local de la Funesterie : un CLI + daemon pour démarrer, arrêter, purger, inspecter et synchroniser des modules et flux de travail dans un workspace. Il fournit des endpoints NPZ pour checksum, index Rome et liens, des utilitaires de build et des scripts d'intégration.
-
-Principales capacités
-- Orchestration de services (detect → config → start/kill)
-- Store NPZ checksum (store/verify/list/clear)
-- Intégration Rome (index / liens / SSE)
-- CLI ergonomique (`qflush`) et daemon `qflushd`
-- Mode développement sans dépendances externes (Redis/Copilot désactivés par défaut)
-
-Pourquoi utiliser QFLUSH ?
-- Démarrage rapide d'une stack locale sans surprises
-- Outils pour tester et valider les artefacts NPZ
-- Scripts sécurisés pour gérer secrets localement (DPAPI sur Windows)
-
-Quickstart (rapide)
-1) Copier l'exemple d'env :
-   - PowerShell: `Copy-Item .env.example .env; notepad .env`
-   - Bash: `cp .env.example .env && ${EDITOR:-nano} .env`
-2) Installer et builder :
-   `npm ci --no-audit --no-fund && npm run build`
-3) Lancer les tests :
-   `npm test`
-4) Lancer le daemon en dev :
-   `qflush daemon` (ou `qflush safe-run --detach daemon`)
-
-Où aller ensuite
-- Voir `docs/quick-start.md` pour plus de détails.
-- Scripts utiles : `scripts/import-env-to-secrets.ps1` (Windows DPAPI), `scripts/set-secrets.ps1`.
-
-Si tu veux, je peux :
-- enrichir ce README avec des exemples d'API (curl),
-- ajouter des badges CI/coverage,
-- ou pousser ces changements et ouvrir une PR (`push+pr`).
 
 Exemples d'API (endpoints NPZ)
 
@@ -179,4 +152,41 @@ Behavior notes:
 - If `enabled` is false or config file is absent, qflush will not try to install or start A-11.
 - On start failure qflush logs a clear message and continues with other services.
 
----
+## CI / Ports guidance
+To avoid port collisions with SPYDER when running CI on shared/self-hosted runners, set the following environment variables in your workflow or `.env`:
+
+```
+# Qflush daemon port (avoid conflicts with Spyder admin port)
+QFLUSHD_PORT=43421
+# SPYDER admin port (override to avoid conflicts)
+QFLUSH_SPYDER_ADMIN_PORT=4022
+```
+
+Use these in GitHub Actions jobs:
+
+```yaml
+env:
+  QFLUSHD_PORT: '43421'
+  QFLUSH_SPYDER_ADMIN_PORT: '4022'
+  QFLUSH_DISABLE_WEBHOOK: '1'
+  QFLUSH_TEST_TOKEN: '${{ secrets.QFLUSH_TEST_TOKEN }}'
+```
+
+This mirrors `docs/quick-start.md` recommendations and the `.env.example` in the repo.
+
+## Module system strategy (ESM + CJS fallbacks)
+
+This repository primarily uses ECMAScript modules (ESM) and Node's `NodeNext` resolution. To maintain compatibility with older CommonJS-only packages and optional runtime fallbacks, the project follows a dual-mode approach:
+
+- Source files are authored as ESM (`import`/`export`) and compiled to `dist/` with `.js` extensions in imports.
+- Where necessary we keep selective `require()` fallbacks or small `*.js` wrappers (for example `src/services.js`) to support runtime resolution of CJS modules or optional packages.
+- For ESM-only third-party packages (for example `node-fetch`), prefer using dynamic `import()` with fallbacks to `undici` or `globalThis.fetch`.
+
+Why this approach?
+- Ensures the CLI and daemon run in modern Node.js (ESM) while remaining resilient to modules that are still published as CommonJS.
+- Keeps tests and CI stable because some runtime resolution paths intentionally use `require()` as a safe fallback.
+
+Contribution guidance
+- Avoid adding static default imports of known ESM-only packages (e.g. `import fetch from 'node-fetch'`). Use the project's pattern: dynamic `import('node-fetch')` with fallback to `undici` or `globalThis.fetch`.
+- Run `npm run check-esm-imports` before opening PRs to detect static imports of known ESM-only packages.
+- If you need to remove CJS fallbacks, open a PR and test thoroughly in CI — this is a breaking, repo-wide change.

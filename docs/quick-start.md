@@ -6,11 +6,13 @@ When running `qflush start` in CI or locally you may encounter `EADDRINUSE` if S
 - Project config: `.qflush/spyder.config.json` — set the key `adminPort` to the desired port.
 - Legacy config: `.qflush/logic-config.json` — set `spyderAdminPort`.
 
-If none are provided QFLUSH defaults to port `4001`. The `qflush start` command will persist the chosen port into `.qflush/spyder.config.json` when the file is missing so other components can reuse it.
+If none are provided QFLUSH defaults to port `4001`. On CI we change the default QFLUSHD port to `43421` to avoid collision with SPYDER (admin port `4001`). The `qflush start` command will persist the chosen port into `.qflush/spyder.config.json` when the file is missing so other components can reuse it.
 
 Example `.env` snippet to add to your CI or local env file:
 
 ```
+# Qflush daemon port (override to avoid conflicts with Spyder)
+QFLUSHD_PORT=43421
 # SPYDER admin port (override to avoid conflicts)
 QFLUSH_SPYDER_ADMIN_PORT=4022
 # Disable external webhooks during CI
@@ -23,6 +25,7 @@ Example GitHub Actions job snippet (set env before running tests):
 
 ```yaml
 env:
+  QFLUSHD_PORT: '43421'
   QFLUSH_SPYDER_ADMIN_PORT: '4022'
   QFLUSH_DISABLE_WEBHOOK: '1'
   QFLUSH_TEST_TOKEN: '${{ secrets.QFLUSH_TEST_TOKEN }}'
@@ -95,4 +98,4 @@ This file contains a short checklist and copy-paste commands to get QFLUSH runni
   - qflush purge
   - npm run run:timeout -- 5 node dist/index.js purge
 
-If you want, I can add these entries to `README.md` too.  
+If you want, I can add these entries to `README.md` too.

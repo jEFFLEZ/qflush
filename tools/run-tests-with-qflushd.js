@@ -1,10 +1,11 @@
+import path from 'path';
+import * as child_process from 'child_process';
+import http from 'http';
+import fs from 'fs';
+import { createRequire } from 'module';
+
 (async () => {
   try {
-    const path = require('path');
-    const child_process = require('child_process');
-    const http = require('http');
-    const fs = require('fs');
-
     // initialize token from QFLUSH_TEST_TOKEN if not set
     if (!process.env.QFLUSH_TOKEN && process.env.QFLUSH_TEST_TOKEN) {
       process.env.QFLUSH_TOKEN = process.env.QFLUSH_TEST_TOKEN;
@@ -14,6 +15,8 @@
     const qflushdPath = path.join(process.cwd(), 'dist', 'daemon', 'qflushd.js');
     let serverModule;
     try {
+      // Use createRequire to load CommonJS output even when this file runs as ESM
+      const require = createRequire(import.meta.url);
       serverModule = require(qflushdPath);
     } catch (e) {
       console.error('Failed to require qflushd at', qflushdPath, e);
@@ -42,7 +45,7 @@
           const res = await new Promise((resolve, reject) => {
             const req = http.get(url, (r) => resolve(r));
             req.setTimeout(3000, () => {
-              req.abort();
+              try { req.abort(); } catch {};
               reject(new Error('timeout'));
             });
             req.on('error', (err) => reject(err));

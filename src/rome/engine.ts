@@ -1,6 +1,6 @@
 // ROME-TAG: 0xD8C57D
 
-import { RomeIndex, RomeTagRecord } from './rome-tag';
+import { RomeIndex, RomeTagRecord } from './rome-tag.js';
 
 export type EngineAction =
   | { action: 'watch'; path: string; reason?: string }

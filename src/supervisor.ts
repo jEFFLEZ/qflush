@@ -8,4 +8,4 @@ export {
   freezeAll,
   resumeAll,
   getFreezeMode
-} from './supervisor/index';
+} from './supervisor/index.js';

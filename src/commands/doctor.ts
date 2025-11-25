@@ -1,11 +1,11 @@
 // ROME-TAG: 0xED1E50
 
-import alias from '../utils/alias';
+import alias from '../utils/alias.js';
 const logger = alias.importUtil('@utils/logger') || alias.importUtil('../utils/logger') || console;
-import { detectModules } from '../utils/detect';
-import { httpProbe } from '../utils/health';
-import { SERVICE_MAP } from '../utils/paths';
-import { ensurePackageInstalled } from '../utils/exec';
+import { detectModules } from '../utils/detect.js';
+import { httpProbe } from '../utils/health.js';
+import { SERVICE_MAP } from '../utils/paths.js';
+import { ensurePackageInstalled } from '../utils/exec.js';
 
 export async function runDoctor(argv: string[] = []) {
   const fix = argv.includes('--fix') || argv.includes('-f');
@@ -33,6 +33,10 @@ export async function runDoctor(argv: string[] = []) {
       const pkg = SERVICE_MAP[name].pkg;
       const detectedInfo = detected[name];
       if (!detectedInfo || !detectedInfo.installed) {
+        if (!pkg) {
+          logger.warn(`No package name configured for service ${name}, skipping install`);
+          continue;
+        }
         logger.info(`Installing ${pkg} for service ${name}...`);
         const ok = ensurePackageInstalled(pkg);
         if (ok) logger.success(`Installed ${pkg}`);

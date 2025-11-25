@@ -1,6 +1,6 @@
 // ROME-TAG: 0x077294
 
-import { evaluateIndex } from '../rome/engine';
+import { evaluateIndex } from '../rome/engine.js';
 import { describe, it, expect } from 'vitest';
 
 const sampleIndex = {

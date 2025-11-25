@@ -2,7 +2,21 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
-import fetch from 'node-fetch';
+
+async function resolveFetch() {
+  if (typeof (globalThis as any).fetch === 'function') return (globalThis as any).fetch;
+  try {
+    const m = await import('node-fetch');
+    return (m && (m as any).default) || m;
+  } catch (e) {
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const undici = require('undici');
+      if (undici && typeof undici.fetch === 'function') return undici.fetch;
+    } catch (_) {}
+  }
+  throw new Error('No fetch implementation available (install node-fetch or undici)');
+}
 
 const DEFAULT_STORAGE = path.join(process.cwd(), '.qflush', 'license.json');
 
@@ -54,9 +68,9 @@ export function readTokenFromFile(): string | null {
 }
 
 export async function verifyWithGumroad(product_id: string, licenseKey: string, token: string) {
-  // Gumroad license verify endpoint
   const url = 'https://api.gumroad.com/v2/licenses/verify';
   const body = { product_id, license_key: licenseKey };
+  const fetch = await resolveFetch();
   const res = await fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },

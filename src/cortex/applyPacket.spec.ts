@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { applyCortexPacket } from './applyPacket';
+import { applyCortexPacket } from './applyPacket.js';
 import * as fs from 'fs';
 import * as path from 'path';
 

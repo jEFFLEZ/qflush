@@ -1,20 +1,37 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import fetch from 'node-fetch';
-import { startServer, stopServer } from '../daemon/qflushd';
+import { startServer, stopServer } from '../daemon/qflushd.js';
 import fs from 'fs';
-import path from 'path';
+import * as path from 'path';
 
 const URL = 'http://127.0.0.1:4500';
 
-beforeAll(() => {
+async function resolveFetch() {
+  if (typeof (globalThis as any).fetch === 'function') return (globalThis as any).fetch;
+  try {
+    const m = await import('node-fetch');
+    return (m && (m as any).default) || m;
+  } catch (e) {
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const undici = require('undici');
+      if (undici && typeof undici.fetch === 'function') return undici.fetch;
+    } catch (_) {}
+  }
+  throw new Error('No fetch available for tests');
+}
+
+let fetch: any;
+
+beforeAll(async () => {
   process.env.QFLUSH_TOKEN = 'test-token';
   process.env.QFLUSH_SAFE_CI = '1';
-  // ensure server started
-  startServer(4500);
+  fetch = await resolveFetch();
+  // ensure server started and ready
+  await startServer(4500);
 });
 
-afterAll(() => {
-  try { stopServer(); } catch (e) {}
+afterAll(async () => {
+  try { await stopServer(); } catch (e) {}
 });
 
 describe('NPZ BAT control endpoints (embedded)', () => {

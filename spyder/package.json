@@ -1,14 +1,31 @@
 {
-  "name": "spyder-kb",
-  "version": "1.0.0",
-  "private": true,
-  "description": "Deps: packages from @funeste38 (public)",
+  "name": "@funeste38/spyder",
+  "version": "1.0.3",
+  "description": "Spyder package for Funesterie — local assistant components",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "lib",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc -p .",
+    "prepare": "npm run build",
+    "prepublishOnly": "npm run build",
+    "test": "echo \"no tests configured\" && exit 0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jEFFLEZ/spyder.git"
+  },
+  "author": "jEFFLEZ",
+  "license": "MIT",
   "dependencies": {
     "@funeste38/freeland": "*",
     "@funeste38/nezlephant": "*"
   },
-  "scripts": {
-    "start": "node ./dist/index.js",
-    "build": "tsc -p ."
+  "publishConfig": {
+    "access": "public"
   }
 }

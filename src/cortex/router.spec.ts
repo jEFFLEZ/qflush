@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import * as router from './router';
-import * as emit from './emit';
+import * as router from './router.js';
+import * as emit from './emit.js';
 
 describe('Cortex router', () => {
   beforeEach(() => {
