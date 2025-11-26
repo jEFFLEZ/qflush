@@ -11,8 +11,8 @@ import { waitForService } from "../utils/health.js";
 import { runCustomsCheck, hasBlockingIssues, ModuleDescriptor } from "../utils/npz-customs.js";
 import { resolveMerged } from "../supervisor/merged-resolver.js";
 import * as fs from 'node:fs';
+import * as path from 'node:path';
 import { spawnSync } from 'node:child_process';
-import path from 'node:path';
 import { startService } from '../services/index.js';
 import net from 'node:net';
 
@@ -79,45 +79,18 @@ async function isPortInUse(host: string, port: number, timeout = 400): Promise<b
 }
 
 // Persist chosen spyder admin port into .qflush/spyder.config.json and .qflush/spyder.env
-function persistSpyderAdminPort(spyPort: number) {
-  try {
+function persistSpyderAdminPort() {
+  const adminPort = process.env.QFLUSH_SPYDER_ADMIN_PORT;
+  if (adminPort) {
     const qflushDir = path.join(process.cwd(), '.qflush');
     if (!fs.existsSync(qflushDir)) fs.mkdirSync(qflushDir, { recursive: true });
-    // ensure logs dir exists to avoid ENOENT when processes open log files
-    try { if (!fs.existsSync(path.join(qflushDir, 'logs'))) fs.mkdirSync(path.join(qflushDir, 'logs'), { recursive: true }); } catch (e) { /* ignore */ }
-    const spyCfgPath = path.join(qflushDir, 'spyder.config.json');
-    let needWrite = false;
-    let spyCfg: any = {};
-    if (fs.existsSync(spyCfgPath)) {
-      try {
-        spyCfg = JSON.parse(fs.readFileSync(spyCfgPath, 'utf8') || '{}');
-      } catch (_) { spyCfg = {}; }
-      if (!spyCfg.adminPort) {
-        spyCfg.adminPort = spyPort;
-        needWrite = true;
-      }
-    } else {
-      spyCfg = { adminPort: spyPort };
-      needWrite = true;
+    const cfgPath = path.join(qflushDir, 'spyder.config.json');
+    let config = {};
+    if (fs.existsSync(cfgPath)) {
+      try { config = JSON.parse(fs.readFileSync(cfgPath, 'utf8')); } catch {}
     }
-    if (needWrite) {
-      try {
-        fs.writeFileSync(spyCfgPath, JSON.stringify(spyCfg, null, 2), 'utf8');
-        logger.info(`Wrote .qflush/spyder.config.json with adminPort ${spyPort}`);
-      } catch (e) {
-        logger.warn(`Failed to write .qflush/spyder.config.json: ${e}`);
-      }
-    }
-    try {
-      const spyEnvPath = path.join(qflushDir, 'spyder.env');
-      const envContent = `SPYDER_ADMIN_PORT=${spyCfg.adminPort}\n`;
-      fs.writeFileSync(spyEnvPath, envContent, 'utf8');
-      logger.info(`Wrote .qflush/spyder.env with SPYDER_ADMIN_PORT=${spyCfg.adminPort}`);
-    } catch (e) {
-      logger.warn(`Failed to write .qflush/spyder.env: ${e}`);
-    }
-  } catch (e) {
-    logger.warn(`Failed to persist spyder admin port: ${e}`);
+    config.adminPort = String(adminPort);
+    fs.writeFileSync(cfgPath, JSON.stringify(config, null, 2));
   }
 }
 
