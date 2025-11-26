@@ -33,3 +33,4 @@ Thumbs.db
 # Temporary
 *.tmp
 *.log
+/parts/dl/qflush-code-dump.txt
