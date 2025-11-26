@@ -1,8 +1,7 @@
 name: CI (safe embedded services)
 
 on:
-  push:
-  workflow_dispatch:
+  workflow_dispatch: {}
 
 jobs:
   build-and-test:
