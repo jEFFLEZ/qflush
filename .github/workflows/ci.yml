@@ -77,7 +77,7 @@ jobs:
             echo "No spyder core app, skipping"
           fi
       - name: Start Cortex bus (background)
-        if: env.QFLUSH_USE_CORTEX == '1'
+        if: ${{ env.QFLUSH_USE_CORTEX == '1' }}
         run: |
           # Start Cortex bus from built dist if present. If not present, attempt to build then retry.
           if [ -f dist/cortex/bus.js ]; then
