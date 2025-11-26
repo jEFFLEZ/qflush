@@ -63,6 +63,7 @@ import { spawn } from 'child_process';
 import { enterSleepMode, exitSleepMode, jokerWipe } from './services.js';
 import { startQflushSystem } from './core/start-system.js';
 import { runPiccolo } from "./commands/piccolo.js";
+import './services/index';
 
 // Only run the CLI dispatch when this module is the entrypoint
 if (typeof require !== 'undefined' && require.main === module) {

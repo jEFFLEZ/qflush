@@ -2,6 +2,8 @@
 
 # qflush — Aperçu et guide développeur
 
+**Version 3.1.5**
+
 Résumé rapide
 - qflush est l'orchestrateur (CLI + daemon) principal du projet Funesterie. Le coeur se trouve dans `src/` et la sortie build dans `dist/`.
 
