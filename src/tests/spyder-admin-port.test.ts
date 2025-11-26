@@ -36,8 +36,7 @@ describe('spyder admin port persistence', () => {
 
     const cfgPath = path.join(process.cwd(), '.qflush', 'spyder.config.json');
     expect(fs.existsSync(cfgPath)).toBe(true);
-    const raw = fs.readFileSync(cfgPath, 'utf8');
-    const cfg = JSON.parse(raw || '{}');
-    expect(cfg.adminPort).toBe(51234);
+    const config = JSON.parse(fs.readFileSync(cfgPath, 'utf8'));
+    expect(config.adminPort).toBe(process.env.QFLUSH_SPYDER_ADMIN_PORT);
   });
 });
