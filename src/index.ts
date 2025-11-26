@@ -62,6 +62,7 @@ import runSpyder from "./commands/spyder.js";
 import { spawn } from 'child_process';
 import { enterSleepMode, exitSleepMode, jokerWipe } from './services.js';
 import { startQflushSystem } from './core/start-system.js';
+import { runPiccolo } from "./commands/piccolo.js";
 
 // Only run the CLI dispatch when this module is the entrypoint
 if (typeof require !== 'undefined' && require.main === module) {
@@ -325,6 +326,11 @@ if (typeof require !== 'undefined' && require.main === module) {
       }
     })();
     cliHandled = true;
+  }
+
+  if (first === 'piccolo') {
+    void runPiccolo(argv.slice(1));
+    process.exit(0);
   }
 
   if (!cliHandled) {

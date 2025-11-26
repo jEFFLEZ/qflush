@@ -8,7 +8,7 @@ import { runKill } from "../commands/kill.js";
 import { runStart } from "../commands/start.js";
 import { runExodia } from "../commands/exodia.js";
 
-const ORDER = ["detect", "config", "purge", "kill", "start", "exodia"];
+const ORDER = ["detect", "config", "purge", "kill", "start", "exodia", "piccolo"];
 
 export type qflushOptions = {
   global?: Record<string, any>;
@@ -189,6 +189,12 @@ export async function executePipeline(pipeline: string[], options: qflushOptions
       case "exodia":
         await runExodia(options);
         break;
+      case "piccolo": {
+        // Appel du mode Piccolo si présent dans le pipeline
+        const { runPiccolo } = await import("../commands/piccolo.js");
+        await runPiccolo();
+        break;
+      }
       default:
         logger.warn(`Unknown pipeline step: ${step}`);
     }
