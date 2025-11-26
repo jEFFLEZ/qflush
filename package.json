@@ -24,8 +24,8 @@
   ],
   "scripts": {
     "prebuild": "node ./tools/generate-pourparler-css.js",
-    "build:daemon": "tsc -p . --outDir dist && echo daemon-built",
-    "build:cortex": "tsc -p . --outDir dist && echo cortex-built",
+    "build:daemon": "tsc -p . --outDir dist && node ./tools/copy-services-proxy.mjs && echo daemon-built",
+    "build:cortex": "tsc -p . --outDir dist && node ./tools/copy-services-proxy.mjs && echo cortex-built",
     "build": "npm run build:daemon && npm run build:cortex",
     "test": "vitest --run",
     "test:ci": "vitest --run --coverage",
