@@ -85,7 +85,7 @@ function persistSpyderAdminPort(adminPort?: string | number) {
     const qflushDir = path.join(process.cwd(), '.qflush');
     if (!fs.existsSync(qflushDir)) fs.mkdirSync(qflushDir, { recursive: true });
     const cfgPath = path.join(qflushDir, 'spyder.config.json');
-    let config = {};
+    let config: Record<string, any> = {};
     if (fs.existsSync(cfgPath)) {
       try { config = JSON.parse(fs.readFileSync(cfgPath, 'utf8')); } catch {}
     }

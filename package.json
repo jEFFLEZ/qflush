@@ -64,6 +64,7 @@
   "license": "SEE LICENSE IN LICENSE-FUNESTERIE.txt",
   "dependencies": {
     "@funeste38/bat": "latest",
+    "@funeste38/beam": "^1.0.0",
     "@funeste38/envaptex": "latest",
     "@funeste38/freeland": "latest",
     "@funeste38/nezlephant": "latest",

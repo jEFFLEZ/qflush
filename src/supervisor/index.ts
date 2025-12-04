@@ -4,6 +4,7 @@ import { spawn, ChildProcess } from 'child_process';
 import { writeFileSync, existsSync, mkdirSync, readFileSync, unlinkSync, createWriteStream, WriteStream } from 'fs';
 import { join, dirname } from 'path';
 import alias from '../utils/alias.js';
+import { qflushAi, QflushAiOptions } from '../utils/qflush-ai';
 // Prefer aliased util when available, fallback to local logger or console.
 let _aliasedLogger: any = undefined;
 try {
@@ -336,6 +337,15 @@ export function freezeAll(reason?: string, opts?: { autoResume?: boolean; resume
     // optional overall timeout to stop watcher
     setTimeout(() => { try { stopWatch(); } catch (err) { logger.warn('[supervisor] stopWatch failed:', err); } }, timeoutMs);
   }
+}
+
+export async function askAi(prompt: string, aiConfig?: Partial<QflushAiOptions>): Promise<string> {
+  const config: QflushAiOptions = {
+    prompt,
+    profile: aiConfig?.profile || 'cloud-dev',
+    mode: aiConfig?.mode || 'auto',
+  };
+  return await qflushAi(config);
 }
 
 export default {

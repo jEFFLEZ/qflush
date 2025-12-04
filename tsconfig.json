@@ -20,14 +20,15 @@
     "allowJs": false,
     "checkJs": false,
 
-    "baseUrl": "./",
+    "baseUrl": "./src",
     "paths": {
-      "@utils/*": ["src/utils/*"],
-      "@daemon/*": ["src/daemon/*"],
-      "@commands/*": ["src/commands/*"],
-      "@rome/*": ["src/rome/*"],
-      "@supervisor/*": ["src/supervisor/*"],
-      "@cortex/*": ["src/cortex/*"]
+      "@utils/*": ["utils/*"],
+      "@daemon/*": ["daemon/*"],
+      "@commands/*": ["commands/*"],
+      "@rome/*": ["rome/*"],
+      "@supervisor/*": ["supervisor/*"],
+      "@cortex/*": ["cortex/*"],
+      "@funeste38/beam": ["../node_modules/@funeste38/beam"]
     }
   },
 

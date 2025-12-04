@@ -1,115 +1,159 @@
 [![Activate CI](https://github.com/jEFFLEZ/qflush/actions/workflows/activate-ci.yml/badge.svg)](https://github.com/jEFFLEZ/qflush/actions/workflows/activate-ci.yml)
 
-# qflush — Aperçu et guide développeur
+# QFLUSH — Orchestrateur Funesterie
 
 **Version 3.1.5**
 
-Résumé rapide
-- qflush est l'orchestrateur (CLI + daemon) principal du projet Funesterie. Le coeur se trouve dans `src/` et la sortie build dans `dist/`.
+---
 
-> Note: The `dist/` build artifacts should not be committed to the repository. If you have a local `dist/` directory, prefer adding it to `.gitignore` and removing it from the index (e.g. `git rm -r --cached dist/`). This repository already lists `dist/` in `.gitignore`.
-
-Architecture (big picture)
-- Entrées principales:
-  - `src/daemon/qflushd.ts` : serveur HTTP (endpoints admin & NPZ).
-  - `src/rome/*` : moteur d'indexation, linker et logique ( règles, exécution d'actions ).
-  - `src/commands/*` : implémentation des commandes CLI exposées dans `package.json`.
-  - `src/utils/*` : helpers (redis, secrets, fetch, hmac, etc.).
-
-- Flux de données : le daemon expose des endpoints `/npz/*` pour checksum, rome-index et liens ; le moteur Rome parcourt et évalue des règles qui déclenchent des actions (ex : `daemon.reload`, `start-service`).
-
-Convention de build / piège courant
-- TypeScript : `tsconfig.json` doit avoir `rootDir: "src"` et `include: ["src/**/*"]` — cela permet à `tsc` de générer `dist/daemon/qflushd.js` (les scripts CI s'attendent à `dist/daemon/*`).
-
-Commandes utiles
-- Installer dépendances : `npm ci --no-audit --no-fund`
-- Builder : `npm run build` (exécute `tsc -p .`).
-- Lancer le daemon compilé : `node dist/daemon/qflushd.js` ou `npm start`.
-- Tests : `npm test` (Vitest). En CI/Vitest le bootstrap démarre automatiquement la version compilée du daemon via `vitest.setup.js`.
-- Quick API examples are available in `docs/quick-start.md` and below.
-
-Comportements runtime & variables d'environnement importants
-- `QFLUSHD_PORT` : port du daemon (défaut 4500 ou 43421 selon scripts). Tests/CI attendent parfois `4500`.
-- `QFLUSH_ENABLE_REDIS` : contrôle l'utilisation de Redis (0 = in-memory fallback).
-- `QFLUSH_DISABLE_COPILOT` / `QFLUSH_TELEMETRY` : désactiver la passerelle copilot/telemetry en runtime.
-- `VITEST` : si défini, `vitest.setup.js` tente de require et démarrer `dist/daemon/qflushd`.
-
-SPYDER admin port
-- `QFLUSH_SPYDER_ADMIN_PORT` : override du port admin que SPYDER expose (valeur entière). Utile en CI ou pour éviter des conflits locaux.
-- Fichier de configuration projet : `.qflush/spyder.config.json` peut contenir la clé `adminPort`. En alternative historique, `.qflush/logic-config.json` peut contenir `spyderAdminPort`.
-- Comportement par défaut : `4001` si aucune configuration fournie.
-- Note : `qflush start` persiste automatiquement `adminPort` dans `.qflush/spyder.config.json` si la clé manque, pour que d'autres composants puissent lire la valeur.
-
-Points d'intégration et tests
-- CI (workflow `CI`) : installe deps, compile (`npx tsc`) et démarre le daemon, puis exécute les tests. Les tests d'intégration vérifient les endpoints `/npz/checksum/*` et `/npz/rome-index`.
-- Si vous rencontrez des erreurs de type `dist/daemon/qflushd.js missing` : vérifier `tsconfig.json` (rootDir/include) puis `npm run build`.
-
-Où regarder en priorité
-- `src/daemon/qflushd.ts` — comportement du serveur et endpoints.
-- `src/rome/` — logique d'indexation et exécution d'actions.
-- `src/commands/` — exemples d'utilisation du moteur via la CLI.
-- `package.json` — scripts exposés (build, test, start, daemon:spawn, etc.).
-
-Proposition pour la suite
-- J'ai appliqué les changements suivants en local:
-  1) Vérifié que `dist/` est ignoré via `.gitignore` et supprimé les artefacts compilés suivis (`dist/daemon/qflushd.js`) pour éviter d'avoir des artefacts de build dans le commit.
-  2) Ajouté des exemples d'API rapides dans `docs/quick-start.md`.
-
-Si tu veux que je :
-  - retire complètement tous les fichiers `dist/` du dépôt ou crée une PR automatique, dis‑le et je m'en occupe.
-  - ajoute d'autres extraits d'exemples d'API pour `/npz/*` ou des scripts d'installation, je peux les ajouter.
+## Présentation
+QFLUSH est l'orchestrateur principal du projet Funesterie. Il gère les flux, pipelines, et services (CLI + daemon) pour automatiser et superviser les traitements complexes (indexation, encodage, IA, etc.).
 
 ---
-Pour feedback ou détails supplémentaires, dites-moi quelle partie vous voulez développer en priorité.
 
-Exemples d'API (endpoints NPZ)
+## Modules principaux
 
-- Store checksum
+- **Daemon** : Serveur HTTP principal (`src/daemon/qflushd.ts`), endpoints NPZ, Rome, admin, orchestration.
+- **Rome** : Moteur d'indexation, règles, actions (`src/rome/`).
+- **Beam** : Pipelines DBZ (stream, ciblage, batch, fusion, ultra) via [@funeste38/beam](https://www.npmjs.com/package/@funeste38/beam).
+- **Cortex** : Encodage OC8, IA, compression, brotli, OC8, NPZ (`src/cortex/`).
+- **Nezlephant** : Extraction, analyse, parsing avancé (`src/nezlephant/`).
+- **OC8** : Format d'encodage optimisé, compression, mapping, brotli (`src/cortex/oc8.ts`).
+- **Brotli** : Compression/décompression, support natif et via Cortex.
+- **Spyder** : Webs, admin, gestion des ports, endpoints (`src/spyder/`).
+- **FS virtuel** : Abstraction filesystem, support in-memory et Redis.
+- **Redis** : Stockage clé-valeur, fallback in-memory.
+- **CLI** : Commandes utilisateur (`src/commands/`).
+- **Utils** : Helpers, outils, secrets, fetch, hmac, etc. (`src/utils/`).
 
-```bash
-curl -X POST "http://localhost:4500/npz/checksum/store" \
-   -H "Content-Type: application/json" \
-   -d '{"id":"t1","checksum":"abc","ttlMs":60000}'
+---
+
+## Architecture & Organisation
+```
+qflush/
+  src/
+    daemon/        # Serveur principal, endpoints
+    rome/          # Moteur d'indexation, logique
+    beam/          # Pipelines Funesterie (si local)
+    cortex/        # Encodage, OC8, IA, brotli
+    nezlephant/    # Extraction, analyse
+    spyder/        # Webs, admin
+    commands/      # Commandes CLI
+    utils/         # Helpers, outils
+  dist/            # Build compilé (non commité)
+  .qflush/         # Configs projet, cache, etc.
+  docs/            # Documentation, quick-start
 ```
 
-- List checksums
+---
 
+## Commandes de base (CLI)
+
+### Installation des dépendances
+```sh
+npm ci --no-audit --no-fund
+```
+
+### Compilation TypeScript
+```sh
+npm run build
+```
+
+### Lancement du daemon
+```sh
+npm start
+# ou
+node dist/daemon/qflushd.js
+```
+
+### Lancer les tests
+```sh
+npm test
+```
+
+### Commandes avancées
+- **Afficher l’aide CLI** :
+  ```sh
+  npx qflush --help
+  ```
+- **Démarrer A-11 (IA locale)** :
+  ```sh
+  npx qflush start a11
+  ```
+- **Vérifier le statut A-11** :
+  ```sh
+  npx qflush a11:status
+  ```
+- **Lister les endpoints NPZ** :
+  ```sh
+  curl "http://localhost:4500/npz/checksum/list"
+  ```
+
+---
+
+## Pipelines Funesterie (Module Beam)
+QFLUSH orchestre des pipelines typés DBZ via [@funeste38/beam](https://www.npmjs.com/package/@funeste38/beam) :
+
+| Type      | Alias DBZ         | Description                       |
+|-----------|-------------------|-----------------------------------|
+| `beam`    | `kamehameha`      | Flux continu, streaming           |
+| `drill`   | `makankosappo`    | Ciblage précis                    |
+| `bomb`    | `genkidama`       | Batch massif, agrégation          |
+| `fusion`  | `gogeta`          | Pipeline hybride (multi-phase)    |
+| `ultra`   | `ssj`, `god`      | Pipeline ultime, auto-optimisé    |
+
+Exemple d'utilisation :
+```typescript
+import { runQflushBeam } from "@funeste38/beam";
+const result = await runQflushBeam({
+  type: "gogeta",
+  source: "qflush:smartchain",
+  target: "cortex:/encode",
+  payload: { file: "D:/img.png" }
+});
+```
+
+---
+
+## Cortex, OC8, Brotli, Nezlephant
+- **Cortex** : Encodage OC8, IA, compression brotli, NPZ, mapping, hashing, analyse d'image, support multi-format.
+- **OC8** : Format d'encodage optimisé pour la compression et le mapping, utilisé dans Cortex et Beam.
+- **Brotli** : Compression/décompression, utilisé pour les dumps, les assets, et les pipelines.
+- **Nezlephant** : Extraction, parsing, analyse avancée de fichiers, intégration dans les pipelines et Cortex.
+
+Exemple d'utilisation Cortex :
+```typescript
+import { encodeOC8, decodeOC8 } from "./cortex/oc8";
+const encoded = encodeOC8(buffer);
+const decoded = decodeOC8(encoded);
+```
+
+---
+
+## Endpoints API (NPZ, Rome, Spyder)
+- Stocker un checksum : `/npz/checksum/store`
+- Lister les checksums : `/npz/checksum/list`
+- Vérifier un checksum : `/npz/checksum/verify`
+- Nettoyer les checksums : `/npz/checksum/clear`
+- Index Rome : `/npz/rome-index`
+- Endpoints Spyder admin : `/spyder/admin/*`
+
+Exemples :
 ```bash
+curl -X POST "http://localhost:4500/npz/checksum/store" -H "Content-Type: application/json" -d '{"id":"t1","checksum":"abc","ttlMs":60000}'
 curl "http://localhost:4500/npz/checksum/list"
-```
-
-- Verify checksum (mismatch returns non-200)
-
-```bash
-curl -X POST "http://localhost:4500/npz/checksum/verify" \
-   -H "Content-Type: application/json" \
-   -d '{"id":"t1","checksum":"abc"}'
-```
-
-- Clear checksums
-
-```bash
+curl -X POST "http://localhost:4500/npz/checksum/verify" -H "Content-Type: application/json" -d '{"id":"t1","checksum":"abc"}'
 curl -X DELETE "http://localhost:4500/npz/checksum/clear"
-```
-
-- Fetch Rome index
-
-```bash
 curl "http://localhost:4500/npz/rome-index"
 ```
 
-Notes:
-- En local, la variable `QFLUSHD_PORT` peut être utilisée pour changer le port (ex: `QFLUSHD_PORT=43421`).
-- Les tests d'intégration supposent que le daemon compilé expose ces endpoints (via `dist/daemon/qflushd.js`).
+---
 
-## Optional integration: A-11 (local AI service)
+## Configuration
+- Variables d'environnement : `QFLUSHD_PORT`, `QFLUSH_ENABLE_REDIS`, `QFLUSH_DISABLE_COPILOT`, etc.
+- Fichiers de config : `.qflush/spyder.config.json`, `.qflush/a11.config.json`, `.qflush/logic-config.json`
 
-FR
------
-qflush peut piloter un serveur IA local nommé "A-11" (ex: backend Node + Ollama). Cette intégration est entièrement optionnelle : si A-11 n'est pas installé ou activé, qflush l'ignore et continue d'orchestrer les autres services.
-
-Exemple de configuration (dans `.qflush/a11.config.json`):
-
+Exemple de config A-11 :
 ```json
 {
   "enabled": true,
@@ -120,21 +164,156 @@ Exemple de configuration (dans `.qflush/a11.config.json`):
 }
 ```
 
-Commandes utiles:
-- `qflush start a11` — démarre A-11 si `enabled` et si `startCommand` est défini.
-- `qflush stop a11` — arrête A-11 si un `pidFile` a été créé lors du démarrage.
-- `qflush a11:status` — vérifie le endpoint `healthUrl` ou la présence du processus.
+---
 
-Comportement:
-- Si `enabled` = false ou le fichier de config manque, qflush n'essaie pas d'installer ni de lancer A-11.
-- En cas d'échec de démarrage, qflush loggue une erreur et continue les autres modules.
+## Build & Conventions
+- TypeScript : `rootDir: "src"`, `outDir: "dist"`
+- Les artefacts build (`dist/`) ne doivent pas être commités.
+- Compatible ESM + CJS (NodeNext)
+- Scripts CI/CD intégrés (GitHub Actions)
 
-EN
------
-qflush can orchestrate an optional local AI service named "A-11" (for example a Node + Ollama backend). This integration is optional: if A-11 is not installed or enabled, qflush will ignore it and continue orchestrating other services.
+---
 
-Example configuration (put into `.qflush/a11.config.json`):
+## Contribution & Bonnes pratiques
+- Forkez le repo, créez une branche, ouvrez une PR.
+- Respectez les conventions ESM/CJS (voir section dédiée).
+- Ajoutez vos exemples d'API ou pipelines dans `docs/quick-start.md`.
+- Utilisez les scripts CI pour valider la build et les tests.
 
+---
+
+## Liens utiles
+- [Documentation rapide](docs/quick-start.md)
+- [Module Beam sur npm](https://www.npmjs.com/package/@funeste38/beam)
+- [Repo GitHub](https://github.com/jEFFLEZ/qflush)
+
+---
+
+## Licence
+MIT
+
+---
+
+# QFLUSH — Manuel d’utilisation
+
+**Version 3.1.5**
+
+---
+
+## 1. Installation
+
+### Prérequis
+- Node.js >= 18
+- npm >= 9
+
+### Installation des dépendances
+```sh
+npm ci --no-audit --no-fund
+```
+
+### Compilation TypeScript
+```sh
+npm run build
+```
+
+---
+
+## 2. Démarrage du daemon
+
+### Lancer le serveur principal
+```sh
+npm start
+# ou
+node dist/daemon/qflushd.js
+```
+
+Le daemon démarre sur le port 4500 par défaut (modifiable via la variable d’environnement `QFLUSHD_PORT`).
+
+---
+
+## 3. Commandes CLI principales
+
+- **Afficher l’aide**
+  ```sh
+  npx qflush --help
+  ```
+- **Lancer un pipeline Funesterie (Beam, Drill, Bomb, Fusion, Ultra)**
+  ```sh
+  npx qflush beam --type kamehameha --source repo:/ --target cortex:/encode
+  ```
+- **Démarrer A-11 (IA locale)**
+  ```sh
+  npx qflush start a11
+  ```
+- **Vérifier le statut A-11**
+  ```sh
+  npx qflush a11:status
+  ```
+
+---
+
+## 4. Utilisation des endpoints API
+
+- **Stocker un checksum**
+  ```sh
+  curl -X POST "http://localhost:4500/npz/checksum/store" -H "Content-Type: application/json" -d '{"id":"t1","checksum":"abc","ttlMs":60000}'
+  ```
+- **Lister les checksums**
+  ```sh
+  curl "http://localhost:4500/npz/checksum/list"
+  ```
+- **Vérifier un checksum**
+  ```sh
+  curl -X POST "http://localhost:4500/npz/checksum/verify" -H "Content-Type: application/json" -d '{"id":"t1","checksum":"abc"}'
+  ```
+- **Nettoyer les checksums**
+  ```sh
+  curl -X DELETE "http://localhost:4500/npz/checksum/clear"
+  ```
+- **Index Rome**
+  ```sh
+  curl "http://localhost:4500/npz/rome-index"
+  ```
+
+---
+
+## 5. Pipelines Funesterie (Beam)
+
+QFLUSH orchestre des pipelines typés DBZ via [@funeste38/beam](https://www.npmjs.com/package/@funeste38/beam) :
+
+| Type      | Alias DBZ         | Description                       |
+|-----------|-------------------|-----------------------------------|
+| `beam`    | `kamehameha`      | Flux continu, streaming           |
+| `drill`   | `makankosappo`    | Ciblage précis                    |
+| `bomb`    | `genkidama`       | Batch massif, agrégation          |
+| `fusion`  | `gogeta`          | Pipeline hybride (multi-phase)    |
+| `ultra`   | `ssj`, `god`      | Pipeline ultime, auto-optimisé    |
+
+Exemple d’utilisation dans le code :
+```typescript
+import { runQflushBeam } from "@funeste38/beam";
+const result = await runQflushBeam({
+  type: "gogeta",
+  source: "qflush:smartchain",
+  target: "cortex:/encode",
+  payload: { file: "D:/img.png" }
+});
+```
+
+---
+
+## 6. Configuration
+
+- Variables d’environnement :
+  - `QFLUSHD_PORT` : port du daemon
+  - `QFLUSH_ENABLE_REDIS` : activer Redis
+  - `QFLUSH_DISABLE_COPILOT` : désactiver Copilot
+- Fichiers de config :
+  - `.qflush/spyder.config.json` : config Spyder
+  - `.qflush/a11.config.json` : config IA locale
+  - `.qflush/logic-config.json` : logique avancée
+
+Exemple de config A-11 :
 ```json
 {
   "enabled": true,
@@ -145,50 +324,34 @@ Example configuration (put into `.qflush/a11.config.json`):
 }
 ```
 
-Useful commands:
-- `qflush start a11` — starts A-11 when `enabled` and `startCommand` provided.
-- `qflush stop a11` — stops A-11 if a `pidFile` was recorded on start.
-- `qflush a11:status` — checks `healthUrl` or process presence.
+---
 
-Behavior notes:
-- If `enabled` is false or config file is absent, qflush will not try to install or start A-11.
-- On start failure qflush logs a clear message and continues with other services.
+## 7. Modules avancés
 
-## CI / Ports guidance
-To avoid port collisions with SPYDER when running CI on shared/self-hosted runners, set the following environment variables in your workflow or `.env`:
+- **Cortex** : Encodage OC8, IA, compression brotli, NPZ, mapping, hashing, analyse d'image, support multi-format.
+- **OC8** : Format d'encodage optimisé pour la compression et le mapping, utilisé dans Cortex et Beam.
+- **Brotli** : Compression/décompression, utilisé pour les dumps, les assets, et les pipelines.
+- **Nezlephant** : Extraction, parsing, analyse avancée de fichiers, intégration dans les pipelines et Cortex.
+- **Spyder** : Webs, admin, gestion des ports, endpoints.
+- **FS virtuel** : Abstraction filesystem, support in-memory et Redis.
 
-```
-# Qflush daemon port (avoid conflicts with Spyder admin port)
-QFLUSHD_PORT=43421
-# SPYDER admin port (override to avoid conflicts)
-QFLUSH_SPYDER_ADMIN_PORT=4022
-```
+---
 
-Use these in GitHub Actions jobs:
+## 8. Bonnes pratiques & contribution
 
-```yaml
-env:
-  QFLUSHD_PORT: '43421'
-  QFLUSH_SPYDER_ADMIN_PORT: '4022'
-  QFLUSH_DISABLE_WEBHOOK: '1'
-  QFLUSH_TEST_TOKEN: '${{ secrets.QFLUSH_TEST_TOKEN }}'
-```
+- Forkez le repo, créez une branche, ouvrez une PR.
+- Respectez les conventions ESM/CJS (voir section dédiée).
+- Ajoutez vos exemples d'API ou pipelines dans `docs/quick-start.md`.
+- Utilisez les scripts CI pour valider la build et les tests.
 
-This mirrors `docs/quick-start.md` recommendations and the `.env.example` in the repo.
+---
 
-## Module system strategy (ESM + CJS fallbacks)
+## 9. Liens utiles
+- [Documentation rapide](docs/quick-start.md)
+- [Module Beam sur npm](https://www.npmjs.com/package/@funeste38/beam)
+- [Repo GitHub](https://github.com/jEFFLEZ/qflush)
 
-This repository primarily uses ECMAScript modules (ESM) and Node's `NodeNext` resolution. To maintain compatibility with older CommonJS-only packages and optional runtime fallbacks, the project follows a dual-mode approach:
+---
 
-- Source files are authored as ESM (`import`/`export`) and compiled to `dist/` with `.js` extensions in imports.
-- Where necessary we keep selective `require()` fallbacks or small `*.js` wrappers (for example `src/services.js`) to support runtime resolution of CJS modules or optional packages.
-- For ESM-only third-party packages (for example `node-fetch`), prefer using dynamic `import()` with fallbacks to `undici` or `globalThis.fetch`.
-
-Why this approach?
-- Ensures the CLI and daemon run in modern Node.js (ESM) while remaining resilient to modules that are still published as CommonJS.
-- Keeps tests and CI stable because some runtime resolution paths intentionally use `require()` as a safe fallback.
-
-Contribution guidance
-- Avoid adding static default imports of known ESM-only packages (e.g. `import fetch from 'node-fetch'`). Use the project's pattern: dynamic `import('node-fetch')` with fallback to `undici` or `globalThis.fetch`.
-- Run `npm run check-esm-imports` before opening PRs to detect static imports of known ESM-only packages.
-- If you need to remove CJS fallbacks, open a PR and test thoroughly in CI — this is a breaking, repo-wide change.
+## 10. Licence
+MIT

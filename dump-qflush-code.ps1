@@ -1,7 +1,17 @@
-$OutFile = Join-Path (Get-Location) 'qflush-code-dump.txt'
+Write-Host "=== DUMP QFLUSH ==="
+$OutFile = "d:/dump/qflush-code-dump.txt"
+
+Write-Host "Fichier de sortie : $OutFile"
+
+# Crée le dossier de dump si absent
+if (-not (Test-Path -Path 'd:/dump')) {
+    Write-Host "Création du dossier d:/dump..."
+    New-Item -ItemType Directory -Path 'd:/dump' | Out-Null
+}
 
 # Overwrite if exists
 if (Test-Path $OutFile) {
+    Write-Host "Suppression de l'ancien fichier de dump..."
     Remove-Item $OutFile -Force
 }
 
@@ -35,6 +45,7 @@ function IsPathExcluded($fullPath) {
     return $false
 }
 
+Write-Host "Recherche des fichiers à inclure..."
 # Collect files
 $allFiles = Get-ChildItem -Recurse -File -Force -ErrorAction SilentlyContinue | Where-Object {
     try {
@@ -52,8 +63,8 @@ $allFiles = Get-ChildItem -Recurse -File -Force -ErrorAction SilentlyContinue | 
     }
 }
 
-# Sort for deterministic order
 $files = $allFiles | Sort-Object FullName
+Write-Host ("Nombre de fichiers à dumper : " + $files.Count)
 
 # Write header
 "qflush code dump generated: $(Get-Date -Format o)" | Out-File -FilePath $OutFile -Encoding utf8
@@ -72,6 +83,8 @@ foreach ($f in $files) {
         } else {
             $rel = $full
         }
+
+        Write-Host "Dumping file: $rel"
 
         # write separators and file header
         $header1 = $sep
@@ -106,8 +119,11 @@ foreach ($f in $files) {
     } catch {
         # continue on errors, but log minimal info to dump file
         $errLine = "[ERROR] Failed to include file: $($f.FullName) - $($_.Exception.Message)"
+        Write-Host $errLine
         $errLine | Out-File -FilePath $OutFile -Encoding utf8 -Append
     }
 }
 
 "Completed: $(Get-Date -Format o)" | Out-File -FilePath $OutFile -Encoding utf8 -Append
+Write-Host "=== QFLUSH DUMP END ==="
+Write-Host "Fichier généré : $OutFile"
