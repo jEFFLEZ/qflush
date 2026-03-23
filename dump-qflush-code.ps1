@@ -1,12 +1,16 @@
+param(
+    [string]$OutFile = (Join-Path -Path (Get-Location) -ChildPath "qflush-code-dump.txt")
+)
+
 Write-Host "=== DUMP QFLUSH ==="
-$OutFile = "d:/dump/qflush-code-dump.txt"
 
 Write-Host "Fichier de sortie : $OutFile"
 
-# Crée le dossier de dump si absent
-if (-not (Test-Path -Path 'd:/dump')) {
-    Write-Host "Création du dossier d:/dump..."
-    New-Item -ItemType Directory -Path 'd:/dump' | Out-Null
+# Crée le dossier de dump si absent (en se basant sur le chemin de sortie)
+$outDir = Split-Path -Parent $OutFile
+if ($outDir -and -not (Test-Path -Path $outDir)) {
+    Write-Host "Création du dossier $outDir..."
+    New-Item -ItemType Directory -Path $outDir -Force | Out-Null
 }
 
 # Overwrite if exists

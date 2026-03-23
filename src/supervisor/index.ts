@@ -4,7 +4,7 @@ import { spawn, ChildProcess } from 'child_process';
 import { writeFileSync, existsSync, mkdirSync, readFileSync, unlinkSync, createWriteStream, WriteStream } from 'fs';
 import { join, dirname } from 'path';
 import alias from '../utils/alias.js';
-import { qflushAi, QflushAiOptions } from '../utils/qflush-ai';
+import { qflushAi, QflushAiOptions } from '../utils/qflush-ai.js';
 // Prefer aliased util when available, fallback to local logger or console.
 let _aliasedLogger: any = undefined;
 try {
