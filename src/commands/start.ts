@@ -78,7 +78,7 @@ async function isPortInUse(host: string, port: number, timeout = 400): Promise<b
   });
 }
 
-// Persist chosen spyder admin port into .qflush/spyder.config.json and .qflush/spyder.env
+// Persist chosen spyder admin port into .qflush/spyder.config.json
 function persistSpyderAdminPort(adminPort?: string | number) {
   if (!adminPort) adminPort = process.env.QFLUSH_SPYDER_ADMIN_PORT;
   if (adminPort) {
