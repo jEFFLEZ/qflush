@@ -107,14 +107,7 @@ export function importUtil(name: string): any {
       return require(path.join(__dirname, 'logger.ts'));
     }
     // Try absolute path to src/utils/logger.ts if still not found
-    const absLoggerTs = path.resolve(process.cwd(), 'src', 'utils', 'logger.ts');
-    if (fs.existsSync(absLoggerTs)) {
-      return require(absLoggerTs);
-    }
-    const absLoggerJs = path.resolve(process.cwd(), 'src', 'utils', 'logger.js');
-    if (fs.existsSync(absLoggerJs)) {
-      return require(absLoggerJs);
-    }
+    // Only use __dirname-relative paths to avoid loading unexpected code from cwd
   } catch (e) { warn('[alias] fallback logger require failed', String(e)); }
 
   return undefined;

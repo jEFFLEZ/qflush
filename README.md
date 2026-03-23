@@ -2,11 +2,7 @@
 
 # QFLUSH — Orchestrateur Funesterie
 
-**Version 3.1.5**
-
----
-
-## Présentation
+**Version 3.1.6**
 QFLUSH est l'orchestrateur principal du projet Funesterie. Il gère les flux, pipelines, et services (CLI + daemon) pour automatiser et superviser les traitements complexes (indexation, encodage, IA, etc.).
 
 ---
@@ -190,13 +186,13 @@ Exemple de config A-11 :
 ---
 
 ## Licence
-MIT
+Ce projet est distribué selon les termes décrits dans le fichier `LICENSE-FUNESTERIE.txt`. En cas de divergence, ce fichier fait foi.
 
 ---
 
 # QFLUSH — Manuel d’utilisation
 
-**Version 3.1.5**
+**Version 3.1.6**
 
 ---
 
@@ -354,4 +350,4 @@ Exemple de config A-11 :
 ---
 
 ## 10. Licence
-MIT
+Ce projet est distribué selon les termes décrits dans le fichier `LICENSE-FUNESTERIE.txt`. En cas de divergence, ce fichier fait foi.

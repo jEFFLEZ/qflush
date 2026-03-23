@@ -1,0 +1,6 @@
+{
+  "webhookUrl": "",
+  "otherConfig": {
+    "_comment": "Example logic config. Copy to .qflush/logic-config.json and customize for local runtime use."
+  }
+}
