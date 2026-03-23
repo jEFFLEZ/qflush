@@ -1,5 +1,3 @@
-// ROME-TAG: 0xF66B59
-
 // small wrapper around available fetch implementations
 // tries global fetch, then undici, otherwise falls back to node's http(s) for simple requests
 import * as http from 'http';
@@ -32,13 +30,15 @@ async function simpleFetch(url: string, init: FetchInit = {}) {
 export async function fetchWrapper(url: string, init?: FetchInit) {
   if (typeof (globalThis as any).fetch === 'function') return (globalThis as any).fetch(url, init as any);
   try {
-    // try undici
-     
     const undici = require('undici');
     if (undici && typeof undici.fetch === 'function') return undici.fetch(url, init as any);
   } catch (e) {
     // ignore
   }
+  try {
+    const nf = require('node-fetch');
+    if (nf) return (nf && nf.default) || nf(url, init as any);
+  } catch (e) {}
   return simpleFetch(url, init || {});
 }
 
