@@ -393,7 +393,8 @@ export default { startServer, stopServer };
 
 // If executed directly, start the server on provided port
 const __filename = fileURLToPath(import.meta.url);
-if (process.argv && process.argv[1] === __filename) {
+const _argv1 = process.argv && process.argv[1] ? path.resolve(process.argv[1]) : '';
+if (_argv1 === __filename) {
   const port = process.env.PORT ? Number(process.env.PORT) : process.env.QFLUSHD_PORT ? Number(process.env.QFLUSHD_PORT) : 43421;
   (async () => {
     try {
