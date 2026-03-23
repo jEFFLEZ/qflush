@@ -82,15 +82,22 @@ async function isPortInUse(host: string, port: number, timeout = 400): Promise<b
 function persistSpyderAdminPort(adminPort?: string | number) {
   if (!adminPort) adminPort = process.env.QFLUSH_SPYDER_ADMIN_PORT;
   if (adminPort) {
-    const qflushDir = path.join(process.cwd(), '.qflush');
-    if (!fs.existsSync(qflushDir)) fs.mkdirSync(qflushDir, { recursive: true });
-    const cfgPath = path.join(qflushDir, 'spyder.config.json');
-    let config: Record<string, any> = {};
-    if (fs.existsSync(cfgPath)) {
-      try { config = JSON.parse(fs.readFileSync(cfgPath, 'utf8')); } catch {}
+    try {
+      const qflushDir = path.join(process.cwd(), '.qflush');
+      if (!fs.existsSync(qflushDir)) fs.mkdirSync(qflushDir, { recursive: true });
+      const cfgPath = path.join(qflushDir, 'spyder.config.json');
+      let config: Record<string, any> = {};
+      if (fs.existsSync(cfgPath)) {
+        try { config = JSON.parse(fs.readFileSync(cfgPath, 'utf8')); } catch {}
+      }
+      // Only write if adminPort is not already set
+      if (!config.adminPort) {
+        config.adminPort = String(adminPort);
+        fs.writeFileSync(cfgPath, JSON.stringify(config, null, 2));
+      }
+    } catch (err) {
+      console.warn('[start] failed to persist spyder admin port:', err);
     }
-    config.adminPort = String(adminPort);
-    fs.writeFileSync(cfgPath, JSON.stringify(config, null, 2));
   }
 }
 
