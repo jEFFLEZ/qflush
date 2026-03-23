@@ -20,27 +20,9 @@ function tryRequire(filePath: string) {
   try {
     if (fs.existsSync(filePath)) return require(filePath);
   } catch (e) {
-    try { return require(filePath); } catch (e) { warn('[alias] tryRequire fallback require failed', String(e)); }
+    try { return require(filePath); } catch (e) { return undefined; }
   }
-  // If we reach here, the module couldn't be resolved. To avoid noisy runtime
-  // errors during tests and to allow graceful degradation, return a resilient
-  // stub object/function that tolerates property access and calls.
-  try {
-    if (!isTest) console.warn('[alias] module not found, returning stub for', name);
-  } catch (e) {}
-
-  const makeStub = () => {
-    const fn: any = () => undefined;
-    let proxy: any = undefined;
-    proxy = new Proxy(fn, {
-      get: () => proxy,
-      apply: () => undefined,
-      construct: () => proxy,
-    });
-    return proxy;
-  };
-
-  return makeStub();
+  return undefined;
 }
 
 function tryRequireVariants(basePath: string) {
@@ -94,7 +76,7 @@ export function importUtil(name: string): any {
     try {
       const local = tryRequireVariants(path.join(__dirname, localName));
       if (local) return local;
-    } catch (e) { console.warn('[alias] tryRequireVariants local failed', String(e)); }
+    } catch (e) { warn('[alias] tryRequireVariants local failed', String(e)); }
   }
 
   // fallback: if a relative path or module name was passed, try requiring directly
@@ -102,13 +84,13 @@ export function importUtil(name: string): any {
     // try direct file/module
     const m1 = tryRequire(name);
     if (m1) return (m1 && m1.default) || m1;
-  } catch (e) { console.warn('[alias] tryRequire direct failed', String(e)); }
+  } catch (e) { warn('[alias] tryRequire direct failed', String(e)); }
 
   // last resort: require by name (could be from node_modules)
   try {
     const m = require(name);
     return (m && m.default) || m;
-  } catch (e) { console.warn('[alias] final require failed', String(e)); }
+  } catch (e) { warn('[alias] final require failed', String(e)); }
 
   // try to return a local minimal logger fallback to reduce noisy warnings
   try {
