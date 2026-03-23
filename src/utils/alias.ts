@@ -31,7 +31,8 @@ function tryRequire(filePath: string) {
 
   const makeStub = () => {
     const fn: any = () => undefined;
-    const proxy = new Proxy(fn, {
+    let proxy: any = undefined;
+    proxy = new Proxy(fn, {
       get: () => proxy,
       apply: () => undefined,
       construct: () => proxy,

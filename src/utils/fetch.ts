@@ -1,26 +1,3 @@
-// Lightweight fetch wrapper used by runtime modules.
-let _fetch: any = undefined;
-
-try {
-  // prefer global fetch if available
-  if (typeof (globalThis as any).fetch === 'function') _fetch = (globalThis as any).fetch;
-} catch (e) {}
-
-if (!_fetch) {
-  try { _fetch = require('undici').fetch; } catch (e) {}
-}
-if (!_fetch) {
-  try { const nf = require('node-fetch'); _fetch = (nf && nf.default) || nf; } catch (e) {}
-}
-
-if (!_fetch) {
-  // fallback stub that throws to make failures explicit
-  _fetch = async function () { throw new Error('fetch not available in this environment'); };
-}
-
-export default _fetch;
-// ROME-TAG: 0xF66B59
-
 // small wrapper around available fetch implementations
 // tries global fetch, then undici, otherwise falls back to node's http(s) for simple requests
 import * as http from 'http';
@@ -53,13 +30,15 @@ async function simpleFetch(url: string, init: FetchInit = {}) {
 export async function fetchWrapper(url: string, init?: FetchInit) {
   if (typeof (globalThis as any).fetch === 'function') return (globalThis as any).fetch(url, init as any);
   try {
-    // try undici
-     
     const undici = require('undici');
     if (undici && typeof undici.fetch === 'function') return undici.fetch(url, init as any);
   } catch (e) {
     // ignore
   }
+  try {
+    const nf = require('node-fetch');
+    if (nf) return (nf && nf.default) || nf(url, init as any);
+  } catch (e) {}
   return simpleFetch(url, init || {});
 }
 
