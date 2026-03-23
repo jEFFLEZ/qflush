@@ -17,11 +17,14 @@ function buildArgs(options: QflushAiOptions): string[] {
 
 async function runOpenAiCli(args: string[]): Promise<string> {
   return new Promise((resolve, reject) => {
-    const proc = spawn('openai', args, { shell: true });
+    const proc = spawn('openai', args, { shell: false });
     let stdout = '';
     let stderr = '';
     proc.stdout.on('data', (data) => { stdout += data.toString(); });
     proc.stderr.on('data', (data) => { stderr += data.toString(); });
+    proc.on('error', (err) => {
+      reject(new Error(`Failed to start openai CLI: ${err.message}`));
+    });
     proc.on('close', (code) => {
       if (code === 0) resolve(stdout.trim());
       else reject(new Error(stderr.trim() || `openai CLI exited with code ${code}`));

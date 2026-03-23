@@ -94,27 +94,9 @@ export function importUtil(name: string): any {
 
   // try to return a local minimal logger fallback to reduce noisy warnings
   try {
-    // always use relative path for logger fallback
-    // Try both .js and .ts extensions for compatibility
+    // always use path relative to this module for logger fallback
     const fallback = tryRequireVariants(path.join(__dirname, 'logger'));
     if (fallback) return fallback;
-    // Try explicit .js extension if not found
-    if (!fallback && fs.existsSync(path.join(__dirname, 'logger.js'))) {
-      return require(path.join(__dirname, 'logger.js'));
-    }
-    // Try explicit .ts extension if not found
-    if (!fallback && fs.existsSync(path.join(__dirname, 'logger.ts'))) {
-      return require(path.join(__dirname, 'logger.ts'));
-    }
-    // Try absolute path to src/utils/logger.ts if still not found
-    const absLoggerTs = path.resolve(process.cwd(), 'src', 'utils', 'logger.ts');
-    if (fs.existsSync(absLoggerTs)) {
-      return require(absLoggerTs);
-    }
-    const absLoggerJs = path.resolve(process.cwd(), 'src', 'utils', 'logger.js');
-    if (fs.existsSync(absLoggerJs)) {
-      return require(absLoggerJs);
-    }
   } catch (e) { warn('[alias] fallback logger require failed', String(e)); }
 
   return undefined;
