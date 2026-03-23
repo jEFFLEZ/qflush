@@ -1,5 +1,19 @@
 # Changelog
 
+## v3.1.7 — Release (2026-03-23)
+
+Highlights:
+
+- Patch release: automated patch bump and build artifacts.
+- See repository for full changes and active PRs.
+
+Checksums
+
+- funeste38-qflush-3.1.7.tgz — SHA256: (generated on publish)
+
+Migration notes:
+- None — backward-compatible patch.
+
 ## v3.0.3 — Release (2025-11-18)
 
 Highlights:
