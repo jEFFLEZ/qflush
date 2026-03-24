@@ -97,6 +97,14 @@ export function importUtil(name: string): any {
     // always use path relative to this module for logger fallback
     const fallback = tryRequireVariants(path.join(__dirname, 'logger'));
     if (fallback) return fallback;
+    // Try explicit .js extension if not found
+    if (fs.existsSync(path.join(__dirname, 'logger.js'))) {
+      return require(path.join(__dirname, 'logger.js'));
+    }
+    // Try explicit .ts extension if not found
+    if (fs.existsSync(path.join(__dirname, 'logger.ts'))) {
+      return require(path.join(__dirname, 'logger.ts'));
+    }
   } catch (e) { warn('[alias] fallback logger require failed', String(e)); }
 
   return undefined;

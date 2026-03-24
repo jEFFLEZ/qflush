@@ -80,8 +80,11 @@ async function isPortInUse(host: string, port: number, timeout = 400): Promise<b
 
 // Persist chosen spyder admin port into .qflush/spyder.config.json
 function persistSpyderAdminPort(adminPort?: string | number) {
+  const explicit = !!adminPort;
   if (!adminPort) adminPort = process.env.QFLUSH_SPYDER_ADMIN_PORT;
   if (adminPort) {
+    const qflushDir = path.join(process.cwd(), '.qflush');
+    try {
     try {
       const qflushDir = path.join(process.cwd(), '.qflush');
       if (!fs.existsSync(qflushDir)) fs.mkdirSync(qflushDir, { recursive: true });
@@ -90,12 +93,15 @@ function persistSpyderAdminPort(adminPort?: string | number) {
       if (fs.existsSync(cfgPath)) {
         try { config = JSON.parse(fs.readFileSync(cfgPath, 'utf8')); } catch {}
       }
+      // Always write when explicitly provided; preserve existing value when falling back to env var
+      if (explicit || !config.adminPort) {
       // Only write if adminPort is not already set
       if (!config.adminPort) {
         config.adminPort = String(adminPort);
         fs.writeFileSync(cfgPath, JSON.stringify(config, null, 2));
       }
     } catch (err) {
+      console.warn('[start] persistSpyderAdminPort failed:', err);
       console.warn('[start] failed to persist spyder admin port:', err);
     }
   }
