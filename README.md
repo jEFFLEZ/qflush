@@ -354,4 +354,4 @@ Exemple de config A-11 :
 ---
 
 ## 10. Licence
-MIT
+Ce projet est distribué selon les termes décrits dans le fichier `LICENSE-FUNESTERIE.txt`. En cas de divergence, ce fichier fait foi.

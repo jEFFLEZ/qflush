@@ -85,6 +85,8 @@ function persistSpyderAdminPort(adminPort?: string | number) {
   if (adminPort) {
     const qflushDir = path.join(process.cwd(), '.qflush');
     try {
+    try {
+      const qflushDir = path.join(process.cwd(), '.qflush');
       if (!fs.existsSync(qflushDir)) fs.mkdirSync(qflushDir, { recursive: true });
       const cfgPath = path.join(qflushDir, 'spyder.config.json');
       let config: Record<string, any> = {};
@@ -93,11 +95,14 @@ function persistSpyderAdminPort(adminPort?: string | number) {
       }
       // Always write when explicitly provided; preserve existing value when falling back to env var
       if (explicit || !config.adminPort) {
+      // Only write if adminPort is not already set
+      if (!config.adminPort) {
         config.adminPort = String(adminPort);
         fs.writeFileSync(cfgPath, JSON.stringify(config, null, 2));
       }
     } catch (err) {
       console.warn('[start] persistSpyderAdminPort failed:', err);
+      console.warn('[start] failed to persist spyder admin port:', err);
     }
   }
 }
