@@ -340,7 +340,9 @@ export async function startServer(port?: number) {
         _server = srv;
         try {
           const addr = srv.address();
-          console.warn('[qflushd] listening', addr);
+          const addrStr = typeof addr === 'string' ? addr : `${(addr as any)?.address}:${(addr as any)?.port}`;
+          console.warn(`[qflushd] ✅ listening on port ${p} (${addrStr})`);
+          console.warn(`[qflushd] health check: http://0.0.0.0:${p}/health`);
         } catch (e) { console.warn('[qflushd] failed to get server address:', String(e)); }
         resolve({ ok: true, port: p });
       });
@@ -395,13 +397,15 @@ export default { startServer, stopServer };
 const __filename = fileURLToPath(import.meta.url);
 const _argv1 = process.argv && process.argv[1] ? path.resolve(process.argv[1]) : '';
 if (_argv1 === __filename) {
-  const port = process.env.PORT ? Number(process.env.PORT) : process.env.QFLUSHD_PORT ? Number(process.env.QFLUSHD_PORT) : 43421;
+  const port = process.env.PORT ? Number(process.env.PORT) : process.env.QFLUSHD_PORT ? Number(process.env.QFLUSHD_PORT) : 3000;
+  console.warn(`[qflushd] starting with PORT=${process.env.PORT}, QFLUSHD_PORT=${process.env.QFLUSHD_PORT}, resolved to: ${port}`);
   (async () => {
     try {
       await startServer(port);
-      console.warn('[qflushd] started server on', port);
+      console.warn('[qflushd] ✅ server ready');
     } catch (e) {
-      console.error('[qflushd] failed to start', e);
+      console.error('[qflushd] ❌ failed to start', e);
+      process.exit(1);
     }
   })();
 }
