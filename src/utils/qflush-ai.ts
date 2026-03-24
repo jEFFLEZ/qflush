@@ -25,7 +25,7 @@ async function runOpenAiCli(args: string[]): Promise<string> {
     try {
       proc = spawn('openai', args, { shell: false });
     } catch (error) {
-      reject(error);
+      reject(new Error(`Failed to start openai CLI: ${(error as Error).message}`));
       return;
     }
 
@@ -40,7 +40,7 @@ async function runOpenAiCli(args: string[]): Promise<string> {
     proc.on('error', (error) => {
       if (settled) return;
       settled = true;
-      reject(error);
+      reject(new Error(`Failed to start openai CLI: ${error.message}`));
     });
 
     proc.on('close', (code) => {
