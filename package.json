@@ -28,7 +28,7 @@
     "build:cortex": "tsc -p . --outDir dist && node ./tools/copy-services-proxy.mjs && echo cortex-built",
     "build": "npm run build:daemon && npm run build:cortex",
     "railway:build": "npm run build:daemon",
-    "railway:start": "node dist/daemon/qflushd.js",
+    "railway:start": "npm run railway:build && node dist/daemon/qflushd.js",
     "test": "vitest --run",
     "test:ci": "vitest --run --coverage",
     "lint": "eslint . --ext .ts,.js --fix -c .eslintrc.cjs",
