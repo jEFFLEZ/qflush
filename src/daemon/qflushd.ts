@@ -7,9 +7,161 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { safeWriteFileSync, safeAppendFileSync, ensureParentDir } from '../utils/safe-fs.js';
 import { fileURLToPath } from 'url';
+import fetch from '../utils/fetch.js';
 
 let _server: http.Server | null = null;
 let _state: { safeMode: boolean; mode?: string } = { safeMode: false };
+
+function extractLatestUserMessage(messages: any[]): string {
+  for (let i = messages.length - 1; i >= 0; i -= 1) {
+    const msg = messages[i];
+    if (!msg || msg.role !== 'user') continue;
+    if (typeof msg.content === 'string') return msg.content;
+    if (Array.isArray(msg.content)) {
+      const text = msg.content
+        .map((part: any) => (part && typeof part.text === 'string' ? part.text : ''))
+        .filter(Boolean)
+        .join('\n');
+      if (text) return text;
+    }
+  }
+  return '';
+}
+
+function sendJson(res: http.ServerResponse, status: number, payload: unknown) {
+  res.writeHead(status, { 'Content-Type': 'application/json' });
+  res.end(JSON.stringify(payload));
+}
+
+function getLatestUserMessage(messages: any[]): string {
+  return extractLatestUserMessage(messages);
+}
+
+function getQflushChatUpstream(): string {
+  return String(
+    process.env.QFLUSH_CHAT_UPSTREAM ||
+    process.env.OPENAI_BASE_URL ||
+    process.env.A11_SERVER_URL ||
+    ''
+  ).trim();
+}
+
+async function callChatUpstream(payload: any) {
+  const base = getQflushChatUpstream().replace(/\/$/, '');
+  if (!base) {
+    return {
+      ok: true,
+      output: `Echo: ${getLatestUserMessage(Array.isArray(payload?.messages) ? payload.messages : []) || String(payload?.prompt || '')}`
+    };
+  }
+
+  const url = `${base}/v1/chat/completions`;
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  if (process.env.OPENAI_API_KEY) headers.Authorization = `Bearer ${process.env.OPENAI_API_KEY}`;
+
+  const res = await fetch(url, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({
+      model: payload?.model || process.env.QFLUSH_CHAT_MODEL || 'gpt-4o-mini',
+      messages: Array.isArray(payload?.messages) ? payload.messages : [
+        { role: 'user', content: String(payload?.prompt || '') }
+      ],
+      stream: false
+    })
+  } as any);
+
+  const text = await res.text();
+  let data: any = null;
+  try { data = text ? JSON.parse(text) : {}; } catch { data = { raw: text }; }
+  if (!res.ok) {
+    throw new Error(`chat upstream error ${res.status}: ${text}`);
+  }
+
+  return {
+    ok: true,
+    output:
+      data?.choices?.[0]?.message?.content ||
+      data?.output ||
+      data?.content ||
+      data?.response ||
+      ''
+  };
+}
+
+function buildMemorySummary(payload: any) {
+  const previousSummary = String(payload?.previousSummary || '').trim();
+  const latestUserMessage = String(payload?.latestUserMessage || '').trim();
+  const recentMessages = Array.isArray(payload?.recentMessages) ? payload.recentMessages : [];
+
+  const facts: string[] = [];
+  if (previousSummary) facts.push(previousSummary);
+  if (latestUserMessage) facts.push(`Dernier message: ${latestUserMessage}`);
+  if (recentMessages.length) {
+    const recap = recentMessages
+      .slice(-6)
+      .map((msg: any) => `${msg?.role || 'unknown'}: ${String(msg?.content || '').trim()}`)
+      .filter(Boolean)
+      .join(' | ');
+    if (recap) facts.push(`Historique recent: ${recap}`);
+  }
+
+  return {
+    ok: true,
+    output: facts.join('\n').trim() || 'Aucune memoire utile pour le moment.'
+  };
+}
+
+async function runFlow(flow: string, payload: any = {}) {
+  const normalizedFlow = String(flow || '').trim();
+  switch (normalizedFlow) {
+    case 'a11.chat.v1':
+      return await callChatUpstream(payload);
+    case 'a11.memory.summary.v1':
+      return buildMemorySummary(payload);
+    case 'web_fetch': {
+      const targetUrl = String(payload?.url || '').trim();
+      if (!targetUrl) return { ok: false, error: 'missing_url' };
+      const res = await fetch(targetUrl, { method: 'GET' } as any);
+      const text = await res.text();
+      return {
+        ok: res.ok,
+        status: res.status,
+        url: targetUrl,
+        content: text.slice(0, 20000)
+      };
+    }
+    case 'fs.search': {
+      const pattern = String(payload?.pattern || payload?.query || '').trim().toLowerCase();
+      const root = path.resolve(String(payload?.path || process.cwd()));
+      if (!pattern) return { ok: false, error: 'missing_pattern' };
+
+      const matches: string[] = [];
+      const visit = (dir: string) => {
+        let entries: fs.Dirent[] = [];
+        try { entries = fs.readdirSync(dir, { withFileTypes: true }); } catch { return; }
+        for (const entry of entries) {
+          if (matches.length >= 50) return;
+          const full = path.join(dir, entry.name);
+          if (entry.isDirectory()) {
+            if (entry.name === 'node_modules' || entry.name === '.git' || entry.name === 'dist') continue;
+            visit(full);
+            continue;
+          }
+          if (entry.name.toLowerCase().includes(pattern)) matches.push(full);
+        }
+      };
+      visit(root);
+      return { ok: true, count: matches.length, items: matches };
+    }
+    default:
+      return {
+        ok: false,
+        error: 'unknown_flow',
+        flow: normalizedFlow
+      };
+  }
+}
 
 function requireToken(req: http.IncomingMessage): boolean {
   try {
@@ -70,52 +222,106 @@ export async function startServer(port?: number) {
           let body = '';
           req.on('data', (chunk) => body += chunk.toString());
           req.on('end', async () => {
+            if (
+              method === 'POST' &&
+              (
+                parsed.pathname === '/api/chat/completions' ||
+                parsed.pathname === '/v1/chat/completions' ||
+                parsed.pathname === '/v1/chat'
+              )
+            ) {
+              try {
+                const payload = body ? JSON.parse(body) : {};
+                const messages = Array.isArray(payload?.messages) ? payload.messages : null;
+                if (!messages) {
+                  sendJson(res, 400, { error: 'invalid_messages' });
+                  return;
+                }
+
+                const prompt = extractLatestUserMessage(messages);
+                const output = prompt ? `Echo: ${prompt}` : 'Echo:';
+                sendJson(res, 200, {
+                  id: `chatcmpl-${Date.now()}`,
+                  object: 'chat.completion',
+                  created: Math.floor(Date.now() / 1000),
+                  model: payload?.model || 'qflush-echo',
+                  choices: [
+                    {
+                      index: 0,
+                      message: {
+                        role: 'assistant',
+                        content: output
+                      },
+                      finish_reason: 'stop'
+                    }
+                  ]
+                });
+                return;
+              } catch (e) {
+                console.warn('[qflushd] chat completion error:', String(e));
+                sendJson(res, 500, { error: 'internal_error' });
+                return;
+              }
+            }
+
+            if (method === 'POST' && parsed.pathname === '/run') {
+              try {
+                const payload = body ? JSON.parse(body) : {};
+                const flow = String(payload?.flow || '').trim();
+                if (!flow) {
+                  sendJson(res, 400, { ok: false, error: 'missing_flow' });
+                  return;
+                }
+
+                const result = await runFlow(flow, payload?.payload || {});
+                sendJson(res, result?.ok === false ? 400 : 200, result);
+                return;
+              } catch (e) {
+                console.warn('[qflushd] run flow error:', String(e));
+                sendJson(res, 500, { ok: false, error: 'internal_error', message: String(e) });
+                return;
+              }
+            }
+
             // Token protected endpoints
             if (method === 'POST' && parsed.pathname === '/npz/sleep') {
               if (!requireToken(req)) {
-                res.writeHead(401, { 'Content-Type': 'application/json' });
-                res.end(JSON.stringify({ success: false, error: 'unauthorized' }));
+                sendJson(res, 401, { success: false, error: 'unauthorized' });
                 return;
               }
               _state.safeMode = true;
               _state.mode = 'sleep';
               writeSafeModes('sleep');
-              res.writeHead(200, { 'Content-Type': 'application/json' });
-              res.end(JSON.stringify({ success: true, mode: 'sleep' }));
+              sendJson(res, 200, { success: true, mode: 'sleep' });
               return;
             }
             if (method === 'POST' && parsed.pathname === '/npz/wake') {
               if (!requireToken(req)) {
-                res.writeHead(401, { 'Content-Type': 'application/json' });
-                res.end(JSON.stringify({ success: false, error: 'unauthorized' }));
+                sendJson(res, 401, { success: false, error: 'unauthorized' });
                 return;
               }
               _state.safeMode = false;
               _state.mode = 'normal';
               writeSafeModes('normal');
-              res.writeHead(200, { 'Content-Type': 'application/json' });
-              res.end(JSON.stringify({ success: true, mode: 'normal' }));
+              sendJson(res, 200, { success: true, mode: 'normal' });
               return;
             }
             if (method === 'POST' && parsed.pathname === '/npz/joker-wipe') {
               if (!requireToken(req)) {
-                res.writeHead(401, { 'Content-Type': 'application/json' });
-                res.end(JSON.stringify({ success: false, error: 'unauthorized' }));
+                sendJson(res, 401, { success: false, error: 'unauthorized' });
                 return;
               }
               // pretend to wipe but in test mode skip exit
               _state.safeMode = true;
               _state.mode = 'joker';
               writeSafeModes('joker');
-              res.writeHead(200, { 'Content-Type': 'application/json' });
-              res.end(JSON.stringify({ success: true, mode: 'joker' }));
+              sendJson(res, 200, { success: true, mode: 'joker' });
               return;
             }
 
             // root / handler — health check for Railway and other PaaS probes
             if (method === 'GET' && (parsed.pathname === '/' || parsed.pathname === '')) {
-              res.writeHead(200, { 'Content-Type': 'application/json' });
-              res.end(JSON.stringify({ ok: true, service: 'qflush' }));
+              sendJson(res, 200, { ok: true, service: 'qflush' });
               return;
             }
 
@@ -136,19 +342,16 @@ export async function startServer(port?: number) {
                   // optional type filter
                   const qtype = parsed.query && (parsed.query as any).type ? String((parsed.query as any).type) : null;
                   const filtered = qtype ? items.filter((it: any) => it && it.type === qtype) : items;
-                  res.writeHead(200, { 'Content-Type': 'application/json' });
-                  res.end(JSON.stringify({ success: true, count: filtered.length, items: filtered }));
+                  sendJson(res, 200, { success: true, count: filtered.length, items: filtered });
                   return;
                 } catch (e) {
                   // no loader available — respond with empty index
-                  res.writeHead(200, { 'Content-Type': 'application/json' });
-                  res.end(JSON.stringify({ success: true, count: 0, items: [] }));
+                  sendJson(res, 200, { success: true, count: 0, items: [] });
                   return;
                 }
               }
               if (parsed.pathname === '/health' || parsed.pathname === '/status') {
-              res.writeHead(200, { 'Content-Type': 'application/json' });
-              res.end(JSON.stringify({ ok: true }));
+              sendJson(res, 200, { ok: true });
               return;
             }
 

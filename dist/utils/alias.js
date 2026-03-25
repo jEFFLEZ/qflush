@@ -25,28 +25,10 @@ function tryRequire(filePath) {
             return require(filePath);
         }
         catch (e) {
-            warn('[alias] tryRequire fallback require failed', String(e));
+            return undefined;
         }
     }
-    // If we reach here, the module couldn't be resolved. To avoid noisy runtime
-    // errors during tests and to allow graceful degradation, return a resilient
-    // stub object/function that tolerates property access and calls.
-    try {
-        if (!isTest)
-            console.warn('[alias] module not found, returning stub for', name);
-    }
-    catch (e) { }
-    const makeStub = () => {
-        const fn = () => undefined;
-        let proxy = undefined;
-        proxy = new Proxy(fn, {
-            get: () => proxy,
-            apply: () => undefined,
-            construct: () => proxy,
-        });
-        return proxy;
-    };
-    return makeStub();
+    return undefined;
 }
 function tryRequireVariants(basePath) {
     const variants = [".js", ".ts", "/index.js", "/index.ts"];
@@ -107,7 +89,7 @@ export function importUtil(name) {
                 return local;
         }
         catch (e) {
-            console.warn('[alias] tryRequireVariants local failed', String(e));
+            warn('[alias] tryRequireVariants local failed', String(e));
         }
     }
     // fallback: if a relative path or module name was passed, try requiring directly
@@ -118,7 +100,7 @@ export function importUtil(name) {
             return (m1 && m1.default) || m1;
     }
     catch (e) {
-        console.warn('[alias] tryRequire direct failed', String(e));
+        warn('[alias] tryRequire direct failed', String(e));
     }
     // last resort: require by name (could be from node_modules)
     try {
@@ -126,7 +108,7 @@ export function importUtil(name) {
         return (m && m.default) || m;
     }
     catch (e) {
-        console.warn('[alias] final require failed', String(e));
+        warn('[alias] final require failed', String(e));
     }
     // try to return a local minimal logger fallback to reduce noisy warnings
     try {

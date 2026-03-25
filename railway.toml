@@ -1,5 +1,7 @@
 [build]
-buildCommand = "npm ci --omit=dev"
+builder = "NIXPACKS"
+buildCommand = "npm ci && npm run railway:build"
 
 [deploy]
-startCommand = "node dist/daemon/qflushd.js"
+startCommand = "npm run railway:start"
+healthcheckPath = "/health"
