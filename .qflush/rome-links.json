@@ -1,0 +1,11 @@
+{
+  "refs": [
+    {
+      "from": "src/a.ts",
+      "line": 1,
+      "token": "a",
+      "target": null,
+      "score": 0
+    }
+  ]
+}

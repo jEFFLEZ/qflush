@@ -1,0 +1,17 @@
+{
+  "key": "npz-1774291982739",
+  "ts": 1774291982739,
+  "path": "assets/banner.png",
+  "cmd": "npz.encode",
+  "res": {
+    "success": true,
+    "id": "npz-5lyupc23",
+    "path": "D:\\qflush\\.qflush\\npz\\npz-5lyupc23.bin",
+    "metadata": {
+      "id": "npz-5lyupc23",
+      "source": "assets/banner.png",
+      "createdAt": "2026-03-23T18:53:02.738Z",
+      "path": "D:\\qflush\\.qflush\\npz\\npz-5lyupc23.bin"
+    }
+  }
+}

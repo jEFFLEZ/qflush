@@ -1,0 +1,17 @@
+{
+  "key": "npz-1774304084385",
+  "ts": 1774304084385,
+  "path": "assets/banner.png",
+  "cmd": "npz.encode",
+  "res": {
+    "success": true,
+    "id": "npz-48c290j2",
+    "path": "D:\\qflush\\.qflush\\npz\\npz-48c290j2.bin",
+    "metadata": {
+      "id": "npz-48c290j2",
+      "source": "assets/banner.png",
+      "createdAt": "2026-03-23T22:14:44.383Z",
+      "path": "D:\\qflush\\.qflush\\npz\\npz-48c290j2.bin"
+    }
+  }
+}

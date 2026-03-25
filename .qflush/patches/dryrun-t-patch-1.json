@@ -1,0 +1,13 @@
+{
+  "current": {},
+  "patch": {
+    "flags": {
+      "testMode": true
+    }
+  },
+  "merged": {
+    "flags": {
+      "testMode": true
+    }
+  }
+}

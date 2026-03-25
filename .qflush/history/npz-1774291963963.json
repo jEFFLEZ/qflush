@@ -1,0 +1,17 @@
+{
+  "key": "npz-1774291963963",
+  "ts": 1774291963963,
+  "path": "assets/banner.png",
+  "cmd": "npz.encode",
+  "res": {
+    "success": true,
+    "id": "npz-l1iwoz83",
+    "path": "D:\\qflush\\.qflush\\npz\\npz-l1iwoz83.bin",
+    "metadata": {
+      "id": "npz-l1iwoz83",
+      "source": "assets/banner.png",
+      "createdAt": "2026-03-23T18:52:43.961Z",
+      "path": "D:\\qflush\\.qflush\\npz\\npz-l1iwoz83.bin"
+    }
+  }
+}
