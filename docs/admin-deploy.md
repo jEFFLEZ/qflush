@@ -31,7 +31,7 @@ $plain = [System.Runtime.InteropServices.Marshal]::PtrToStringBSTR([System.Runti
 # Go to Project settings -> Pipelines -> Agent pools -> self-hosted
 
 # 6) Package and publish the VSIX (optional manual publish)
-cd 'D:\qflush\extensions\vscode-npz'
+cd 'D:\funesterie\a11\a11qflushrailway\extensions\vscode-npz'
 npm install --no-audit --no-fund
 npm run build
 npx @vscode/vsce package

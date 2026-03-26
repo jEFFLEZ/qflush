@@ -1,6 +1,6 @@
 <#
 PowerShell helper to install qflush locally and build + publish the VS Code extension to Azure Marketplace.
-Usage (run as Administrator PowerShell) from repo root (D:\qflush):
+Usage (run as Administrator PowerShell) from repo root (D:\funesterie\a11\a11qflushrailway):
 
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy RemoteSigned
 .\scripts\install-and-publish.ps1

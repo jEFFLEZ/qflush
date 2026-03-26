@@ -1,7 +1,7 @@
 QFLUSH — Repository Analysis
 
 Status summary
-- Repository: `D:\qflush` (branch `release/3.1.0`)
+- Repository: `D:\funesterie\a11\a11qflushrailway`
 - Build: `npm run build` succeeded (TypeScript compile)
 - Tests: `npm test` (vitest) succeeded (12 tests passed)
 - Recent commit: `docs: add architecture,diagrams,copilot context` (created docs and copilot context)
