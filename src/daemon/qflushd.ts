@@ -12,6 +12,7 @@ import { buildChatRouterStatus, callChatBackend } from '../core/chat-router.js';
 
 let _server: http.Server | null = null;
 let _state: { safeMode: boolean; mode?: string } = { safeMode: false };
+const BUILT_IN_FLOWS = ['a11.chat.v1', 'a11.memory.summary.v1', 'web_fetch', 'fs.search'];
 
 function getConfiguredToken(): string {
   return String(
@@ -62,6 +63,80 @@ function ensureAuthorized(req: http.IncomingMessage, res: http.ServerResponse, o
 function sendJson(res: http.ServerResponse, status: number, payload: unknown) {
   res.writeHead(status, { 'Content-Type': 'application/json' });
   res.end(JSON.stringify(payload));
+}
+
+function parseCsvList(raw: unknown): string[] {
+  return String(raw || '')
+    .split(',')
+    .map((value) => value.trim())
+    .filter(Boolean);
+}
+
+function getAllowedRunFlows(): string[] {
+  const configured = parseCsvList(
+    process.env.QFLUSH_RUN_ALLOWLIST ||
+    process.env.QFLUSH_ALLOWED_FLOWS ||
+    ''
+  );
+  return configured.length > 0 ? configured : [...BUILT_IN_FLOWS];
+}
+
+function isAllowedRunFlow(flow: string): boolean {
+  return getAllowedRunFlows().includes(String(flow || '').trim());
+}
+
+function buildHealthReport() {
+  const stateDir = path.join(process.cwd(), '.qflush');
+  const logsDir = path.join(stateDir, 'logs');
+  const romeIndexPath = path.join(stateDir, 'rome-index.json');
+  const checksumsPath = path.join(stateDir, 'checksums.json');
+  const authRequired = shouldProtectServiceRoutes();
+  const tokenConfigured = !!getConfiguredToken();
+  const allowedRunFlows = getAllowedRunFlows();
+
+  const checks = {
+    stateDir: {
+      ok: fs.existsSync(stateDir),
+      path: stateDir,
+    },
+    logsDir: {
+      ok: fs.existsSync(logsDir),
+      path: logsDir,
+    },
+    romeIndexCache: {
+      ok: fs.existsSync(romeIndexPath),
+      path: romeIndexPath,
+    },
+    checksumStore: {
+      ok: fs.existsSync(checksumsPath),
+      path: checksumsPath,
+    },
+    authConfiguration: {
+      ok: !authRequired || tokenConfigured,
+      required: authRequired,
+      tokenConfigured,
+    },
+    flowPolicy: {
+      ok: allowedRunFlows.length > 0,
+      allowedRunFlows,
+      mode: process.env.QFLUSH_RUN_ALLOWLIST || process.env.QFLUSH_ALLOWED_FLOWS ? 'env' : 'builtin-default',
+    },
+  };
+
+  const warnings: string[] = [];
+  if (!checks.romeIndexCache.ok) warnings.push('rome_index_cache_missing');
+  if (!checks.checksumStore.ok) warnings.push('checksum_store_missing');
+  if (!checks.authConfiguration.ok) warnings.push('auth_required_but_token_missing');
+
+  return {
+    ready:
+      checks.stateDir.ok &&
+      checks.logsDir.ok &&
+      checks.authConfiguration.ok &&
+      checks.flowPolicy.ok,
+    warnings,
+    checks,
+  };
 }
 
 function buildMemorySummary(payload: any) {
@@ -146,6 +221,9 @@ function buildStatusPayload(port: number | string) {
     chatRouter.configuredBackends.openaiCompatible.configured ||
     chatRouter.configuredBackends.openai.configured;
 
+  const health = buildHealthReport();
+  const allowedRunFlows = getAllowedRunFlows();
+
   return {
     ok: true,
     service: 'qflush',
@@ -155,7 +233,8 @@ function buildStatusPayload(port: number | string) {
       mode: _state.mode || 'normal',
     },
     flows: {
-      available: ['a11.chat.v1', 'a11.memory.summary.v1', 'web_fetch', 'fs.search'],
+      available: [...BUILT_IN_FLOWS],
+      allowedRun: allowedRunFlows,
       chatDefault: 'a11.chat.v1',
       memorySummaryDefault: 'a11.memory.summary.v1',
     },
@@ -168,7 +247,9 @@ function buildStatusPayload(port: number | string) {
       upstreamMode: explicitUpstreamConfigured ? 'proxy' : 'echo-fallback',
       router: chatRouter,
     },
+    health,
     port: Number(port),
+    timestamp: new Date().toISOString(),
   };
 }
 
@@ -244,6 +325,15 @@ export async function startServer(port?: number) {
                   sendJson(res, 400, { error: 'invalid_messages' });
                   return;
                 }
+                if (!isAllowedRunFlow('a11.chat.v1')) {
+                  sendJson(res, 403, {
+                    ok: false,
+                    error: 'flow_not_allowed',
+                    flow: 'a11.chat.v1',
+                    allowedRun: getAllowedRunFlows(),
+                  });
+                  return;
+                }
                 const flowResult = await runFlow('a11.chat.v1', payload) as any;
                 if (flowResult?.ok === false) {
                   sendJson(res, Number(flowResult?.status || 502), {
@@ -290,6 +380,15 @@ export async function startServer(port?: number) {
                 const flow = String(payload?.flow || '').trim();
                 if (!flow) {
                   sendJson(res, 400, { ok: false, error: 'missing_flow' });
+                  return;
+                }
+                if (!isAllowedRunFlow(flow)) {
+                  sendJson(res, 403, {
+                    ok: false,
+                    error: 'flow_not_allowed',
+                    flow,
+                    allowedRun: getAllowedRunFlows(),
+                  });
                   return;
                 }
 

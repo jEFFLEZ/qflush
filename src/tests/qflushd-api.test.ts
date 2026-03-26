@@ -25,6 +25,7 @@ beforeAll(async () => {
   process.env.QFLUSH_TOKEN = 'test-token';
   process.env.QFLUSH_REQUIRE_AUTH = '1';
   process.env.QFLUSH_CHAT_UPSTREAM = '';
+  process.env.QFLUSH_RUN_ALLOWLIST = 'a11.chat.v1,a11.memory.summary.v1';
   port = await getFreePort();
   await startServer(port);
 });
@@ -46,6 +47,11 @@ describe('qflush daemon API', () => {
     expect(body.service).toBe('qflush');
     expect(Array.isArray(body.flows?.available)).toBe(true);
     expect(body.flows.available).toContain('a11.chat.v1');
+    expect(Array.isArray(body.flows?.allowedRun)).toBe(true);
+    expect(body.flows.allowedRun).toEqual(['a11.chat.v1', 'a11.memory.summary.v1']);
+    expect(body.health?.ready).toBe(true);
+    expect(body.health?.checks?.stateDir?.ok).toBe(true);
+    expect(body.health?.checks?.logsDir?.ok).toBe(true);
   });
 
   it('POST /run requires auth when a token is configured', async () => {
@@ -77,6 +83,24 @@ describe('qflush daemon API', () => {
     const body = await response.json() as any;
     expect(body.ok).toBe(true);
     expect(String(body.output || '')).toContain('Je veux garder une trace');
+  });
+
+  it('POST /run rejects flows outside the allowlist', async () => {
+    const response = await fetch(`${baseUrl()}/run`, {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        'x-qflush-token': 'test-token',
+      },
+      body: JSON.stringify({
+        flow: 'web_fetch',
+        payload: { url: 'https://example.com' },
+      }),
+    } as any);
+    expect(response.status).toBe(403);
+    const body = await response.json() as any;
+    expect(body.error).toBe('flow_not_allowed');
+    expect(body.flow).toBe('web_fetch');
   });
 
   it('POST /v1/chat/completions uses the real chat flow wrapper', async () => {

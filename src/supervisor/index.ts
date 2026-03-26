@@ -53,6 +53,23 @@ function ensureStateDir() {
   if (!existsSync(LOGS_DIR)) mkdirSync(LOGS_DIR, { recursive: true });
 }
 
+function openLogStream(logFile: string, name: string): WriteStream | null {
+  try {
+    const parent = dirname(logFile);
+    if (!existsSync(parent)) mkdirSync(parent, { recursive: true });
+    writeFileSync(logFile, '', { flag: 'a' });
+    const stream = createWriteStream(logFile, { flags: 'a' });
+    stream.on('error', (err: any) => {
+      if (err?.code === 'ENOENT') return;
+      logger.warn(`[supervisor] log stream error for ${name}: ${err}`);
+    });
+    return stream;
+  } catch (err) {
+    logger.warn(`[supervisor] failed to open log file ${logFile} for ${name}: ${err}`);
+    return null;
+  }
+}
+
 function persist() {
   try {
     ensureStateDir();
@@ -197,16 +214,7 @@ export function startProcess(name: string, cmd: string, args: string[] = [], opt
   logger.info(`supervisor: starting ${name} -> ${cmd} ${args.join(' ')}`);
 
   const logFile = opts.logPath || join(LOGS_DIR, `${name}.log`);
-  let outStream: WriteStream | null = null;
-  try {
-    const parent = dirname(logFile);
-    if (!existsSync(parent)) mkdirSync(parent, { recursive: true });
-    outStream = createWriteStream(logFile, { flags: 'a' });
-    outStream.on('error', (err) => logger.warn(`[supervisor] log stream error for ${name}: ${err}`));
-  } catch (err) {
-    logger.warn(`[supervisor] failed to open log file ${logFile} for ${name}: ${err}`);
-    outStream = null;
-  }
+  const outStream = openLogStream(logFile, name);
 
   const spawnOpts: any = { cwd: opts.cwd || process.cwd(), shell: true };
   spawnOpts.stdio = ['ignore', 'pipe', 'pipe'];
@@ -231,6 +239,20 @@ export function startProcess(name: string, cmd: string, args: string[] = [], opt
         execCmd = process.execPath;
         execArgs = [cmd].concat(args || []);
         // avoid using a shell when running node directly
+        spawnOpts.shell = false;
+      } else if (lower === 'node' || lower.endsWith('\\node.exe') || lower.endsWith('/node.exe') || lower === 'node.exe') {
+        execCmd = process.execPath;
+        execArgs = args || [];
+        spawnOpts.shell = false;
+      } else if (process.platform === 'win32' && lower === 'npm') {
+        execCmd = 'npm.cmd';
+        execArgs = args || [];
+        spawnOpts.shell = false;
+      } else if (process.platform === 'win32' && lower === 'npx') {
+        execCmd = 'npx.cmd';
+        execArgs = args || [];
+        spawnOpts.shell = false;
+      } else if (lower.endsWith('.exe')) {
         spawnOpts.shell = false;
       }
     } catch (e) {
