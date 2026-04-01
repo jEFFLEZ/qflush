@@ -4,6 +4,9 @@
 
 The published npm package lives in `packages/spyder/` and exposes a small programmable server surface for local runtimes, memory-backed packet handling and optional bridges to A11.
 
+Do not publish from the repository root.
+The canonical npm package source for `@funeste38/spyder` is `packages/spyder/`.
+
 ## Published Package
 
 ```bash
