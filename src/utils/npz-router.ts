@@ -18,7 +18,6 @@ export const DEFAULT_LANES: Lane[] = [
   { id: 2, name: 'backup-slow', url: 'https://slow.api.local' },
 ];
 
-const STORE_FILE = path.join(process.cwd(), '.qflash', `${NS}-npz-lanes.json`);
 const DEFAULT_TIMEOUT = 3000; // ms
 const PREFERRED_TTL = 24 * 3600 * 1000; // 24h
 
@@ -42,14 +41,31 @@ const laneSuccess = new client.Counter({ name: `${NS}_lane_success_total`, help:
 const laneFailure = new client.Counter({ name: `${NS}_lane_failure_total`, help: 'NPZ lane failures', labelNames: ['host', 'lane', 'namespace'] });
 
 function ensureStoreDir() {
-  const dir = path.dirname(STORE_FILE);
+  const dir = path.dirname(getCanonicalStoreFile());
   if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+}
+
+function getCanonicalStoreFile() {
+  return path.join(process.cwd(), '.qflush', `${NS}-npz-lanes.json`);
+}
+
+function getLegacyStoreFile() {
+  return path.join(process.cwd(), '.qflash', `${NS}-npz-lanes.json`);
+}
+
+function getReadableStoreFile() {
+  const canonical = getCanonicalStoreFile();
+  if (fs.existsSync(canonical)) return canonical;
+  const legacy = getLegacyStoreFile();
+  if (fs.existsSync(legacy)) return legacy;
+  return canonical;
 }
 
 function readStore(): Store {
   try {
-    if (!fs.existsSync(STORE_FILE)) return {};
-    const raw = fs.readFileSync(STORE_FILE, 'utf8');
+    const storeFile = getReadableStoreFile();
+    if (!fs.existsSync(storeFile)) return {};
+    const raw = fs.readFileSync(storeFile, 'utf8');
     return JSON.parse(raw) as Store;
   } catch (err) {
     logger.warn(`npz-router: failed to read store ${err}`);
@@ -60,7 +76,7 @@ function readStore(): Store {
 function writeStore(s: Store) {
   try {
     ensureStoreDir();
-    fs.writeFileSync(STORE_FILE, JSON.stringify(s, null, 2), 'utf8');
+    fs.writeFileSync(getCanonicalStoreFile(), JSON.stringify(s, null, 2), 'utf8');
   } catch (err) {
     logger.warn(`npz-router: failed to write store ${err}`);
   }

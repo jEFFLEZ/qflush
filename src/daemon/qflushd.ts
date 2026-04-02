@@ -1,34 +1,42 @@
 ﻿// qflush daemon lightweight test server
 // This implementation is minimal and intended to satisfy legacy tests that expect an HTTP control server.
 
-import * as http from 'http';
-import * as fs from 'fs';
-import * as path from 'path';
-import { safeWriteFileSync, safeAppendFileSync, ensureParentDir } from '../utils/safe-fs.js';
-import { fileURLToPath } from 'url';
+import * as http from 'node:http';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
+import { safeWriteFileSync } from '../utils/safe-fs.js';
+import { fileURLToPath } from 'node:url';
 import fetch from '../utils/fetch.js';
 import { QFLUSH_MODE } from '../core/qflush-mode.js';
 import { buildChatRouterStatus, callChatBackend, probeConfiguredChatBackends } from '../core/chat-router.js';
+import { emitDiagnostic, emitEngineState, getConfig as getCopilotConfig, initCopilotBridge } from '../rome/copilot-bridge.js';
+import {
+  clearEphemeralMemory,
+  deleteEphemeralMemory,
+  getEphemeralMemory,
+  getEphemeralMemoryStatus,
+  listEphemeralMemory,
+  setEphemeralMemory,
+  touchEphemeralMemory,
+} from '../utils/ephemeral-memory.js';
 
 let _server: http.Server | null = null;
 let _state: { safeMode: boolean; mode?: string } = { safeMode: false };
-const BUILT_IN_FLOWS = ['a11.chat.v1', 'a11.memory.summary.v1', 'web_fetch', 'fs.search'];
+const BUILT_IN_FLOWS = ['a11.chat.v1', 'a11.memory.summary.v1', 'a11.memory.ephemeral.v1', 'web_fetch', 'fs.search'];
 const DEFAULT_PUBLIC_FLOWS = ['a11.chat.v1', 'a11.memory.summary.v1'];
-const DEFAULT_ADMIN_FLOWS = ['web_fetch', 'fs.search'];
+const DEFAULT_ADMIN_FLOWS = ['a11.memory.ephemeral.v1', 'web_fetch', 'fs.search'];
 const DEFAULT_INTERNAL_FLOWS: string[] = [];
+const DEFAULT_QFLUSHD_PORT = 43421;
+const QFLUSH_STATE_DIR = path.join(process.cwd(), '.qflush');
+const QFLUSH_DAEMON_STATE_PATH = path.join(QFLUSH_STATE_DIR, 'daemon.json');
 type FlowExposure = 'public' | 'admin' | 'internal' | 'unknown';
 
 function getConfiguredToken(): string {
   return String(
-    process.env.QFLUSH_TOKEN ||
-    process.env.NPZ_ADMIN_TOKEN ||
+    process.env.NEZ_SERVICE_TOKEN ||
+    process.env.NEZ_ADMIN_TOKEN ||
     ''
   ).trim();
-}
-
-function shouldProtectServiceRoutes(): boolean {
-  if (process.env.QFLUSH_REQUIRE_AUTH === '1') return true;
-  return !!getConfiguredToken();
 }
 
 function readProvidedToken(req: http.IncomingMessage): string {
@@ -38,7 +46,6 @@ function readProvidedToken(req: http.IncomingMessage): string {
   }
   return String(
     req.headers['x-qflush-token'] ||
-    req.headers['x-admin-token'] ||
     ''
   ).trim();
 }
@@ -51,9 +58,10 @@ function isAuthorized(req: http.IncomingMessage): boolean {
 }
 
 function ensureAuthorized(req: http.IncomingMessage, res: http.ServerResponse, options: { optional?: boolean } = {}) {
-  const mustProtect = shouldProtectServiceRoutes();
-  if (!mustProtect && options.optional) return true;
-  if (!mustProtect) {
+  // Always require authorization if a token is configured
+  const tokenConfigured = !!getConfiguredToken();
+  if (!tokenConfigured && options.optional) return true;
+  if (!tokenConfigured) {
     sendJson(res, 503, { ok: false, error: 'missing_token_configuration' });
     return false;
   }
@@ -69,8 +77,58 @@ function sendJson(res: http.ServerResponse, status: number, payload: unknown) {
   res.end(JSON.stringify(payload));
 }
 
+function previewBody(rawBody: string, maxLength = 160): string {
+  return String(rawBody || '')
+    .replace(/\r/g, '\\r')
+    .replace(/\n/g, '\\n')
+    .slice(0, maxLength);
+}
+
+function parseRequestPayload(rawBody: string, context = 'request body') {
+  const initial = String(rawBody || '').replace(/^\uFEFF/, '').trim();
+  if (!initial) return {};
+
+  let candidate: any = initial;
+  let lastError: unknown = null;
+
+  for (let depth = 0; depth < 3; depth += 1) {
+    if (typeof candidate !== 'string') break;
+    const text = candidate.replace(/^\uFEFF/, '').trim();
+    if (!text) return {};
+
+    try {
+      candidate = JSON.parse(text);
+      continue;
+    } catch (error) {
+      lastError = error;
+      if (depth === 0) {
+        try {
+          const repairedEscapedJson = text.replace(/(\\+)"/g, (_match, slashes: string) => `${'\\'.repeat(Math.max(0, slashes.length - 1))}"`);
+          candidate = JSON.parse(repairedEscapedJson);
+          continue;
+        } catch {
+          // fall through to secondary recovery below
+        }
+        try {
+          candidate = JSON.parse(`"${text.replace(/\r/g, '\\r').replace(/\n/g, '\\n')}"`);
+          continue;
+        } catch {
+          // fall through to enriched error below
+        }
+      }
+      break;
+    }
+  }
+
+  if (candidate == null) return {};
+  if (typeof candidate === 'object' && !Array.isArray(candidate)) return candidate;
+
+  const message = lastError instanceof Error ? lastError.message : 'invalid_json_payload';
+  throw new Error(`${context}: ${message} | preview=${previewBody(initial)}`);
+}
+
 function parseCsvList(raw: unknown): string[] {
-  return String(raw || '')
+  return String(typeof raw === 'string' ? raw : '')
     .split(',')
     .map((value) => value.trim())
     .filter(Boolean);
@@ -136,7 +194,6 @@ async function buildHealthReport(options: { probeUpstreams?: boolean } = {}) {
   const logsDir = path.join(stateDir, 'logs');
   const romeIndexPath = path.join(stateDir, 'rome-index.json');
   const checksumsPath = path.join(stateDir, 'checksums.json');
-  const authRequired = shouldProtectServiceRoutes();
   const tokenConfigured = !!getConfiguredToken();
   const flowPolicy = getFlowPolicy();
   const probeUpstreams = !!options.probeUpstreams;
@@ -160,8 +217,8 @@ async function buildHealthReport(options: { probeUpstreams?: boolean } = {}) {
       path: checksumsPath,
     },
     authConfiguration: {
-      ok: !authRequired || tokenConfigured,
-      required: authRequired,
+      ok: tokenConfigured,
+      required: true,
       tokenConfigured,
     },
     flowPolicy: {
@@ -219,13 +276,69 @@ function buildMemorySummary(payload: any) {
   };
 }
 
-async function runFlow(flow: string, payload: any = {}) {
+async function runEphemeralMemoryFlow(payload: any = {}) {
+  const op = String(payload?.op || payload?.action || 'get').trim().toLowerCase();
+  const common = {
+    key: payload?.key,
+    namespace: payload?.namespace,
+    scope: payload?.scope,
+  };
+
+  switch (op) {
+    case 'set':
+    case 'write':
+      return await setEphemeralMemory({
+        ...common,
+        value: payload?.value,
+        ttlSec: payload?.ttlSec ?? payload?.ttl ?? payload?.expiresInSec,
+        metadata: payload?.metadata,
+      });
+    case 'get':
+    case 'read':
+      return await getEphemeralMemory(common);
+    case 'list':
+      return await listEphemeralMemory({
+        namespace: payload?.namespace,
+        scope: payload?.scope,
+        prefix: payload?.prefix,
+        limit: payload?.limit,
+      });
+    case 'delete':
+    case 'remove':
+      return await deleteEphemeralMemory(common);
+    case 'clear':
+      return await clearEphemeralMemory({
+        namespace: payload?.namespace,
+        scope: payload?.scope,
+        prefix: payload?.prefix,
+      });
+    case 'touch':
+    case 'renew':
+      return await touchEphemeralMemory({
+        ...common,
+        ttlSec: payload?.ttlSec ?? payload?.ttl ?? payload?.expiresInSec,
+      });
+    case 'status':
+      return { ok: true, status: getEphemeralMemoryStatus() };
+    default:
+      return {
+        ok: false,
+        error: 'unknown_ephemeral_memory_op',
+        op,
+        allowed: ['set', 'get', 'list', 'delete', 'clear', 'touch', 'status'],
+      };
+  }
+}
+
+export async function runFlow(flow: string, payload: any = {}) {
   const normalizedFlow = String(flow || '').trim();
   switch (normalizedFlow) {
     case 'a11.chat.v1':
       return await callChatBackend(payload, payload?.provider);
     case 'a11.memory.summary.v1':
       return buildMemorySummary(payload);
+    case 'a11.memory.ephemeral.v1':
+      return await runEphemeralMemoryFlow(payload);
     case 'web_fetch': {
       const targetUrl = String(payload?.url || '').trim();
       if (!targetUrl) return { ok: false, error: 'missing_url' };
@@ -270,6 +383,20 @@ async function runFlow(flow: string, payload: any = {}) {
   }
 }
 
+export async function run(
+  inputOrFlow: { flow?: string; payload?: any } | string,
+  payload: any = {}
+) {
+  if (typeof inputOrFlow === 'string') {
+    return await runFlow(inputOrFlow, payload);
+  }
+  const flow = String(inputOrFlow?.flow || '').trim();
+  if (!flow) {
+    throw new Error('missing_flow');
+  }
+  return await runFlow(flow, inputOrFlow?.payload ?? payload);
+}
+
 async function buildStatusPayload(port: number | string, options: { probeUpstreams?: boolean } = {}) {
   const chatRouter = buildChatRouterStatus();
   const explicitUpstreamConfigured =
@@ -302,14 +429,25 @@ async function buildStatusPayload(port: number | string, options: { probeUpstrea
       memorySummaryDefault: 'a11.memory.summary.v1',
     },
     auth: {
-      protectedRoutes: shouldProtectServiceRoutes(),
+      // protectedRoutes: shouldProtectServiceRoutes(),
       tokenConfigured: !!getConfiguredToken(),
       adminRoutesRequireToken: true,
+    },
+    memory: {
+      summaryFlow: 'a11.memory.summary.v1',
+      ephemeralFlow: 'a11.memory.ephemeral.v1',
+      ephemeral: getEphemeralMemoryStatus(),
     },
     chat: {
       upstreamConfigured: explicitUpstreamConfigured,
       upstreamMode: explicitUpstreamConfigured ? 'proxy' : 'echo-fallback',
       router: chatRouter,
+    },
+    telemetry: {
+      enabled: !!getCopilotConfig()?.enabled,
+      transports: Array.isArray(getCopilotConfig()?.transports) ? getCopilotConfig().transports : [],
+      webhookConfigured: !!String(getCopilotConfig()?.webhookUrl || '').trim(),
+      filePath: getCopilotConfig()?.filePath || null,
     },
     health,
     port: Number(port),
@@ -319,13 +457,43 @@ async function buildStatusPayload(port: number | string, options: { probeUpstrea
 
 function writeSafeModes(mode: string) {
   try {
-    const dir = path.join(process.cwd(), '.qflush');
-    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-    const p = path.join(dir, 'safe-modes.json');
+    if (!fs.existsSync(QFLUSH_STATE_DIR)) fs.mkdirSync(QFLUSH_STATE_DIR, { recursive: true });
+    const p = path.join(QFLUSH_STATE_DIR, 'safe-modes.json');
     const obj = { mode, updatedAt: new Date().toISOString() };
     // use safe write
     safeWriteFileSync(p, JSON.stringify(obj, null, 2), 'utf8');
   } catch (e) { console.warn('[qflushd] writeSafeModes failed:', String(e)); }
+}
+
+function persistDaemonState(port: number) {
+  try {
+    if (!fs.existsSync(QFLUSH_STATE_DIR)) fs.mkdirSync(QFLUSH_STATE_DIR, { recursive: true });
+    safeWriteFileSync(
+      QFLUSH_DAEMON_STATE_PATH,
+      JSON.stringify(
+        {
+          pid: process.pid,
+          port,
+          startedAt: new Date().toISOString(),
+        },
+        null,
+        2
+      ),
+      'utf8'
+    );
+  } catch (e) {
+    console.warn('[qflushd] persistDaemonState failed:', String(e));
+  }
+}
+
+function clearDaemonState() {
+  try {
+    if (fs.existsSync(QFLUSH_DAEMON_STATE_PATH)) {
+      fs.unlinkSync(QFLUSH_DAEMON_STATE_PATH);
+    }
+  } catch (e) {
+    console.warn('[qflushd] clearDaemonState failed:', String(e));
+  }
 }
 
 // new helper: compute flexible checksum for a workspace file path
@@ -342,8 +510,12 @@ async function computeFlexibleChecksumForPath(relPath: string) {
       fc = null;
     }
     if (fc && typeof fc.flexibleChecksumFile === 'function') {
-      const val = await fc.flexibleChecksumFile(filePath);
-      return { success: true, checksum: String(val) };
+      try {
+        const val = await fc.flexibleChecksumFile(filePath);
+        return { success: true, checksum: String(val) };
+      } catch (e) {
+        return { success: false, error: String(e) };
+      }
     }
     return { success: false, error: 'checksum_unavailable' };
   } catch (e) {
@@ -354,11 +526,21 @@ async function computeFlexibleChecksumForPath(relPath: string) {
 export async function startServer(port?: number) {
   return new Promise((resolve, reject) => {
     try {
+      initCopilotBridge();
       if (_server) {
-        return resolve({ ok: true, port: (port || process.env.QFLUSHD_PORT || 4500) });
+        return resolve({ ok: true, port: (port || process.env.QFLUSHD_PORT || DEFAULT_QFLUSHD_PORT) });
       }
 
-      const p = port || (process.env.PORT ? Number(process.env.PORT) : process.env.QFLUSHD_PORT ? Number(process.env.QFLUSHD_PORT) : 43421);
+      let p: number;
+      if (port) {
+        p = port;
+      } else if (process.env.PORT) {
+        p = Number(process.env.PORT);
+      } else if (process.env.QFLUSHD_PORT) {
+        p = Number(process.env.QFLUSHD_PORT);
+      } else {
+        p = DEFAULT_QFLUSHD_PORT;
+      }
       const srv = http.createServer(async (req, res) => {
         try {
           const requestUrl = new URL(req.url || '/', 'http://127.0.0.1');
@@ -384,7 +566,7 @@ export async function startServer(port?: number) {
                 if (!ensureAuthorized(req, res, { optional: true })) {
                   return;
                 }
-                const payload = body ? JSON.parse(body) : {};
+                const payload = parseRequestPayload(body, 'chat_completion_payload');
                 const messages = Array.isArray(payload?.messages) ? payload.messages : null;
                 if (!messages) {
                   sendJson(res, 400, { error: 'invalid_messages' });
@@ -433,6 +615,12 @@ export async function startServer(port?: number) {
                 return;
               } catch (e) {
                 console.warn('[qflushd] chat completion error:', String(e));
+                void emitDiagnostic({
+                  severity: 'error',
+                  source: 'qflushd.chat',
+                  message: String(e),
+                  timestamp: new Date().toISOString(),
+                }).catch(() => undefined);
                 sendJson(res, 500, { error: 'internal_error' });
                 return;
               }
@@ -443,7 +631,7 @@ export async function startServer(port?: number) {
                 if (!ensureAuthorized(req, res, { optional: true })) {
                   return;
                 }
-                const payload = body ? JSON.parse(body) : {};
+                const payload = parseRequestPayload(body, 'run_payload');
                 const flow = String(payload?.flow || '').trim();
                 if (!flow) {
                   sendJson(res, 400, { ok: false, error: 'missing_flow' });
@@ -476,7 +664,7 @@ export async function startServer(port?: number) {
                 if (!ensureAuthorized(req, res)) {
                   return;
                 }
-                const payload = body ? JSON.parse(body) : {};
+                const payload = parseRequestPayload(body, 'admin_run_payload');
                 const flow = String(payload?.flow || '').trim();
                 if (!flow) {
                   sendJson(res, 400, { ok: false, error: 'missing_flow' });
@@ -503,6 +691,140 @@ export async function startServer(port?: number) {
                 sendJson(res, 500, { ok: false, error: 'internal_error', message: String(e) });
                 return;
               }
+            }
+
+            if (
+              parsed.pathname === '/memory/ephemeral/status'
+              || parsed.pathname === '/api/memory/ephemeral/status'
+            ) {
+              if (!ensureAuthorized(req, res)) {
+                return;
+              }
+              sendJson(res, 200, { ok: true, status: getEphemeralMemoryStatus() });
+              return;
+            }
+
+            if (
+              method === 'GET'
+              && (
+                parsed.pathname === '/memory/ephemeral/get'
+                || parsed.pathname === '/api/memory/ephemeral/get'
+              )
+            ) {
+              if (!ensureAuthorized(req, res)) {
+                return;
+              }
+              const result = await getEphemeralMemory({
+                key: parsed.query.key,
+                namespace: parsed.query.namespace,
+                scope: parsed.query.scope,
+              });
+              sendJson(res, 200, result);
+              return;
+            }
+
+            if (
+              method === 'GET'
+              && (
+                parsed.pathname === '/memory/ephemeral/list'
+                || parsed.pathname === '/api/memory/ephemeral/list'
+              )
+            ) {
+              if (!ensureAuthorized(req, res)) {
+                return;
+              }
+              const result = await listEphemeralMemory({
+                namespace: String(parsed.query.namespace || '').trim() || undefined,
+                scope: String(parsed.query.scope || '').trim() || undefined,
+                prefix: String(parsed.query.prefix || '').trim() || undefined,
+                limit: parsed.query.limit ? Number(parsed.query.limit) : undefined,
+              });
+              sendJson(res, 200, result);
+              return;
+            }
+
+            if (
+              method === 'POST'
+              && (
+                parsed.pathname === '/memory/ephemeral/set'
+                || parsed.pathname === '/api/memory/ephemeral/set'
+              )
+            ) {
+              if (!ensureAuthorized(req, res)) {
+                return;
+              }
+              const payload = parseRequestPayload(body, 'ephemeral_set_payload');
+              const result = await setEphemeralMemory({
+                key: payload?.key,
+                namespace: payload?.namespace,
+                scope: payload?.scope,
+                value: payload?.value,
+                metadata: payload?.metadata,
+                ttlSec: payload?.ttlSec ?? payload?.ttl ?? payload?.expiresInSec,
+              });
+              sendJson(res, 200, result);
+              return;
+            }
+
+            if (
+              method === 'POST'
+              && (
+                parsed.pathname === '/memory/ephemeral/touch'
+                || parsed.pathname === '/api/memory/ephemeral/touch'
+              )
+            ) {
+              if (!ensureAuthorized(req, res)) {
+                return;
+              }
+              const payload = parseRequestPayload(body, 'ephemeral_touch_payload');
+              const result = await touchEphemeralMemory({
+                key: payload?.key,
+                namespace: payload?.namespace,
+                scope: payload?.scope,
+                ttlSec: payload?.ttlSec ?? payload?.ttl ?? payload?.expiresInSec,
+              });
+              sendJson(res, 200, result);
+              return;
+            }
+
+            if (
+              method === 'POST'
+              && (
+                parsed.pathname === '/memory/ephemeral/delete'
+                || parsed.pathname === '/api/memory/ephemeral/delete'
+              )
+            ) {
+              if (!ensureAuthorized(req, res)) {
+                return;
+              }
+              const payload = parseRequestPayload(body, 'ephemeral_delete_payload');
+              const result = await deleteEphemeralMemory({
+                key: payload?.key,
+                namespace: payload?.namespace,
+                scope: payload?.scope,
+              });
+              sendJson(res, 200, result);
+              return;
+            }
+
+            if (
+              (method === 'DELETE' || method === 'POST')
+              && (
+                parsed.pathname === '/memory/ephemeral/clear'
+                || parsed.pathname === '/api/memory/ephemeral/clear'
+              )
+            ) {
+              if (!ensureAuthorized(req, res)) {
+                return;
+              }
+              const payload = parseRequestPayload(body, 'ephemeral_clear_payload');
+              const result = await clearEphemeralMemory({
+                namespace: String(payload?.namespace || parsed.query.namespace || '').trim() || undefined,
+                scope: String(payload?.scope || parsed.query.scope || '').trim() || undefined,
+                prefix: String(payload?.prefix || parsed.query.prefix || '').trim() || undefined,
+              });
+              sendJson(res, 200, result);
+              return;
             }
 
             // Token protected endpoints
@@ -575,7 +897,7 @@ export async function startServer(port?: number) {
             }
 
             // checksum endpoints
-            if (parsed.pathname && parsed.pathname.indexOf('/npz/checksum') === 0) {
+            if (parsed.pathname?.startsWith('/npz/checksum')) {
               try {
                 const baseDir = path.join(process.cwd(), '.qflush');
                 if (!fs.existsSync(baseDir)) fs.mkdirSync(baseDir, { recursive: true });
@@ -586,7 +908,7 @@ export async function startServer(port?: number) {
                 // POST /npz/checksum/store
                 if (method === 'POST' && parsed.pathname === '/npz/checksum/store') {
                   try {
-                    const obj = body ? JSON.parse(body) : {};
+                    const obj = parseRequestPayload(body, 'checksum_store_payload');
                     const id = obj.id;
                     let checksum = obj.checksum;
                     const ttlMs = obj.ttlMs ? Number(obj.ttlMs) : undefined;
@@ -630,7 +952,7 @@ export async function startServer(port?: number) {
                 // POST /npz/checksum/compute
                 if (method === 'POST' && parsed.pathname === '/npz/checksum/compute') {
                   try {
-                    const obj = body ? JSON.parse(body) : {};
+                    const obj = parseRequestPayload(body, 'checksum_compute_payload');
                     const rel = obj.path;
                     if (!rel) {
                       res.writeHead(400, { 'Content-Type': 'application/json' });
@@ -656,7 +978,7 @@ export async function startServer(port?: number) {
                 // POST /npz/checksum/verify
                 if (method === 'POST' && parsed.pathname === '/npz/checksum/verify') {
                   try {
-                    const obj = body ? JSON.parse(body) : {};
+                    const obj = parseRequestPayload(body, 'checksum_verify_payload');
                     const id = obj.id;
                     let checksum = obj.checksum;
                     const filePath = obj.path;
@@ -739,6 +1061,12 @@ export async function startServer(port?: number) {
         } catch (e) {
           try { res.writeHead(500, { 'Content-Type': 'application/json' }); res.end(JSON.stringify({ error: String(e) })); } catch (_) { console.warn('[qflushd] failed to write 500 response'); }
           console.warn('[qflushd] server handler error:', String(e));
+          void emitDiagnostic({
+            severity: 'error',
+            source: 'qflushd.http',
+            message: String(e),
+            timestamp: new Date().toISOString(),
+          }).catch(() => undefined);
         }
       });
 
@@ -760,16 +1088,40 @@ export async function startServer(port?: number) {
 
       srv.listen(p, '0.0.0.0', () => {
         _server = srv;
+        persistDaemonState(p);
         try {
           const addr = srv.address();
           const addrStr = typeof addr === 'string' ? addr : `${(addr as any)?.address}:${(addr as any)?.port}`;
-          console.warn(`[qflushd] ✅ listening on port ${p} (${addrStr})`);
-          console.warn(`[qflushd] health check: http://0.0.0.0:${p}/health`);
+          console.log(`[qflushd] listening on port ${p} (${addrStr})`);
+          console.log(`[qflushd] health check: http://127.0.0.1:${p}/health`);
         } catch (e) { console.warn('[qflushd] failed to get server address:', String(e)); }
+        void emitEngineState({
+          rules: [],
+          indexSummary: { count: 0, byType: {} },
+          runningServices: ['qflushd'],
+          config: {
+            mode: QFLUSH_MODE,
+            port: p,
+            telemetryEnabled: !!getCopilotConfig()?.enabled,
+            transports: getCopilotConfig()?.transports || [],
+          },
+        }).catch(() => undefined);
+        void emitDiagnostic({
+          severity: 'info',
+          source: 'qflushd.start',
+          message: `qflushd prêt sur le port ${p}`,
+          timestamp: new Date().toISOString(),
+        }).catch(() => undefined);
         resolve({ ok: true, port: p });
       });
 
       srv.on('error', (err: any) => {
+        void emitDiagnostic({
+          severity: 'error',
+          source: 'qflushd.listen',
+          message: String(err?.message || err),
+          timestamp: new Date().toISOString(),
+        }).catch(() => undefined);
         // If address already in use, attempt to probe existing server on the same port
         if (err?.code === 'EADDRINUSE') {
           try {
@@ -806,7 +1158,10 @@ export async function stopServer() {
       if (!_server) return resolve({ ok: true, stopped: false });
       const s = _server;
       _server = null;
-      s.close(() => resolve({ ok: true, stopped: true }));
+      s.close(() => {
+        clearDaemonState();
+        resolve({ ok: true, stopped: true });
+      });
     } catch (e) {
       resolve({ ok: false, error: String(e) });
     }
@@ -819,15 +1174,82 @@ export default { startServer, stopServer };
 const __filename = fileURLToPath(import.meta.url);
 const _argv1 = process.argv && process.argv[1] ? path.resolve(process.argv[1]) : '';
 if (_argv1 === __filename) {
-  const port = process.env.PORT ? Number(process.env.PORT) : process.env.QFLUSHD_PORT ? Number(process.env.QFLUSHD_PORT) : 3000;
-  console.warn(`[qflushd] starting with PORT=${process.env.PORT}, QFLUSHD_PORT=${process.env.QFLUSHD_PORT}, resolved to: ${port}`);
+  let port: number;
+  if (process.env.PORT) {
+    port = Number(process.env.PORT);
+  } else if (process.env.QFLUSHD_PORT) {
+    port = Number(process.env.QFLUSHD_PORT);
+  } else {
+    port = DEFAULT_QFLUSHD_PORT;
+  }
+  console.log(`[qflushd] starting with PORT=${process.env.PORT}, QFLUSHD_PORT=${process.env.QFLUSHD_PORT}, resolved to: ${port}`);
   (async () => {
     try {
       await startServer(port);
-      console.warn('[qflushd] ✅ server ready');
+      console.log('[qflushd] server ready');
+      if (process.env.QFLUSH_WATCHDOG !== '0') {
+        startWatchdog();
+      }
     } catch (e) {
       console.error('[qflushd] ❌ failed to start', e);
       process.exit(1);
     }
   })();
 }
+
+process.on('exit', () => {
+  clearDaemonState();
+});
+
+process.on('SIGINT', () => {
+  clearDaemonState();
+  process.exit(0);
+});
+
+process.on('SIGTERM', () => {
+  clearDaemonState();
+  process.exit(0);
+});
+
+// --- QFLUSH WATCHDOG ---
+function startWatchdog({ url = 'http://127.0.0.1:' + (process.env.PORT || process.env.QFLUSHD_PORT || 43421) + '/health', intervalMs = 5000, maxFailures = 3 } = {}) {
+  let failures = 0;
+  async function check() {
+    try {
+      const parsed = new URL(url);
+      const statusCode = await new Promise<number>((resolve, reject) => {
+        const req = http.request({
+          hostname: parsed.hostname,
+          port: parsed.port ? Number(parsed.port) : (parsed.protocol === 'https:' ? 443 : 80),
+          path: `${parsed.pathname || '/'}${parsed.search || ''}`,
+          method: 'GET',
+          timeout: 2000,
+        }, (res) => {
+          res.resume();
+          resolve(Number(res.statusCode || 0));
+        });
+        req.on('timeout', () => req.destroy(new Error('timeout')));
+        req.on('error', reject);
+        req.end();
+      });
+      if (statusCode >= 200 && statusCode < 300) {
+        failures = 0;
+        return;
+      }
+      failures++;
+      console.warn(`[WATCHDOG] Healthcheck failed (HTTP ${statusCode}), failures: ${failures}`);
+    } catch (e) {
+      failures++;
+      const msg = (typeof e === 'object' && e && 'message' in e) ? (e as any).message : String(e);
+      console.warn(`[WATCHDOG] Healthcheck error: ${msg}, failures: ${failures}`);
+    }
+    if (failures >= maxFailures) {
+      console.error(`[WATCHDOG] ${failures} healthcheck failures, exiting for platform restart.`);
+      process.exit(1);
+    }
+  }
+  setInterval(check, intervalMs);
+  check();
+}
+
+// --- END QFLUSH WATCHDOG ---

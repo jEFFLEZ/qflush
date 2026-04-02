@@ -1,5 +1,9 @@
 import { createRequire } from 'module';
+import { pathToFileURL } from 'node:url';
 const require = createRequire(import.meta.url);
+
+export { registerHorn, scream, useHorn, listHorns } from './core/horn.js';
+export { run, runFlow, startServer, stopServer } from './daemon/qflushd.js';
 
 // ROME-TAG: 0x2A0018
 
@@ -50,7 +54,9 @@ import { runCompose } from "./commands/compose.js";
 import { runDoctor } from "./commands/doctor.js";
 import runNpzInspect from "./commands/npz-inspect.js";
 import runNpzScores from "./commands/npz-scores.js";
+import { runInspect } from "./commands/inspect.js";
 import { runLicense } from "./commands/license.js";
+import runEnv from "./commands/env.js";
 import runChecksum from "./commands/checksum.js";
 import runEngine from "./commands/engine.js";
 import runLogic from "./commands/logic.js";
@@ -59,14 +65,24 @@ import runCopilotBridge from "./commands/copilot-bridge.js";
 import runRomeLinks from "./commands/rome-links.js";
 import runA11 from "./commands/a11.js";
 import runSpyder from "./commands/spyder.js";
+import runAllmight from "./commands/allmight.js";
 import { spawn } from 'child_process';
 import { enterSleepMode, exitSleepMode, jokerWipe } from './services.js';
 import { startQflushSystem } from './core/start-system.js';
 import { runPiccolo } from "./commands/piccolo.js";
-import './services/index';
+import './services/index.js';
+
+const isEntrypoint = (() => {
+  try {
+    const entry = process.argv[1];
+    return !!entry && import.meta.url === pathToFileURL(entry).href;
+  } catch {
+    return false;
+  }
+})();
 
 // Only run the CLI dispatch when this module is the entrypoint
-if (typeof require !== 'undefined' && require.main === module) {
+if (isEntrypoint) {
   const argv = process.argv.slice(2);
   let cliHandled = false;
   if (argv.includes("--help") || argv.includes("-h")) {
@@ -112,6 +128,18 @@ if (typeof require !== 'undefined' && require.main === module) {
     void runCompose(argv.slice(1));
     process.exit(0);
   }
+  if (first === "inspect") {
+    (async () => {
+      try {
+        await runInspect();
+        process.exit(0);
+      } catch (err) {
+        console.error("inspect failed", err);
+        process.exit(1);
+      }
+    })();
+    cliHandled = true;
+  }
   if (first === 'apply') {
     (async () => {
       try {
@@ -134,6 +162,18 @@ if (typeof require !== 'undefined' && require.main === module) {
     void runDoctor(argv.slice(1));
     process.exit(0);
   }
+  if (first === "env") {
+    (async () => {
+      try {
+        const code = await runEnv(argv.slice(1));
+        process.exit(code ?? 0);
+      } catch (err) {
+        console.error("env command failed", err);
+        process.exit(1);
+      }
+    })();
+    cliHandled = true;
+  }
   if (first === "daemon") {
     // Default to detached mode to avoid launching heavy in-process work (opens files, scanners).
     // Pass `--no-detach` to run in-process explicitly.
@@ -155,16 +195,24 @@ if (typeof require !== 'undefined' && require.main === module) {
           process.exit(0);
         }
       } catch (e) {
-        // fallback to detached child process
-        try {
-          const child = spawn(process.execPath, ['dist/daemon/qflushd.js'], { detached: true, stdio: 'ignore' });
-          child.unref();
-          console.log('qflushd spawned detached (fallback)');
-          process.exit(0);
-        } catch (err) {
-          console.error('failed to spawn detached daemon', err);
-          process.exit(1);
-        }
+        console.warn('detached spawn via bat unavailable, using fallback:', e);
+      }
+      // fallback to detached child process
+      try {
+        const child = spawn(process.execPath, ['dist/daemon/qflushd.js'], {
+          detached: true,
+          stdio: 'ignore',
+          env: {
+            ...process.env,
+            QFLUSHD_PORT: process.env.QFLUSHD_PORT || '43421'
+          }
+        });
+        child.unref();
+        console.log('qflushd spawned detached (fallback)');
+        process.exit(0);
+      } catch (err) {
+        console.error('failed to spawn detached daemon', err);
+        process.exit(1);
       }
     }
 
@@ -192,6 +240,14 @@ if (typeof require !== 'undefined' && require.main === module) {
       const code = await runSpyder(argv.slice(1));
       process.exit(code ?? 0);
     })();
+  }
+
+  if (first === 'allmight') {
+    (async () => {
+      const code = await runAllmight(argv.slice(1));
+      process.exit(code ?? 0);
+    })();
+    cliHandled = true;
   }
 
   if (first === 'engine' ) {
@@ -337,9 +393,13 @@ if (typeof require !== 'undefined' && require.main === module) {
   if (!cliHandled) {
     const { pipeline, options } = buildPipeline(argv);
 
-    executePipeline(pipeline, options).catch((err) => {
-      console.error("qflush: fatal", err);
-      process.exit(1);
-    });
+    executePipeline(pipeline, options)
+      .then(() => {
+        process.exit(0);
+      })
+      .catch((err) => {
+        console.error("qflush: fatal", err);
+        process.exit(1);
+      });
   }
 }

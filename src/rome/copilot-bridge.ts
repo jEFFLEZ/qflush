@@ -40,6 +40,70 @@ const ENV_DISABLE_COPILOT =
   String(process.env.QFLUSH_DISABLE_COPILOT).toLowerCase() === 'true' ||
   process.env.QFLUSH_TELEMETRY === '0';
 
+const ENV_ENABLE_COPILOT =
+  process.env.QFLUSH_ENABLE_COPILOT === '1' ||
+  String(process.env.QFLUSH_ENABLE_COPILOT).toLowerCase() === 'true' ||
+  process.env.QFLUSH_COPILOT_ENABLED === '1' ||
+  String(process.env.QFLUSH_COPILOT_ENABLED).toLowerCase() === 'true';
+
+function parseListEnv(value?: string | null) {
+  return String(value || '')
+    .split(/[;,]+/)
+    .map((entry) => entry.trim())
+    .filter(Boolean);
+}
+
+function applyEnvOverrides() {
+  const webhookUrl =
+    String(
+      process.env.QFLUSH_COPILOT_WEBHOOK_URL ||
+      process.env.SLACK_WEBHOOK_URL ||
+      process.env.COPILOT_WEBHOOK_URL ||
+      process.env.WEBHOOK_URL ||
+      ''
+    ).trim();
+  const transports = parseListEnv(process.env.QFLUSH_COPILOT_TRANSPORTS);
+  const filePath = String(process.env.QFLUSH_COPILOT_FILE_PATH || '').trim();
+  const allowedData = parseListEnv(process.env.QFLUSH_COPILOT_ALLOWED_DATA);
+  const hmacSecretEnv = String(process.env.QFLUSH_COPILOT_HMAC_SECRET_ENV || '').trim();
+  const samplingRate = Number(process.env.QFLUSH_COPILOT_SAMPLING_RATE || '');
+  const maxPayloadSize = Number(process.env.QFLUSH_COPILOT_MAX_PAYLOAD_SIZE || '');
+
+  if (ENV_ENABLE_COPILOT) {
+    cfg.enabled = true;
+  }
+  if (webhookUrl) {
+    cfg.webhookUrl = webhookUrl;
+    if (!cfg.transports.includes('webhook')) {
+      cfg.transports = Array.from(new Set([...(cfg.transports || []), 'webhook']));
+    }
+  }
+  if (transports.length) {
+    cfg.transports = transports.filter((entry): entry is 'webhook'|'sse'|'file' =>
+      entry === 'webhook' || entry === 'sse' || entry === 'file'
+    );
+  }
+  if (filePath) {
+    cfg.filePath = filePath;
+  }
+  if (allowedData.length) {
+    cfg.allowedData = allowedData;
+  }
+  if (hmacSecretEnv) {
+    cfg.hmacSecretEnv = hmacSecretEnv;
+  }
+  if (Number.isFinite(samplingRate) && samplingRate > 0) {
+    cfg.samplingRate = samplingRate;
+  }
+  if (Number.isFinite(maxPayloadSize) && maxPayloadSize > 0) {
+    cfg.maxPayloadSize = maxPayloadSize;
+  }
+
+  if (cfg.enabled && !cfg.transports.length) {
+    cfg.transports = ['file'];
+  }
+}
+
 function loadCfg() {
   try {
     const p = path.join(process.cwd(), '.qflush', 'copilot.json');
@@ -53,22 +117,76 @@ function loadCfg() {
     cfg = Object.assign({}, DEFAULT_CONFIG);
   }
 
+  applyEnvOverrides();
+
   if (ENV_DISABLE_COPILOT) {
     cfg.enabled = false;
   }
 }
 
+function isSlackIncomingWebhook(url?: string | null) {
+  const value = String(url || '').trim().toLowerCase();
+  return value.startsWith('https://hooks.slack.com/services/');
+}
+
+function truncateSlackText(value: unknown, maxLength = 2800) {
+  const text = String(value ?? '').replace(/\s+/g, ' ').trim();
+  if (!text) return '';
+  return text.length <= maxLength ? text : `${text.slice(0, Math.max(0, maxLength - 1)).trimEnd()}…`;
+}
+
+function buildSlackWebhookPayload(event: TelemetryEvent) {
+  const type = String(event?.type || 'telemetry').trim();
+  const payload = event?.payload && typeof event.payload === 'object' ? event.payload as Record<string, unknown> : {};
+  const source = truncateSlackText(payload?.source || payload?.service || 'qflush', 80);
+  const severity = truncateSlackText(payload?.severity || '', 40);
+  const summary =
+    truncateSlackText(payload?.message || payload?.summary || payload?.ruleId || type, 1000) ||
+    `${type} event`;
+  const context = truncateSlackText(JSON.stringify(payload), 1400);
+  const titleBits = ['QFLUSH'];
+  if (severity) titleBits.push(severity.toUpperCase());
+  titleBits.push(type);
+  const lines = [
+    `*${titleBits.join(' · ')}*`,
+    source ? `Source: ${source}` : '',
+    `Message: ${summary}`,
+    context ? `Context: \`${context}\`` : '',
+  ].filter(Boolean);
+  return { text: lines.join('\n') };
+}
+
 async function sendWebhook(event: TelemetryEvent) {
   if (!cfg.enabled) return;
   if (!cfg.webhookUrl) return;
+  let timeout: NodeJS.Timeout | null = null;
   try {
-    const payload = JSON.stringify(event);
+    const payload = JSON.stringify(
+      isSlackIncomingWebhook(cfg.webhookUrl)
+        ? buildSlackWebhookPayload(event)
+        : event
+    );
     const headers: any = { 'Content-Type': 'application/json' };
     const fetch = await resolveFetch();
     if (!fetch) return;
-    await fetch(cfg.webhookUrl, { method: 'POST', body: payload, headers });
+    const controller = new AbortController();
+    timeout = setTimeout(() => controller.abort(), 2500);
+    const response = await fetch(cfg.webhookUrl, {
+      method: 'POST',
+      body: payload,
+      headers,
+      signal: controller.signal as any,
+    } as any);
+    clearTimeout(timeout);
+    timeout = null;
+    if (response && 'ok' in response && !response.ok) {
+      throw new Error(`slack_webhook_failed:${(response as any).status}`);
+    }
   } catch (e) {
-    // best-effort
+    // Keep telemetry strictly best-effort and never block qflush behavior.
+    console.warn('[QFLUSH][COPILOT] webhook delivery skipped:', e instanceof Error ? e.message : String(e));
+  } finally {
+    if (timeout) clearTimeout(timeout);
   }
 }
 
@@ -91,6 +209,8 @@ function writeFileEvent(event: TelemetryEvent) {
 export function initCopilotBridge() {
   loadCfg();
   if (!cfg.enabled) return;
+  // Log explicite de la config webhook au démarrage
+  console.log('[QFLUSH][COPILOT] Telemetry enabled:', cfg.enabled, '| webhookUrl:', cfg.webhookUrl, '| transports:', cfg.transports);
 }
 
 export async function emitEngineState(state: EngineState) {
@@ -111,12 +231,22 @@ export async function emitRuleEvent(ev: RuleEvent) {
   emitter.emit('telemetry', event);
 }
 
-export async function emitDiagnostic(diag: Diagnostic) {
+export async function emitDiagnostic(diag: Diagnostic & { user?: string; context?: any; stack?: string }) {
   if (!cfg.enabled) return;
-  const event: TelemetryEvent = { type: 'diagnostic', telemetryVersion: cfg.telemetryVersion, timestamp: new Date().toISOString(), payload: diag };
+  // Ajoute le maximum d'infos dans le payload
+  const payload = {
+    ...diag,
+    user: diag.user || (typeof process !== 'undefined' && process.env.USER) || null,
+    context: diag.context || {},
+    stack: diag.stack || (diag instanceof Error ? diag.stack : undefined) || undefined,
+    hostname: (typeof process !== 'undefined' && process.env.HOSTNAME) || undefined,
+    cwd: (typeof process !== 'undefined' && process.cwd && process.cwd()) || undefined,
+    timestamp: diag.timestamp || new Date().toISOString(),
+  };
+  const event: TelemetryEvent = { type: 'diagnostic', telemetryVersion: cfg.telemetryVersion, timestamp: new Date().toISOString(), payload };
   if (cfg.transports.includes('webhook')) await sendWebhook(event);
   if (cfg.transports.includes('file')) writeFileEvent(event);
-  try { saveTelemetryEvent('diag-'+Date.now(), 'diagnostic', Date.now(), diag); } catch (e) {}
+  try { saveTelemetryEvent('diag-'+Date.now(), 'diagnostic', Date.now(), payload); } catch (e) {}
   emitter.emit('telemetry', event);
 }
 

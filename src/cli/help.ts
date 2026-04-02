@@ -14,7 +14,9 @@ Commands:
   kill         Kill running services
   purge        Clear caches, logs and sessions
   inspect      Show running services and ports
+  allmight     Audit duplicate families, repo families, and publish/bin collisions
   config       Generate missing .env/config files
+  env          Manage env profiles (.qflush/env.profiles.json|yaml)
   secret import  Import secrets from a .env file into local encrypted store (Windows DPAPI)
 
 Options (examples):
@@ -27,6 +29,12 @@ Examples:
   qflush start --service rome --path D:/rome
   qflush start --service nezlephant --service freeland --fresh
   qflush config --service freeland
+  qflush env init
+  qflush env check dev
+  qflush env generate railway --out .env.generated
+  qflush allmight propose D:/SPYDER
+  qflush allmight multi-scan D:/funesterie/a11/a11qflushrailway D:/qflush D:/envaptex
+  qflush allmight doctor publish D:/qflush
   qflush purge --fresh
 
 Scripts & helpers:

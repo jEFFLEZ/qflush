@@ -124,6 +124,9 @@ function persistSpyderAdminPort(spyPort: number) {
 // Ensure a package at prefixPath has build artifacts, try to build if missing
 export async function ensureBuiltIfNeeded(prefixPath: string): Promise<boolean> {
   try {
+    const npmBuild = process.platform === 'win32'
+      ? { cmd: 'cmd.exe', args: ['/d', '/s', '/c', 'npm', '--prefix'] as string[] }
+      : { cmd: 'npm', args: ['--prefix'] as string[] };
     const candidates = [
       prefixPath,
       path.join(prefixPath, 'spyder'),
@@ -146,7 +149,7 @@ export async function ensureBuiltIfNeeded(prefixPath: string): Promise<boolean> 
         if (!pj || !pj.scripts || !pj.scripts.build) continue;
 
         logger.info(`Local package at ${cand} missing dist; running build...`);
-        const r = spawnSync('npm', ['--prefix', cand, 'run', 'build'], { stdio: 'inherit' });
+        const r = spawnSync(npmBuild.cmd, [...npmBuild.args, cand, 'run', 'build'], { stdio: 'inherit' });
         if (r.status === 0) {
           const distEntry = path.join(cand, 'dist', 'index.js');
           if (fs.existsSync(distEntry)) return true;
@@ -298,12 +301,20 @@ export async function resolveRunCommandForPackage(mod: string, pkgPath: string, 
     logger.warn(`${mod} bin entry not found at ${binPath}. ${rebuildInstructionsFor(pkgPath)}`);
   }
 
-  // 2) package start script
+  // 2) package main entry for internal packages published without bin/start
+  if (pkgJson?.main) {
+    const mainEntry = path.join(pkgPath, pkgJson.main);
+    if (pathExists(mainEntry)) {
+      return { cmd: process.execPath, args: [mainEntry], cwd: pkgPath };
+    }
+  }
+
+  // 3) package start script
   if (pkgJson?.scripts?.start) {
     return { cmd: 'npm', args: ['--prefix', pkgPath, 'run', 'start'], cwd: pkgPath, buildPrefix: pkgPath };
   }
 
-  // 3) try common subpackage locations
+  // 4) try common subpackage locations
   const subCandidates = ['spyder', 'apps/spyder-core'];
   for (const sub of subCandidates) {
     try {
@@ -311,6 +322,12 @@ export async function resolveRunCommandForPackage(mod: string, pkgPath: string, 
       const subPkgJsonPath = path.join(subPkg, 'package.json');
       if (fs.existsSync(subPkgJsonPath)) {
         const subPkgJson = readPackageJson(subPkg);
+        if (subPkgJson?.main) {
+          const subMainEntry = path.join(subPkg, subPkgJson.main);
+          if (pathExists(subMainEntry)) {
+            return { cmd: process.execPath, args: [subMainEntry], cwd: subPkg };
+          }
+        }
         if (subPkgJson?.scripts?.start) {
           return { cmd: 'npm', args: ['--prefix', subPkg, 'run', 'start'], cwd: subPkg, buildPrefix: subPkg };
         }
@@ -318,7 +335,7 @@ export async function resolveRunCommandForPackage(mod: string, pkgPath: string, 
     } catch (_) {}
   }
 
-  // 4) fallback to merged resolver will be handled by caller
+  // 5) fallback to merged resolver will be handled by caller
   return null;
 }
 
@@ -532,6 +549,8 @@ export async function startModule(mod: string, opts: qflushOptions | undefined, 
 export async function runStart(opts?: qflushOptions) {
   logger.info("qflush: starting modules...");
 
+  const services = opts?.services?.length ? opts.services : Object.keys(SERVICE_MAP);
+
   // ensure .qflush and logs dir exist early to avoid races when starting services
   try {
     const qflushDir = path.join(process.cwd(), '.qflush');
@@ -545,14 +564,15 @@ export async function runStart(opts?: qflushOptions) {
   // Respect CI/dev flag to disable supervisor starting external services
   const disableSupervisor = process.env.QFLUSH_DISABLE_SUPERVISOR === '1' || String(process.env.QFLUSH_DISABLE_SUPERVISOR).toLowerCase() === 'true';
   if (disableSupervisor) {
+    if (services.includes('spyder')) {
+      await probeAndPersistSpyderPort();
+    }
     logger.warn('QFLUSH supervisor disabled via QFLUSH_DISABLE_SUPERVISOR, skipping start of external modules');
     return;
   }
 
   const detected = opts?.detected || (await detectModules());
   const paths = resolvePaths(detected);
-
-  const services = opts?.services?.length ? opts.services : Object.keys(SERVICE_MAP);
   const flags = opts?.flags || {};
 
   const waitForStart = Boolean(flags["wait"] || flags["--wait"] || false);

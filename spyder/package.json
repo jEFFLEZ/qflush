@@ -1,7 +1,8 @@
 {
   "name": "@funeste38/spyder",
-  "version": "1.0.3",
-  "description": "Spyder package for Funesterie — local assistant components",
+  "version": "1.0.5",
+  "private": true,
+  "description": "Spyder workspace wrapper kept for qflush local tooling. Do not publish from this folder.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
@@ -19,11 +20,15 @@
     "type": "git",
     "url": "https://github.com/jEFFLEZ/spyder.git"
   },
+  "bugs": {
+    "url": "https://github.com/jEFFLEZ/spyder/issues"
+  },
+  "homepage": "https://github.com/jEFFLEZ/spyder#readme",
   "author": "jEFFLEZ",
   "license": "MIT",
   "dependencies": {
-    "@funeste38/freeland": "*",
-    "@funeste38/nezlephant": "*"
+    "@funeste38/freeland": "^0.2.2",
+    "@funeste38/nezlephant": "^1.0.4"
   },
   "publishConfig": {
     "access": "public"
